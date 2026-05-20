@@ -1,0 +1,50 @@
+Oracle Instant Client 配置说明
+
+为了让OracleBatchUpdater.exe能够连接Oracle数据库，需要配置Oracle客户端库。
+
+方法一：使用Oracle Instant Client（推荐）
+
+1. 下载Oracle Instant Client
+   - 访问: https://www.oracle.com/database/technologies/instant-client/downloads.html
+   - 选择适合你系统的版本（Windows 7/10/Server 2008/2012）
+   - 下载Basic或Basic Light版本
+
+2. 解压到本地目录
+   例如: C:\oracle\instantclient_19_8
+
+3. 配置环境变量
+   - 右键"我的电脑" -> 属性 -> 高级系统设置
+   - 点击"环境变量"
+   - 在系统变量中：
+     * 新建变量: ORACLE_HOME = C:\oracle\instantclient_19_8
+     * 编辑PATH，添加: C:\oracle\instantclient_19_8
+
+4. 或者将Instant Client放在程序同目录下
+   将instantclient目录放在OracleBatchUpdater.exe同目录即可
+
+方法二：使用已安装的Oracle客户端
+
+如果系统已安装Oracle客户端（如PL/SQL Developer）：
+1. 找到Oracle客户端的bin目录
+2. 将路径添加到系统PATH环境变量
+3. 或将OracleBatchUpdater.exe放在Oracle客户端bin目录
+
+验证配置
+
+1. 打开命令提示符
+2. 运行: tnsping 你的服务名
+3. 如果显示"TNS-03505"，说明可以解析服务名
+4. 运行程序测试连接
+
+常见问题
+
+Q: 提示"找不到Oracle客户端库"？
+A: 确保Oracle Instant Client已正确配置且PATH已更新
+
+Q: 提示"ORA-12154: TNS: 无法解析服务名"？
+A: 检查服务名是否正确，或在连接配置中使用完整TNS连接字符串
+
+Q: 64位还是32位？
+A: 选择与你的Windows系统匹配的版本（通常64位）
+   - Windows 7 64位: 下载64位版本
+   - Windows 7 32位: 下载32位版本

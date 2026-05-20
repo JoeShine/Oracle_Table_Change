@@ -1,0 +1,18 @@
+{
+  "last_used": {
+    "connection_name": "测试数据库",
+    "target_table": "TEST_TABLE",
+    "key_column": "ID",
+    "update_column": "VALUE"
+  },
+  "connections": [
+    {
+      "name": "测试数据库",
+      "host": "192.168.1.100",
+      "port": 1521,
+      "service": "TESTDB",
+      "username": "TEST_USER",
+      "password": "test123"
+    }
+  ]
+}

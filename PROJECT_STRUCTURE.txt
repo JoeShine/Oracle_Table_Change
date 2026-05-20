@@ -1,0 +1,120 @@
+Oracle数据库批量更新工具 - 项目结构说明
+
+项目根目录
+│
+├── main.py                      # 程序入口文件
+├── requirements.txt             # Python依赖列表
+├── OracleBatchUpdater.spec       # PyInstaller打包配置
+│
+├── src/                         # 源代码目录
+│   ├── __init__.py             # 包初始化文件
+│   ├── config_manager.py       # 配置管理模块
+│   ├── logger.py               # 日志管理模块
+│   ├── db_connection.py        # 数据库连接模块
+│   ├── excel_handler.py        # Excel处理模块
+│   ├── data_updater.py          # 数据更新逻辑模块
+│   └── gui.py                  # GUI界面模块
+│
+├── config.json                  # 配置文件（运行时生成）
+│
+├── logs/                        # 日志目录（运行时生成）
+│   └── update_*.log            # 更新日志文件
+│
+├── backups/                      # 备份目录（运行时生成）
+│   └── *_BAK_*                 # 数据库备份表
+│
+├── dist/                        # 打包输出目录（打包后生成）
+│   └── OracleBatchUpdater.exe  # 打包后的可执行文件
+│
+└── 脚本文件（Windows批处理）
+    ├── install.bat              # 安装依赖脚本
+    ├── build.bat                # 简化打包脚本
+    ├── package.bat              # 完整打包脚本
+    └── verify.bat               # 验证脚本
+
+文件说明
+═══════════════════════════════════════════════════════════════
+
+核心模块说明
+───────────────────────────────────────────────────────────────
+
+1. main.py
+   - 程序入口点
+   - 初始化GUI并启动主循环
+
+2. config_manager.py
+   - 管理数据库连接配置
+   - 保存和加载用户配置
+   - 自动保存最近使用的配置
+
+3. logger.py
+   - 日志记录功能
+   - 支持INFO、SUCCESS、ERROR、WARNING级别
+   - 记录失败记录
+   - 导出日志到文件
+
+4. db_connection.py
+   - Oracle数据库连接管理
+   - 执行SQL语句
+   - 获取表和列信息
+   - 事务管理
+
+5. excel_handler.py
+   - 读取Excel文件
+   - 验证Excel格式
+   - 导出日志和失败记录到Excel
+   - 数据预览
+
+6. data_updater.py
+   - 表备份功能
+   - 临时表管理
+   - Excel数据导入
+   - 数据更新执行
+   - 错误处理
+
+7. gui.py
+   - 图形用户界面
+   - 数据库连接配置面板
+   - 更新参数配置面板
+   - 日志显示面板
+   - 进度显示
+   - 失败记录弹窗
+
+配置文件说明
+───────────────────────────────────────────────────────────────
+
+config.json 结构：
+{
+  "last_used": {
+    "connection_name": "上次使用的连接名",
+    "target_table": "上次使用的表名",
+    "key_column": "上次使用的标识列",
+    "update_column": "上次使用的更新列"
+  },
+  "connections": [
+    {
+      "name": "连接名称",
+      "host": "主机地址",
+      "port": 1521,
+      "service": "服务名",
+      "username": "用户名",
+      "password": "密码"
+    }
+  ]
+}
+
+使用说明
+═══════════════════════════════════════════════════════════════
+
+开发模式运行：
+  python main.py
+
+打包为exe：
+  Windows: 运行 package.bat
+  或手动: pyinstaller OracleBatchUpdater.spec --clean
+
+安装依赖：
+  pip install -r requirements.txt
+
+验证安装：
+  Windows: 运行 verify.bat
