@@ -374,17 +374,17 @@
         </div>
 
         <div class="tab-bar">
-            <div class="tab active" onclick="showTab('update')">⚙️ 更新配置</div>
+            <div class="tab active" onclick="showTab('update')">📋 当前配置</div>
             <div class="tab" onclick="showTab('log')">📜 操作日志</div>
             <div class="tab" onclick="showTab('connection')">🔌 数据库连接</div>
         </div>
 
         <div class="content">
-            <!-- 更新配置（默认显示） -->
+            <!-- 当前配置（默认显示） -->
             <div id="update-tab">
                 <div class="card">
                     <div class="card-title">
-                        <span>⚙️</span> 更新配置
+                        <span>📋</span> 当前配置
                     </div>
 
                     <div class="form-group">
@@ -449,8 +449,8 @@
                     </table>
                 </div>
 
-                <button class="btn btn-primary" onclick="confirmUpdate()">
-                    <span>✅</span> 确定
+                <button class="btn btn-primary" onclick="startUpdate()">
+                    <span>✅</span> 确认
                 </button>
             </div>
 
@@ -651,28 +651,6 @@
                 </p>
             </div>
         </div>
-
-        <!-- 确认弹窗 -->
-        <div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-            <div style="background: white; border-radius: 16px; padding: 25px; width: 320px;">
-                <div style="font-size: 36px; text-align: center; margin-bottom: 15px;">⚠️</div>
-                <h3 style="font-size: 18px; text-align: center; margin-bottom: 15px;">确认更新</h3>
-                <div style="font-size: 13px; color: #6c757d; margin-bottom: 20px; line-height: 1.5;">
-                    <p>您即将执行以下操作：</p>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>数据库模式：<strong id="confirm-schema"></strong></li>
-                        <li>目标表名：<strong id="confirm-table"></strong></li>
-                        <li>唯一标识列：<strong id="confirm-key"></strong></li>
-                        <li>待修改列：<strong id="confirm-update"></strong></li>
-                    </ul>
-                    <p style="margin-top: 15px; color: #dc3545;">⚠️ 操作前会自动备份数据，请确认无误后继续。</p>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-outline" onclick="closeConfirm()">取消</button>
-                    <button class="btn btn-primary" onclick="startUpdate()">确认更新</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -700,30 +678,7 @@
             alert('选择Excel文件功能演示\n\n实际应用中会打开文件选择对话框');
         }
 
-        function confirmUpdate() {
-            const schema = document.getElementById('schema-select').value;
-            const tableName = document.getElementById('table-name').value;
-            const keyColumn = document.getElementById('key-column').value;
-            const updateColumn = document.getElementById('update-column').value;
-
-            if (!tableName || !keyColumn || !updateColumn) {
-                alert('请填写完整的更新配置信息');
-                return;
-            }
-
-            document.getElementById('confirm-schema').textContent = schema;
-            document.getElementById('confirm-table').textContent = tableName;
-            document.getElementById('confirm-key').textContent = keyColumn;
-            document.getElementById('confirm-update').textContent = updateColumn;
-            document.getElementById('confirm-modal').style.display = 'flex';
-        }
-
-        function closeConfirm() {
-            document.getElementById('confirm-modal').style.display = 'none';
-        }
-
         function startUpdate() {
-            closeConfirm();
             document.getElementById('progress-modal').style.display = 'flex';
             showTab('log');
         }
