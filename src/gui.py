@@ -13,53 +13,59 @@ from src.logger import LogManager
 
 class ThemeManager:
     LIGHT_THEME = {
-        "bg": "#f8f9fa",
-        "fg": "#212529",
-        "primary": "#4facfe",
-        "primary_dark": "#00f2fe",
-        "secondary": "#6c757d",
-        "success": "#28a745",
-        "error": "#dc3545",
-        "warning": "#ffc107",
-        "info": "#17a2b8",
+        "bg": "#f5f5f5",
+        "fg": "#3c3f41",
+        "primary": "#4a86e8",
+        "primary_dark": "#3d65a5",
+        "secondary": "#909090",
+        "success": "#3592c4",
+        "error": "#c75050",
+        "warning": "#ca8230",
+        "info": "#3592c4",
         "card_bg": "#ffffff",
-        "card_border": "#dee2e6",
+        "card_border": "#e5e5e5",
         "text_muted": "#6c757d",
-        "text_heading": "#1a1a1a",
-        "button_bg": "#4facfe",
+        "text_heading": "#2b2b2b",
+        "button_bg": "#4a86e8",
         "button_fg": "#ffffff",
         "entry_bg": "#ffffff",
         "entry_border": "#ced4da",
         "tree_bg": "#ffffff",
-        "tree_alt": "#f2f2f2",
-        "log_bg": "#ffffff",
-        "scrollbar_bg": "#dee2e6",
+        "tree_alt": "#f5f5f5",
+        "log_bg": "#f7f7f7",
+        "scrollbar_bg": "#dcdcdc",
         "status_bg": "#f0f0f0",
+        "tab_bg": "#e8e8e8",
+        "tab_selected": "#ffffff",
+        "tab_border": "#d4d4d4",
     }
 
     DARK_THEME = {
-        "bg": "#1a1a2e",
-        "fg": "#e4e4e7",
-        "primary": "#7c3aed",
-        "primary_dark": "#5b21b6",
-        "secondary": "#71717a",
-        "success": "#22c55e",
-        "error": "#ef4444",
-        "warning": "#f59e0b",
-        "info": "#06b6d4",
-        "card_bg": "#252542",
-        "card_border": "#3f3f68",
-        "text_muted": "#a1a1aa",
-        "text_heading": "#fafafa",
-        "button_bg": "#7c3aed",
+        "bg": "#2b2b2b",
+        "fg": "#a9b7c6",
+        "primary": "#4a86e8",
+        "primary_dark": "#3d65a5",
+        "secondary": "#606366",
+        "success": "#4e9a06",
+        "error": "#cc6666",
+        "warning": "#cc7832",
+        "info": "#4a86e8",
+        "card_bg": "#3c3f41",
+        "card_border": "#555555",
+        "text_muted": "#808080",
+        "text_heading": "#dcdcdc",
+        "button_bg": "#4a86e8",
         "button_fg": "#ffffff",
-        "entry_bg": "#252542",
-        "entry_border": "#4f4f7a",
-        "tree_bg": "#252542",
-        "tree_alt": "#32325a",
-        "log_bg": "#1e1e3f",
-        "scrollbar_bg": "#4f4f7a",
-        "status_bg": "#16213e",
+        "entry_bg": "#3c3f41",
+        "entry_border": "#555555",
+        "tree_bg": "#3c3f41",
+        "tree_alt": "#45494a",
+        "log_bg": "#2b2b2b",
+        "scrollbar_bg": "#4e4e4e",
+        "status_bg": "#3c3f41",
+        "tab_bg": "#35383a",
+        "tab_selected": "#2b2b2b",
+        "tab_border": "#4e4e4e",
     }
 
     def __init__(self):
@@ -443,22 +449,25 @@ class OracleBatchUpdaterGUI:
         self.status_bar.configure(style="StatusBar.TFrame")
         self.style.configure("StatusBar.TFrame", background=theme["status_bg"])
         
-        self.conn_indicator = tk.Canvas(self.status_bar, width=10, height=10, bg="#dc3545", highlightthickness=0)
-        self.conn_indicator.pack(side=tk.LEFT, padx=(0, 5))
-        self.conn_indicator.create_oval(2, 2, 8, 8, fill="#dc3545", outline="")
-        
-        self.conn_status_label = ttk.Label(self.status_bar, text="未连接", style="Status.TLabel")
-        self.conn_status_label.pack(side=tk.LEFT)
+        # 用户信息
+        self.db_user_label = ttk.Label(self.status_bar, text="用户: -", style="Status.TLabel")
+        self.db_user_label.pack(side=tk.LEFT)
         
         ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
         
+        # 数据库名称
         self.db_name_label = ttk.Label(self.status_bar, text="数据库: -", style="Status.TLabel")
         self.db_name_label.pack(side=tk.LEFT)
         
         ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
         
-        self.db_user_label = ttk.Label(self.status_bar, text="用户: -", style="Status.TLabel")
-        self.db_user_label.pack(side=tk.LEFT)
+        # 连接状态（带指示器）
+        self.conn_indicator = tk.Canvas(self.status_bar, width=10, height=10, bg="#c75050", highlightthickness=0)
+        self.conn_indicator.pack(side=tk.LEFT, padx=(0, 5))
+        self.conn_indicator.create_oval(2, 2, 8, 8, fill="#c75050", outline="")
+        
+        self.conn_status_label = ttk.Label(self.status_bar, text="未连接", style="Status.TLabel")
+        self.conn_status_label.pack(side=tk.LEFT)
         
         ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
         
@@ -467,10 +476,10 @@ class OracleBatchUpdaterGUI:
 
     def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪"):
         if connected:
-            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#28a745")
+            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#4e9a06")
             self.conn_status_label.config(text="已连接")
         else:
-            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#dc3545")
+            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#c75050")
             self.conn_status_label.config(text="未连接")
         
         self.db_name_label.config(text=f"数据库: {db_name}")
