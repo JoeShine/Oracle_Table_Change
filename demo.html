@@ -622,7 +622,8 @@
 
         <!-- 更新进度弹窗 -->
         <div id="progress-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000;">
-            <div style="background: white; border-radius: 16px; padding: 25px; width: 320px; text-align: center;">
+            <div style="background: white; border-radius: 16px; padding: 25px; width: 320px; text-align: center; position: relative;">
+                <button onclick="closeProgressModal()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #6c757d;">&times;</button>
                 <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
                 <h3 style="font-size: 18px; margin-bottom: 5px;">正在更新数据</h3>
                 <p style="color: #6c757d; font-size: 14px; margin-bottom: 20px;">请稍候...</p>
@@ -681,6 +682,10 @@
         function startUpdate() {
             document.getElementById('progress-modal').style.display = 'flex';
             showTab('log');
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progress-modal').style.display = 'none';
         }
 
         function updateConnectionStatus() {
