@@ -676,6 +676,8 @@
                         <div class="file-path" id="filePath">未选择文件</div>
                         <button class="btn btn-secondary" onclick="selectFile()">📁 浏览</button>
                         <button class="btn btn-secondary" onclick="previewExcel()">👁 预览</button>
+                        <button class="btn btn-secondary" onclick="checkDuplicates()">🔍 重复性校验</button>
+                        <button class="btn btn-secondary" onclick="checkConsistency()">✅ 一致性校验</button>
                     </div>
                     <div style="margin-top: 6px; color: var(--text-muted); font-size: 12px;">
                         支持 .xlsx/.xls 文件，最大10MB，最多10万行
@@ -713,6 +715,30 @@
                                 <td>王五</td>
                                 <td>25</td>
                                 <td>财务部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>1001</td>
+                                <td>张三</td>
+                                <td>28</td>
+                                <td>技术部</td>
+                            </tr>
+                            <tr>
+                                <td>1004</td>
+                                <td>赵六</td>
+                                <td>30</td>
+                                <td>人事部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>1002</td>
+                                <td>李四</td>
+                                <td>32</td>
+                                <td>市场部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>9999</td>
+                                <td>不存在的人</td>
+                                <td>30</td>
+                                <td>未知部门</td>
                             </tr>
                         </tbody>
                     </table>
@@ -932,6 +958,97 @@
         </div>
     </div>
     
+    <div class="modal-overlay" id="duplicateModal">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>⚠️ 发现重复值</h3>
+                <button class="modal-close" onclick="hideDuplicateModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--error); font-weight: 500;">发现Excel中存在重复的唯一标识值</p>
+                <div class="preview-box" style="margin-top: 15px;">
+                    <div class="preview-header">重复值列表</div>
+                    <div class="preview-content">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>唯一标识值</th>
+                                    <th>出现的行号</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1001</td>
+                                    <td>2, 5</td>
+                                </tr>
+                                <tr>
+                                    <td>1002</td>
+                                    <td>3, 7</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
+                    请修正Excel中的重复数据后再次进行更新操作。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideDuplicateModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="consistencyModal">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>⚠️ 发现不一致数据</h3>
+                <button class="modal-close" onclick="hideConsistencyModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--error); font-weight: 500;">发现Excel中的唯一标识在数据库表中不存在</p>
+                <div class="preview-box" style="margin-top: 15px;">
+                    <div class="preview-header">缺失的唯一标识列表</div>
+                    <div class="preview-content">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>缺失的唯一标识值</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>9999</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
+                    这些标识在数据库中不存在，请确认数据正确性或先在数据库中添加这些记录。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideConsistencyModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="successModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4e9a06 0%, #3592c4 100%);">
+                <h3>✅ 校验通过</h3>
+                <button class="modal-close" onclick="hideSuccessModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage" style="text-align: center; font-size: 15px; line-height: 1.6;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="hideSuccessModal()">确定</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         let currentTab = 0;
         let progress = 0;
@@ -1012,6 +1129,68 @@
             document.getElementById('previewTable').scrollIntoView({ behavior: 'smooth' });
         }
         
+        function checkDuplicates() {
+            const filePath = document.getElementById('filePath').textContent;
+            if (filePath === '未选择文件') {
+                alert('请先选择Excel文件！');
+                return;
+            }
+            
+            addLog('正在检查Excel中的重复值...', 'info');
+            updateStatus('正在检查重复值...');
+            
+            setTimeout(() => {
+                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现重复值）\n点击"取消"显示校验通过')) {
+                    addLog('发现 2 个重复值', 'error');
+                    document.getElementById('duplicateModal').classList.add('active');
+                } else {
+                    addLog('重复性校验通过，没有发现重复值', 'success');
+                    showSuccessModal('✅ 重复性校验通过！\n\nExcel中没有发现重复的唯一标识值。');
+                }
+                updateStatus('就绪');
+            }, 800);
+        }
+        
+        function checkConsistency() {
+            const filePath = document.getElementById('filePath').textContent;
+            if (filePath === '未选择文件') {
+                alert('请先选择Excel文件！');
+                return;
+            }
+            
+            const isConnected = document.getElementById('statusDot').classList.contains('connected');
+            if (!isConnected) {
+                alert('请先连接数据库！');
+                switchTab(2);
+                return;
+            }
+            
+            const tableName = document.getElementById('tableName').value;
+            const keyColumn = document.getElementById('keyColumn').value;
+            if (!tableName || !keyColumn) {
+                alert('请填写目标表名和唯一标识列！');
+                return;
+            }
+            
+            addLog('正在检查数据一致性...', 'info');
+            updateStatus('正在检查一致性...');
+            
+            setTimeout(() => {
+                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现缺失标识）\n点击"取消"显示校验通过')) {
+                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
+                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
+                    addLog('发现 1 个标识在数据库中不存在', 'error');
+                    document.getElementById('consistencyModal').classList.add('active');
+                } else {
+                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
+                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
+                    addLog('一致性校验通过，所有标识都存在于数据库中', 'success');
+                    showSuccessModal('✅ 一致性校验通过！\n\nExcel中的所有唯一标识值都存在于数据库表中。');
+                }
+                updateStatus('就绪');
+            }, 1000);
+        }
+        
         function clearForm() {
             document.getElementById('tableName').value = '';
             document.getElementById('keyColumn').value = '';
@@ -1048,6 +1227,46 @@
         
         function refreshHistory() {
             alert('历史记录已刷新!');
+        }
+        
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' + 
+                String(now.getHours()).padStart(2, '0') + ':' + 
+                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                String(now.getSeconds()).padStart(2, '0');
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line log-' + type;
+            logLine.textContent = '[' + timeStr + '] ' + message;
+            logContent.insertBefore(logLine, logContent.firstChild);
+        }
+        
+        function updateStatus(message) {
+            const statusItems = document.querySelectorAll('.status-bar .status-item');
+            if (statusItems.length > 0) {
+                statusItems[statusItems.length - 1].innerHTML = '<span>状态: ' + message + '</span>';
+            }
+        }
+        
+        function hideDuplicateModal() {
+            document.getElementById('duplicateModal').classList.remove('active');
+        }
+        
+        function hideConsistencyModal() {
+            document.getElementById('consistencyModal').classList.remove('active');
+        }
+        
+        function showSuccessModal(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
+        }
+        
+        function hideSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
         }
     </script>
 </body>
