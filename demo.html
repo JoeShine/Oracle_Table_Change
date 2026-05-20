@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oracle批量更新工具 - 操作原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 25px 20px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .tab-bar {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            color: #4facfe;
+            border-bottom-color: #4facfe;
+            background: white;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title span {
+            font-size: 18px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: #fafafa;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-outline {
+            background: white;
+            color: #4facfe;
+            border: 2px solid #4facfe;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-group .btn {
+            flex: 1;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-icon {
+            font-size: 16px;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .preview-table th, .preview-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .preview-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .preview-table tr:last-child td {
+            border-bottom: none;
+        }
+        .log-panel {
+            background: #1e1e3f;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e4e4e7;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .log-time {
+            color: #8b5cf6;
+        }
+        .log-info {
+            color: #e4e4e7;
+        }
+        .log-success {
+            color: #22c55e;
+        }
+        .log-error {
+            color: #ef4444;
+        }
+        .log-warning {
+            color: #f59e0b;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step-num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 auto 8px;
+            transition: all 0.3s;
+        }
+        .step.active .step-num {
+            background: #4facfe;
+            color: white;
+        }
+        .step.done .step-num {
+            background: #28a745;
+            color: white;
+        }
+        .step-label {
+            font-size: 11px;
+            color: #6c757d;
+        }
+        .step.active .step-label {
+            color: #4facfe;
+            font-weight: 500;
+        }
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: calc(100% - 15px);
+            height: 2px;
+            background: #e9ecef;
+            z-index: -1;
+        }
+        .step.done:not(:last-child)::after {
+            background: #28a745;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .empty-text {
+            font-size: 14px;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+            .app-container {
+                background: #252542;
+            }
+            .tab-bar {
+                background: #1e1e3f;
+                border-bottom-color: #3f3f68;
+            }
+            .tab {
+                color: #a1a1aa;
+            }
+            .tab.active {
+                color: #7c3aed;
+                background: #252542;
+                border-bottom-color: #7c3aed;
+            }
+            .card {
+                background: #1e1e3f;
+                border-color: #3f3f68;
+            }
+            .card-title {
+                color: #fafafa;
+            }
+            .form-group label {
+                color: #a1a1aa;
+            }
+            .form-control {
+                background: #252542;
+                border-color: #4f4f7a;
+                color: #e4e4e7;
+            }
+            .btn-outline {
+                background: #1e1e3f;
+                color: #7c3aed;
+                border-color: #7c3aed;
+            }
+            .preview-table th {
+                background: #252542;
+                color: #a1a1aa;
+            }
+            .preview-table td {
+                color: #e4e4e7;
+                border-bottom-color: #3f3f68;
+            }
+            .empty-state {
+                color: #a1a1aa;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+    
+    <div class="app-container">
+        <div class="header">
+            <h1>📦 Oracle批量更新工具</h1>
+            <p>Oracle Database Batch Updater</p>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab active" onclick="showTab('connection')">🔌 连接</div>
+            <div class="tab" onclick="showTab('update')">⚙️ 更新</div>
+            <div class="tab" onclick="showTab('log')">📜 日志</div>
+        </div>
+
+        <div class="content">
+            <!-- 连接配置 -->
+            <div id="connection-tab">
+                <div class="card">
+                    <div class="card-title">
+                        <span>🔌</span> 数据库连接配置
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选择连接</label>
+                        <select class="form-control" onchange="updateConnectionStatus()">
+                            <option value="">请选择连接...</option>
+                            <option value="prod">生产库 (192.168.1.100)</option>
+                            <option value="test">测试库 (192.168.1.101)</option>
+                        </select>
+                    </div>
+
+                    <div id="connection-status" class="status info">
+                        <span class="status-icon">🔌</span>
+                        <span>未连接 - 请选择数据库连接</span>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="testConnection()">
+                        <span>🔗</span> 测试连接
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span>➕</span> 添加新连接
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>连接名称</label>
+                        <input type="text" class="form-control" placeholder="例如：生产库">
+                    </div>
+                    <div class="form-group">
+                        <label>主机地址</label>
+                        <input type="text" class="form-control" placeholder="例如：192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label>端口</label>
+                        <input type="text" class="form-control" placeholder="1521" value="1521">
+                    </div>
+                    <div class="form-group">
+                        <label>服务名</label>
+                        <input type="text" class="form-control" placeholder="例如：ORCL">
+                    </div>
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" class="form-control" placeholder="例如：APP_USER">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" class="form-control" placeholder="输入密码">
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary">
+                            <span>💾</span> 保存
+                        </button>
+                        <button class="btn btn-outline">
+                            <span>❌</span> 取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 更新配置 -->
+            <div id="update-tab" style="display: none;">
+                <div class="card">
+                    <div class="card-title">
+                        <span>⚙️</span> 更新配置
+                    </div>
+
+                    <div class="form-group">
+                        <label>目标表名</label>
+                        <input type="text" class="form-control" placeholder="例如：USER_INFO">
+                    </div>
+                    <div class="form-group">
+                        <label>唯一标识列</label>
+                        <input type="text" class="form-control" placeholder="例如：USER_ID">
+                    </div>
+                    <div class="form-group">
+                        <label>待修改列</label>
+                        <input type="text" class="form-control" placeholder="例如：EMAIL">
+                    </div>
+                    <div class="form-group">
+                        <label>Excel文件</label>
+                        <div class="form-control" style="background: #e9ecef; cursor: pointer;" onclick="selectExcel()">
+                            📁 点击选择Excel文件
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span>👁</span> Excel数据预览
+                    </div>
+
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>USER_ID</th>
+                                <th>EMAIL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1001</td>
+                                <td>zhangsan@test.com</td>
+                            </tr>
+                            <tr>
+                                <td>1002</td>
+                                <td>lisi@test.com</td>
+                            </tr>
+                            <tr>
+                                <td>1003</td>
+                                <td>wangwu@test.com</td>
+                            </tr>
+                            <tr>
+                                <td>...</td>
+                                <td>...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-primary" onclick="startUpdate()">
+                    <span>🚀</span> 开始更新
+                </button>
+            </div>
+
+            <!-- 日志面板 -->
+            <div id="log-tab" style="display: none;">
+                <div class="card">
+                    <div class="card-title">
+                        <span>📜</span> 操作日志
+                    </div>
+
+                    <div class="log-panel" id="log-content">
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:00]</span>
+                            <span class="log-info"> 开始数据更新操作</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:01]</span>
+                            <span class="log-info"> 目标表: USER_INFO</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:02]</span>
+                            <span class="log-info"> 唯一标识列: USER_ID</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:03]</span>
+                            <span class="log-info"> 待修改列: EMAIL</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:04]</span>
+                            <span class="log-info"> 正在验证Excel文件...</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:05]</span>
+                            <span class="log-success"> 验证通过，共 50 条数据</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:06]</span>
+                            <span class="log-info"> 正在创建备份...</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:08]</span>
+                            <span class="log-success"> 备份表已创建: USER_INFO_BAK_20240115_100008</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:09]</span>
+                            <span class="log-info"> 正在导入Excel数据...</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:11]</span>
+                            <span class="log-success"> 成功导入 50 条数据</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:12]</span>
+                            <span class="log-info"> 正在执行数据更新...</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">[2024-01-15 10:00:15]</span>
+                            <span class="log-success"> 更新完成 - 成功: 48, 失败: 2</span>
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top: 15px;">
+                        <button class="btn btn-primary">
+                            <span>📊</span> 导出日志
+                        </button>
+                        <button class="btn btn-outline">
+                            <span>🗑️</span> 清空日志
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <span>❌</span> 失败记录 (2条)
+                    </div>
+
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>唯一标识</th>
+                                <th>失败原因</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1001</td>
+                                <td>记录不存在</td>
+                            </tr>
+                            <tr>
+                                <td>1002</td>
+                                <td>数据类型不匹配</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button class="btn btn-secondary" style="margin-top: 15px;">
+                        <span>📥</span> 导出失败记录
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 更新进度弹窗 -->
+        <div id="progress-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <div style="background: white; border-radius: 16px; padding: 25px; width: 320px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                <h3 style="font-size: 18px; margin-bottom: 5px;">正在更新数据</h3>
+                <p style="color: #6c757d; font-size: 14px; margin-bottom: 20px;">请稍候...</p>
+                
+                <div class="step-indicator">
+                    <div class="step done">
+                        <div class="step-num">1</div>
+                        <div class="step-label">备份</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-num">2</div>
+                        <div class="step-label">导入</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-label">更新</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 50%"></div>
+                </div>
+
+                <p style="color: #6c757d; font-size: 12px; margin-top: 10px;">
+                    处理进度: 25/50
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.style.display = 'none');
+            
+            document.querySelector(`.tab:nth-child(${tabName === 'connection' ? 1 : tabName === 'update' ? 2 : 3})`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).style.display = 'block';
+        }
+
+        function toggleTheme() {
+            const toggle = document.querySelector('.theme-toggle');
+            if (toggle.textContent === '🌙') {
+                toggle.textContent = '☀️';
+                document.body.classList.add('dark-mode');
+            } else {
+                toggle.textContent = '🌙';
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        function updateConnectionStatus() {
+            const select = document.querySelector('#connection-tab select');
+            const status = document.getElementById('connection-status');
+            
+            if (select.value) {
+                status.className = 'status info';
+                status.innerHTML = '<span class="status-icon">🔌</span><span>已选择: ' + select.options[select.selectedIndex].text + '</span>';
+            } else {
+                status.className = 'status info';
+                status.innerHTML = '<span class="status-icon">🔌</span><span>未连接 - 请选择数据库连接</span>';
+            }
+        }
+
+        function testConnection() {
+            const select = document.querySelector('#connection-tab select');
+            const status = document.getElementById('connection-status');
+            
+            if (!select.value) {
+                status.className = 'status error';
+                status.innerHTML = '<span class="status-icon">❌</span><span>请先选择连接</span>';
+                return;
+            }
+
+            status.className = 'status info';
+            status.innerHTML = '<span class="status-icon">⏳</span><span>正在测试连接...</span>';
+
+            setTimeout(() => {
+                status.className = 'status success';
+                status.innerHTML = '<span class="status-icon">✅</span><span>连接成功!</span>';
+            }, 1500);
+        }
+
+        function selectExcel() {
+            alert('选择Excel文件功能演示\n\n实际应用中会打开文件选择对话框');
+        }
+
+        function startUpdate() {
+            document.getElementById('progress-modal').style.display = 'flex';
+            showTab('log');
+        }
+    </script>
+</body>
+</html>
