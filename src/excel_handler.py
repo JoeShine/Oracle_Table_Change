@@ -69,6 +69,59 @@ class ExcelHandler:
         return len(duplicates) == 0, duplicates
     
     @staticmethod
+    def get_key_values_from_excel(file_path: str) -> Tuple[bool, str, List[Any]]:
+        """从Excel文件中获取所有唯一标识列的值"""
+        try:
+            if not os.path.exists(file_path):
+                return False, f"文件不存在: {file_path}", []
+            
+            wb = load_workbook(file_path, read_only=True)
+            sheet = wb.active
+            
+            if sheet.max_row < 2:
+                wb.close()
+                return False, "Excel文件至少需要包含表头和1行数据", []
+            
+            key_values = []
+            for row_idx in range(2, sheet.max_row + 1):
+                row = [cell.value for cell in sheet[row_idx]]
+                if row[0] is not None:
+                    key_values.append(row[0])
+            
+            wb.close()
+            return True, f"获取了 {len(key_values)} 个唯一标识值", key_values
+        except Exception as e:
+            return False, f"读取Excel文件失败: {str(e)}", []
+    
+    @staticmethod
+    def get_key_values_with_rows(file_path: str) -> Tuple[bool, str, List[Dict[str, Any]]]:
+        """从Excel文件中获取所有唯一标识列的值及其行号"""
+        try:
+            if not os.path.exists(file_path):
+                return False, f"文件不存在: {file_path}", []
+            
+            wb = load_workbook(file_path, read_only=True)
+            sheet = wb.active
+            
+            if sheet.max_row < 2:
+                wb.close()
+                return False, "Excel文件至少需要包含表头和1行数据", []
+            
+            key_data = []
+            for row_idx in range(2, sheet.max_row + 1):
+                row = [cell.value for cell in sheet[row_idx]]
+                if row[0] is not None:
+                    key_data.append({
+                        "row_num": row_idx,
+                        "key_value": row[0]
+                    })
+            
+            wb.close()
+            return True, f"获取了 {len(key_data)} 条数据", key_data
+        except Exception as e:
+            return False, f"读取Excel文件失败: {str(e)}", []
+    
+    @staticmethod
     def validate_multi_column_structure(file_path: str, update_columns: List[str]) -> Tuple[bool, str, List[Dict[str, Any]]]:
         try:
             if not os.path.exists(file_path):

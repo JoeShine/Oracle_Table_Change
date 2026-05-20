@@ -168,3 +168,30 @@ class DBConnection:
     def rollback(self):
         if self.connection:
             self.connection.rollback()
+    
+    def get_key_values_from_table(self, table_name: str, key_column: str, schema: str = None) -> Tuple[bool, str, List[Any]]:
+        """从数据库表中获取指定列的所有值"""
+        if not self.is_connected():
+            return False, "未连接数据库", []
+        
+        try:
+            cursor = self.connection.cursor()
+            if schema:
+                sql = f"SELECT {key_column} FROM {schema}.{table_name}"
+            else:
+                sql = f"SELECT {key_column} FROM {table_name}"
+            
+            cursor.execute(sql)
+            key_values = [row[0] for row in cursor.fetchall()]
+            cursor.close()
+            return True, f"获取了 {len(key_values)} 个值", key_values
+        except oracledb.DatabaseError as e:
+            error_msg = str(e)
+            if "ORA-00942" in error_msg:
+                return False, f"表或视图不存在: {error_msg}", []
+            elif "ORA-00904" in error_msg:
+                return False, f"列名无效: {error_msg}", []
+            else:
+                return False, f"查询失败: {error_msg}", []
+        except Exception as e:
+            return False, f"查询失败: {str(e)}", []

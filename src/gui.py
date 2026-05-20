@@ -299,6 +299,10 @@ class OracleBatchUpdaterGUI:
         browse_btn.pack(side=tk.LEFT, padx=(5, 0))
         preview_btn = ttk.Button(excel_frame, text="👁 预览", command=self.preview_excel, style="Action.TButton")
         preview_btn.pack(side=tk.LEFT, padx=(3, 0))
+        duplicate_check_btn = ttk.Button(excel_frame, text="🔍 重复性校验", command=self.check_duplicates, style="Action.TButton")
+        duplicate_check_btn.pack(side=tk.LEFT, padx=(3, 0))
+        consistency_check_btn = ttk.Button(excel_frame, text="✅ 一致性校验", command=self.check_consistency, style="Action.TButton")
+        consistency_check_btn.pack(side=tk.LEFT, padx=(3, 0))
         
         hint_label = ttk.Label(config_panel, text=f"支持 .xlsx/.xls 文件，最大10MB，最多10万行", 
                                font=("Microsoft YaHei", 9), foreground="#6c757d")
@@ -698,6 +702,189 @@ class OracleBatchUpdaterGUI:
             self.add_log(msg, "SUCCESS")
         else:
             messagebox.showerror("预览失败", msg)
+    
+    def check_duplicates(self):
+        """检查Excel中的唯一标识列是否有重复值"""
+        file_path = self.excel_path_var.get()
+        if not file_path:
+            messagebox.showwarning("提示", "请先选择Excel文件")
+            return
+        
+        self.add_log("正在检查Excel中的重复值...", "INFO")
+        self.update_status_bar(connected=self.is_connected, operation="正在检查重复值...")
+        
+        # 获取Excel中的唯一标识值
+        success, msg, key_data = ExcelHandler.get_key_values_with_rows(file_path)
+        if not success:
+            self.add_log(msg, "ERROR")
+            messagebox.showerror("读取失败", msg)
+            return
+        
+        # 检查重复值
+        key_dict = {}
+        duplicates = []
+        for item in key_data:
+            key_val = item["key_value"]
+            row_num = item["row_num"]
+            if key_val in key_dict:
+                duplicates.append({
+                    "key_value": key_val,
+                    "rows": [key_dict[key_val], row_num]
+                })
+            else:
+                key_dict[key_val] = row_num
+        
+        if duplicates:
+            self.add_log(f"发现 {len(duplicates)} 个重复值", "ERROR")
+            self.show_duplicate_dialog(duplicates)
+        else:
+            self.add_log("重复性校验通过，没有发现重复值", "SUCCESS")
+            messagebox.showinfo("校验通过", "✅ 重复性校验通过！\nExcel中没有发现重复的唯一标识值。")
+        self.update_status_bar(connected=self.is_connected, operation="就绪")
+    
+    def show_duplicate_dialog(self, duplicates):
+        """显示重复值对话框"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("发现重复值")
+        dialog.geometry("600x500")
+        dialog.transient(self.root)
+        dialog.resizable(True, True)
+        _, theme = self.theme_manager.get_theme()
+        dialog.configure(bg=theme["bg"])
+        
+        info_label = tk.Label(dialog, text="⚠️ 发现Excel中存在重复的唯一标识值",
+                             font=("Microsoft YaHei", 11, "bold"), fg="#dc3545", bg=theme["bg"])
+        info_label.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        tree_frame = ttk.Frame(dialog, padding="15")
+        tree_frame.pack(fill=tk.BOTH, expand=True)
+        
+        columns = ("key_value", "rows")
+        tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
+        tree.heading("key_value", text="唯一标识值", anchor=tk.CENTER)
+        tree.heading("rows", text="出现的行号", anchor=tk.CENTER)
+        tree.column("key_value", width=200, anchor=tk.CENTER)
+        tree.column("rows", width=300, anchor=tk.CENTER)
+        
+        for dup in duplicates:
+            rows_str = ", ".join(map(str, dup["rows"]))
+            tree.insert('', tk.END, values=(dup["key_value"], rows_str))
+        
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        btn_frame = ttk.Frame(dialog, padding="15")
+        btn_frame.pack(fill=tk.X)
+        ttk.Button(btn_frame, text="关闭", command=dialog.destroy, style="Action.TButton").pack(side=tk.RIGHT)
+    
+    def check_consistency(self):
+        """检查Excel中的唯一标识列是否都存在于目标表中"""
+        file_path = self.excel_path_var.get()
+        if not file_path:
+            messagebox.showwarning("提示", "请先选择Excel文件")
+            return
+        
+        if not self.is_connected:
+            messagebox.showwarning("提示", "请先连接数据库")
+            self.notebook.select(2)
+            return
+        
+        target_table = self.target_table_var.get().strip()
+        key_column = self.key_column_var.get().strip()
+        schema = self.schema_var.get()
+        
+        if not target_table or not key_column:
+            messagebox.showwarning("提示", "请填写目标表名和唯一标识列")
+            return
+        
+        self.add_log("正在检查数据一致性...", "INFO")
+        self.update_status_bar(connected=True, operation="正在检查一致性...")
+        
+        # 获取Excel中的唯一标识值
+        success, msg, excel_keys = ExcelHandler.get_key_values_from_excel(file_path)
+        if not success:
+            self.add_log(msg, "ERROR")
+            messagebox.showerror("读取失败", msg)
+            return
+        
+        self.add_log(f"从Excel中获取了 {len(excel_keys)} 个唯一标识值", "INFO")
+        
+        # 获取数据库中的唯一标识值
+        success, msg, db_keys = self.db_connection.get_key_values_from_table(target_table, key_column, schema)
+        if not success:
+            self.add_log(msg, "ERROR")
+            messagebox.showerror("查询失败", msg)
+            return
+        
+        self.add_log(f"从数据库中获取了 {len(db_keys)} 个唯一标识值", "INFO")
+        
+        # 检查一致性
+        db_key_set = set(db_keys)
+        missing_keys = []
+        for key in excel_keys:
+            if key not in db_key_set:
+                missing_keys.append(key)
+        
+        if missing_keys:
+            self.add_log(f"发现 {len(missing_keys)} 个标识在数据库中不存在", "ERROR")
+            self.show_consistency_dialog(missing_keys)
+        else:
+            self.add_log("一致性校验通过，所有标识都存在于数据库中", "SUCCESS")
+            messagebox.showinfo("校验通过", "✅ 一致性校验通过！\nExcel中的所有唯一标识值都存在于数据库表中。")
+        
+        self.update_status_bar(connected=True, operation="就绪")
+    
+    def show_consistency_dialog(self, missing_keys):
+        """显示一致性校验失败对话框"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("发现不一致数据")
+        dialog.geometry("600x500")
+        dialog.transient(self.root)
+        dialog.resizable(True, True)
+        _, theme = self.theme_manager.get_theme()
+        dialog.configure(bg=theme["bg"])
+        
+        info_label = tk.Label(dialog, text="⚠️ 发现Excel中的唯一标识在数据库表中不存在",
+                             font=("Microsoft YaHei", 11, "bold"), fg="#dc3545", bg=theme["bg"])
+        info_label.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        tree_frame = ttk.Frame(dialog, padding="15")
+        tree_frame.pack(fill=tk.BOTH, expand=True)
+        
+        columns = ("missing_key",)
+        tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
+        tree.heading("missing_key", text="缺失的唯一标识值", anchor=tk.CENTER)
+        tree.column("missing_key", width=400, anchor=tk.CENTER)
+        
+        for key in missing_keys:
+            tree.insert('', tk.END, values=(key,))
+        
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        btn_frame = ttk.Frame(dialog, padding="15")
+        btn_frame.pack(fill=tk.X)
+        
+        def export_missing():
+            export_path = filedialog.asksaveasfilename(
+                title="导出缺失标识",
+                defaultextension=".xlsx",
+                filetypes=[("Excel文件", "*.xlsx"), ("所有文件", "*.*")]
+            )
+            if export_path:
+                data = [{"缺失的唯一标识": key} for key in missing_keys]
+                success, export_msg = ExcelHandler.export_to_excel(data, export_path, "缺失标识")
+                if success:
+                    messagebox.showinfo("导出成功", export_msg)
+                else:
+                    messagebox.showerror("导出失败", export_msg)
+        
+        ttk.Button(btn_frame, text="📊 导出缺失标识", command=export_missing, style="Action.TButton").pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="关闭", command=dialog.destroy, style="Action.TButton").pack(side=tk.RIGHT)
 
     def add_log(self, message, level="INFO"):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
