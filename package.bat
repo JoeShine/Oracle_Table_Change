@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo Oracle数据库批量更新工具 - 完整打包脚本
+echo Oracle数据批量修改工具 - 完整打包脚本
 echo ========================================
 echo.
 

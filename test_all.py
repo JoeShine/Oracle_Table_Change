@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Oracle批量更新工具 - 综合测试脚本
+Oracle数据批量修改工具 - 综合测试脚本
 """
 import sys
 import os
@@ -172,7 +172,7 @@ def test_gui_import():
 def main():
     """主测试函数"""
     print("=" * 60)
-    print("Oracle批量更新工具 - 综合测试")
+    print("Oracle数据批量修改工具 - 综合测试")
     print("=" * 60)
 
     try:

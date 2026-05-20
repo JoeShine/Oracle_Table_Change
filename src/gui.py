@@ -80,7 +80,7 @@ class ThemeManager:
 class OracleBatchUpdaterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Oracle数据库批量更新工具")
+        self.root.title("Oracle数据批量修改工具")
         self.root.geometry("1000x750")
         self.root.resizable(True, True)
         self.root.minsize(800, 600)
@@ -161,9 +161,9 @@ class OracleBatchUpdaterGUI:
         header_frame.pack(fill=tk.X, pady=(0, 5))
         title_frame = ttk.Frame(header_frame)
         title_frame.pack(side=tk.LEFT)
-        title_label = ttk.Label(title_frame, text="📦 Oracle批量更新工具", style="Title.TLabel")
+        title_label = ttk.Label(title_frame, text="📦 Oracle数据批量修改工具", style="Title.TLabel")
         title_label.pack()
-        subtitle_label = ttk.Label(title_frame, text="Oracle Database Batch Updater", font=("Microsoft YaHei", 10), foreground="#6c757d")
+        subtitle_label = ttk.Label(title_frame, text="Oracle Data Batch Modifier", font=("Microsoft YaHei", 10), foreground="#6c757d")
         subtitle_label.pack(pady=(2, 0))
         control_frame = ttk.Frame(header_frame)
         control_frame.pack(side=tk.RIGHT)
