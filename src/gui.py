@@ -90,6 +90,7 @@ class OracleBatchUpdaterGUI:
         self.excel_data = None
         self.is_connected = False
         self.theme_manager = ThemeManager()
+        self.progress_window = None
         self.setup_styles()
         self.create_widgets()
         self.load_last_config()
@@ -111,6 +112,8 @@ class OracleBatchUpdaterGUI:
                        foreground=[('active', 'white')])
         self.style.configure("Card.TFrame", background=theme["card_bg"], borderwidth=1, relief="solid")
         self.style.configure("Status.TLabel", font=("Microsoft YaHei", 10))
+        self.style.configure("TNotebook", background=theme["bg"], borderwidth=0)
+        self.style.configure("TNotebook.Tab", padding=[20, 8], font=("Microsoft YaHei", 10))
 
     def apply_theme(self):
         _, theme = self.theme_manager.get_theme()
@@ -146,15 +149,15 @@ class OracleBatchUpdaterGUI:
         self.main_frame = ttk.Frame(self.root, padding="15")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.create_header()
-        content_frame = ttk.Frame(self.main_frame)
-        content_frame.pack(fill=tk.BOTH, expand=True, pady=10)
-        left_frame = ttk.Frame(content_frame)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 10), width=350)
-        self.create_connection_panel(left_frame)
-        right_frame = ttk.Frame(content_frame)
-        right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.create_update_panel(right_frame)
-        self.create_log_panel(self.main_frame)
+        
+        # 创建标签页控件
+        self.notebook = ttk.Notebook(self.main_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True, pady=10)
+        
+        # 创建三个标签页
+        self.create_config_tab()
+        self.create_log_tab()
+        self.create_connection_tab()
 
     def create_header(self):
         header_frame = ttk.Frame(self.main_frame)
@@ -212,8 +215,107 @@ class OracleBatchUpdaterGUI:
             self.log_text.tag_config("ERROR", foreground=theme["error"])
             self.log_text.tag_config("WARNING", foreground=theme["warning"])
 
-    def create_connection_panel(self, parent):
-        panel = ttk.LabelFrame(parent, text="数据库连接", padding="15", style="Card.TFrame")
+    def create_config_tab(self):
+        tab = ttk.Frame(self.notebook, padding="10")
+        self.notebook.add(tab, text="📋 当前配置")
+        
+        # 配置区域
+        config_panel = ttk.LabelFrame(tab, text="当前配置", padding="15", style="Card.TFrame")
+        config_panel.pack(fill=tk.X, pady=(0, 10))
+        
+        # 数据库模式
+        row0 = ttk.Frame(config_panel)
+        row0.pack(fill=tk.X, pady=6)
+        ttk.Label(row0, text="数据库模式:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.schema_var = tk.StringVar(value="APPS")
+        schema_combo = ttk.Combobox(row0, textvariable=self.schema_var, 
+                                     values=["APPS", "SYS", "SYSTEM"], state="readonly", font=("Microsoft YaHei", 10))
+        schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 目标表名
+        row1 = ttk.Frame(config_panel)
+        row1.pack(fill=tk.X, pady=6)
+        ttk.Label(row1, text="目标表名:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.target_table_var = tk.StringVar()
+        target_table_entry = ttk.Entry(row1, textvariable=self.target_table_var, font=("Microsoft YaHei", 10), width=30)
+        target_table_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 唯一标识列
+        row2 = ttk.Frame(config_panel)
+        row2.pack(fill=tk.X, pady=6)
+        ttk.Label(row2, text="唯一标识列:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.key_column_var = tk.StringVar()
+        key_column_entry = ttk.Entry(row2, textvariable=self.key_column_var, font=("Microsoft YaHei", 10), width=30)
+        key_column_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 待修改列
+        row3 = ttk.Frame(config_panel)
+        row3.pack(fill=tk.X, pady=6)
+        ttk.Label(row3, text="待修改列:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.update_column_var = tk.StringVar()
+        update_column_entry = ttk.Entry(row3, textvariable=self.update_column_var, font=("Microsoft YaHei", 10), width=30)
+        update_column_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # Excel文件
+        excel_frame = ttk.Frame(config_panel)
+        excel_frame.pack(fill=tk.X, pady=(8, 0))
+        ttk.Label(excel_frame, text="Excel文件:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.excel_path_var = tk.StringVar()
+        excel_entry = ttk.Entry(excel_frame, textvariable=self.excel_path_var, state="readonly", font=("Microsoft YaHei", 10))
+        excel_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        browse_btn = ttk.Button(excel_frame, text="📁 浏览", command=self.browse_excel, style="Action.TButton")
+        browse_btn.pack(side=tk.LEFT, padx=(5, 0))
+        preview_btn = ttk.Button(excel_frame, text="👁 预览", command=self.preview_excel, style="Action.TButton")
+        preview_btn.pack(side=tk.LEFT, padx=(3, 0))
+        
+        # 预览区域
+        preview_panel = ttk.LabelFrame(tab, text="Excel数据预览", padding="12", style="Card.TFrame")
+        preview_panel.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        self.preview_tree = ttk.Treeview(preview_panel, show="headings", height=8)
+        self.preview_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        preview_scroll_y = ttk.Scrollbar(preview_panel, orient=tk.VERTICAL, command=self.preview_tree.yview)
+        preview_scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
+        self.preview_tree.configure(yscrollcommand=preview_scroll_y.set)
+        preview_scroll_x = ttk.Scrollbar(tab, orient=tk.HORIZONTAL, command=self.preview_tree.xview)
+        preview_scroll_x.pack(fill=tk.X, pady=(0, 10))
+        self.preview_tree.configure(xscrollcommand=preview_scroll_x.set)
+        
+        # 按钮区域
+        btn_frame = ttk.Frame(tab)
+        btn_frame.pack(fill=tk.X)
+        self.start_btn = ttk.Button(btn_frame, text="✅ 确认", style="Primary.TButton", command=self.start_update)
+        self.start_btn.pack(side=tk.LEFT)
+        cancel_btn = ttk.Button(btn_frame, text="✖️ 取消", command=self.cancel_operation, style="Action.TButton")
+        cancel_btn.pack(side=tk.LEFT, padx=(10, 0))
+
+    def create_log_tab(self):
+        tab = ttk.Frame(self.notebook, padding="10")
+        self.notebook.add(tab, text="📜 操作日志")
+        
+        log_panel = ttk.LabelFrame(tab, text="操作日志", padding="12", style="Card.TFrame")
+        log_panel.pack(fill=tk.BOTH, expand=True)
+        self.log_text = scrolledtext.ScrolledText(log_panel, height=20, wrap=tk.WORD, font=("Consolas", 9), relief="flat")
+        self.log_text.pack(fill=tk.BOTH, expand=True)
+        self.log_text.tag_config("INFO", foreground="#333333")
+        self.log_text.tag_config("SUCCESS", foreground="#28a745")
+        self.log_text.tag_config("ERROR", foreground="#dc3545")
+        self.log_text.tag_config("WARNING", foreground="#ffc107")
+        self.log_text.tag_config("HEADING", foreground="#4facfe", font=("Consolas", 9, "bold"))
+        
+        export_frame = ttk.Frame(log_panel)
+        export_frame.pack(fill=tk.X, pady=(8, 0))
+        export_log_btn = ttk.Button(export_frame, text="📊 导出日志", command=self.export_logs, style="Action.TButton")
+        export_log_btn.pack(side=tk.LEFT)
+        export_fail_btn = ttk.Button(export_frame, text="❌ 导出失败记录", command=self.export_failed_records, style="Action.TButton")
+        export_fail_btn.pack(side=tk.LEFT, padx=(8, 0))
+        clear_log_btn = ttk.Button(export_frame, text="🗑 清空日志", command=self.clear_logs, style="Action.TButton")
+        clear_log_btn.pack(side=tk.RIGHT)
+
+    def create_connection_tab(self):
+        tab = ttk.Frame(self.notebook, padding="10")
+        self.notebook.add(tab, text="🔌 数据库连接")
+        
+        panel = ttk.LabelFrame(tab, text="数据库连接配置", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
         ttk.Label(panel, text="选择连接:", style="Header.TLabel").pack(anchor=tk.W, pady=(0, 8))
         connection_frame = ttk.Frame(panel)
@@ -236,73 +338,6 @@ class OracleBatchUpdaterGUI:
         self.connection_status_label.pack(anchor=tk.W)
         self.update_connection_list()
 
-    def create_update_panel(self, parent):
-        config_panel = ttk.LabelFrame(parent, text="更新配置", padding="15", style="Card.TFrame")
-        config_panel.pack(fill=tk.X, pady=(0, 10))
-        row1 = ttk.Frame(config_panel)
-        row1.pack(fill=tk.X, pady=6)
-        ttk.Label(row1, text="目标表名:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
-        self.target_table_var = tk.StringVar()
-        target_table_entry = ttk.Entry(row1, textvariable=self.target_table_var, font=("Microsoft YaHei", 10), width=30)
-        target_table_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        row2 = ttk.Frame(config_panel)
-        row2.pack(fill=tk.X, pady=6)
-        ttk.Label(row2, text="唯一标识列:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
-        self.key_column_var = tk.StringVar()
-        key_column_entry = ttk.Entry(row2, textvariable=self.key_column_var, font=("Microsoft YaHei", 10), width=30)
-        key_column_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        row3 = ttk.Frame(config_panel)
-        row3.pack(fill=tk.X, pady=6)
-        ttk.Label(row3, text="待修改列:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
-        self.update_column_var = tk.StringVar()
-        update_column_entry = ttk.Entry(row3, textvariable=self.update_column_var, font=("Microsoft YaHei", 10), width=30)
-        update_column_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        excel_frame = ttk.Frame(config_panel)
-        excel_frame.pack(fill=tk.X, pady=(8, 0))
-        ttk.Label(excel_frame, text="Excel文件:", width=12, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
-        self.excel_path_var = tk.StringVar()
-        excel_entry = ttk.Entry(excel_frame, textvariable=self.excel_path_var, state="readonly", font=("Microsoft YaHei", 10))
-        excel_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        browse_btn = ttk.Button(excel_frame, text="📁 浏览", command=self.browse_excel, style="Action.TButton")
-        browse_btn.pack(side=tk.LEFT, padx=(5, 0))
-        preview_btn = ttk.Button(excel_frame, text="👁 预览", command=self.preview_excel, style="Action.TButton")
-        preview_btn.pack(side=tk.LEFT, padx=(3, 0))
-        preview_panel = ttk.LabelFrame(parent, text="Excel数据预览", padding="12", style="Card.TFrame")
-        preview_panel.pack(fill=tk.BOTH, expand=True)
-        self.preview_tree = ttk.Treeview(preview_panel, show="headings", height=7)
-        self.preview_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        preview_scroll_y = ttk.Scrollbar(preview_panel, orient=tk.VERTICAL, command=self.preview_tree.yview)
-        preview_scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
-        self.preview_tree.configure(yscrollcommand=preview_scroll_y.set)
-        preview_scroll_x = ttk.Scrollbar(parent, orient=tk.HORIZONTAL, command=self.preview_tree.xview)
-        preview_scroll_x.pack(fill=tk.X)
-        self.preview_tree.configure(xscrollcommand=preview_scroll_x.set)
-        btn_frame = ttk.Frame(parent)
-        btn_frame.pack(fill=tk.X, pady=(10, 0))
-        self.start_btn = ttk.Button(btn_frame, text="🚀 开始更新", style="Primary.TButton", command=self.start_update)
-        self.start_btn.pack(side=tk.LEFT)
-        cancel_btn = ttk.Button(btn_frame, text="✖️ 取消", command=self.cancel_operation, style="Action.TButton")
-        cancel_btn.pack(side=tk.LEFT, padx=(10, 0))
-
-    def create_log_panel(self, parent):
-        log_panel = ttk.LabelFrame(parent, text="📜 操作日志", padding="12", style="Card.TFrame")
-        log_panel.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
-        self.log_text = scrolledtext.ScrolledText(log_panel, height=12, wrap=tk.WORD, font=("Consolas", 9), relief="flat")
-        self.log_text.pack(fill=tk.BOTH, expand=True)
-        self.log_text.tag_config("INFO", foreground="#333333")
-        self.log_text.tag_config("SUCCESS", foreground="#28a745")
-        self.log_text.tag_config("ERROR", foreground="#dc3545")
-        self.log_text.tag_config("WARNING", foreground="#ffc107")
-        self.log_text.tag_config("HEADING", foreground="#4facfe", font=("Consolas", 9, "bold"))
-        export_frame = ttk.Frame(log_panel)
-        export_frame.pack(fill=tk.X, pady=(8, 0))
-        export_log_btn = ttk.Button(export_frame, text="📊 导出日志", command=self.export_logs, style="Action.TButton")
-        export_log_btn.pack(side=tk.LEFT)
-        export_fail_btn = ttk.Button(export_frame, text="❌ 导出失败记录", command=self.export_failed_records, style="Action.TButton")
-        export_fail_btn.pack(side=tk.LEFT, padx=(8, 0))
-        clear_log_btn = ttk.Button(export_frame, text="🗑 清空日志", command=self.clear_logs, style="Action.TButton")
-        clear_log_btn.pack(side=tk.RIGHT)
-
     def clear_logs(self):
         self.log_text.delete(1.0, tk.END)
         self.log_manager = LogManager()
@@ -323,13 +358,16 @@ class OracleBatchUpdaterGUI:
             self.key_column_var.set(last_used['key_column'])
         if last_used.get('update_column'):
             self.update_column_var.set(last_used['update_column'])
+        if last_used.get('schema'):
+            self.schema_var.set(last_used['schema'])
 
     def save_current_config(self):
         self.config.set_last_used(
             connection_name=self.connection_var.get(),
             target_table=self.target_table_var.get(),
             key_column=self.key_column_var.get(),
-            update_column=self.update_column_var.get()
+            update_column=self.update_column_var.get(),
+            schema=self.schema_var.get()
         )
 
     def on_connection_selected(self, event=None):
@@ -477,6 +515,55 @@ class OracleBatchUpdaterGUI:
             self.log_text.insert(tk.END, f"[{timestamp}] {message}\n", level)
         self.log_text.see(tk.END)
 
+    def show_progress_window(self):
+        self.progress_window = tk.Toplevel(self.root)
+        self.progress_window.title("正在更新数据")
+        self.progress_window.geometry("400x350")
+        self.progress_window.transient(self.root)
+        self.progress_window.grab_set()
+        self.progress_window.resizable(False, False)
+        
+        # 添加关闭按钮
+        title_frame = ttk.Frame(self.progress_window)
+        title_frame.pack(fill=tk.X, padx=10, pady=10)
+        ttk.Label(title_frame, text="⏳ 正在更新数据", font=("Microsoft YaHei", 14, "bold")).pack(side=tk.LEFT)
+        close_btn = ttk.Button(title_frame, text="✕", width=3, command=self.close_progress_window, style="Action.TButton")
+        close_btn.pack(side=tk.RIGHT)
+        
+        content_frame = ttk.Frame(self.progress_window, padding="20")
+        content_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(content_frame, text="请稍候...", font=("Microsoft YaHei", 11)).pack(pady=(0, 20))
+        
+        # 步骤指示器
+        step_frame = ttk.Frame(content_frame)
+        step_frame.pack(fill=tk.X, pady=(0, 20))
+        steps = ["备份", "导入", "更新"]
+        self.step_labels = []
+        for i, step in enumerate(steps):
+            step_container = ttk.Frame(step_frame)
+            step_container.pack(side=tk.LEFT, expand=True)
+            step_num = ttk.Label(step_container, text=str(i+1), font=("Microsoft YaHei", 12, "bold"),
+                                background="#e9ecef", foreground="#6c757d", width=3, anchor="center")
+            step_num.pack()
+            step_text = ttk.Label(step_container, text=step, font=("Microsoft YaHei", 9))
+            step_text.pack()
+            self.step_labels.append((step_num, step_text))
+        
+        # 进度条
+        self.progress_var = tk.DoubleVar(value=0)
+        progress_bar = ttk.Progressbar(content_frame, variable=self.progress_var, maximum=100, length=300)
+        progress_bar.pack(pady=(10, 10))
+        
+        # 进度文本
+        self.progress_label = ttk.Label(content_frame, text="处理进度: 0/0", font=("Microsoft YaHei", 10))
+        self.progress_label.pack()
+
+    def close_progress_window(self):
+        if self.progress_window:
+            self.progress_window.destroy()
+            self.progress_window = None
+
     def start_update(self):
         if not self.is_connected:
             messagebox.showwarning("提示", "请先连接数据库")
@@ -488,7 +575,14 @@ class OracleBatchUpdaterGUI:
         if not all([target_table, key_column, update_column, excel_path]):
             messagebox.showwarning("提示", "请填写所有必填字段")
             return
-        self.add_log("开始数据更新操作", "HEADING")
+        
+        # 显示进度窗口
+        self.show_progress_window()
+        
+        # 自动切换到日志标签
+        self.notebook.select(1)
+        
+        # 开始更新
         threading.Thread(target=self._run_update, args=(target_table, key_column, update_column, excel_path), daemon=True).start()
 
     def _run_update(self, target_table, key_column, update_column, excel_path):
@@ -496,6 +590,7 @@ class OracleBatchUpdaterGUI:
             self.save_current_config()
             self.log_manager.clear_failed_records()
             self.start_btn.config(state=tk.DISABLED)
+            self.add_log("开始数据更新操作", "HEADING")
             self.add_log(f"目标表: {target_table}")
             self.add_log(f"唯一标识列: {key_column}")
             self.add_log(f"待修改列: {update_column}")
@@ -503,66 +598,114 @@ class OracleBatchUpdaterGUI:
             valid, msg, data_rows = ExcelHandler.validate_excel_structure(excel_path)
             if not valid:
                 self.add_log(msg, "ERROR")
-                messagebox.showerror("验证失败", msg)
+                self.root.after(0, lambda: messagebox.showerror("验证失败", msg))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
             self.add_log(msg, "SUCCESS")
             dup_valid, duplicates = ExcelHandler.check_duplicate_keys(data_rows)
             if not dup_valid:
                 error_msg = f"Excel中唯一标识列存在重复值: {duplicates[:5]}"
                 self.add_log(error_msg, "ERROR")
-                messagebox.showerror("数据错误", error_msg)
+                self.root.after(0, lambda: messagebox.showerror("数据错误", error_msg))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
+            
             updater = DataUpdater(self.db_connection, self.log_manager)
-            schema = "APPS"
+            schema = self.schema_var.get()
+            
             self.add_log("正在验证表和列...")
             valid, msg = updater.validate_table_and_columns(schema, target_table, key_column, update_column)
             if not valid:
                 self.add_log(msg, "ERROR")
-                messagebox.showerror("验证失败", msg)
+                self.root.after(0, lambda: messagebox.showerror("验证失败", msg))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
             self.add_log("表和列验证通过", "SUCCESS")
+            
+            # 更新步骤指示器 - 备份
+            if self.progress_window:
+                self.root.after(0, lambda: self._update_step(0, "success"))
+            
             self.add_log("正在创建备份...")
             success, msg = updater.backup_table(schema, target_table)
             if not success:
                 self.add_log(f"备份失败: {msg}", "ERROR")
-                messagebox.showerror("备份失败", msg)
+                self.root.after(0, lambda: messagebox.showerror("备份失败", msg))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
             self.add_log(f"备份表已创建: {updater.backup_table_name}", "SUCCESS")
+            
+            # 更新步骤指示器 - 导入
+            if self.progress_window:
+                self.root.after(0, lambda: self._update_step(1, "active"))
+            
             self.add_log("正在创建临时表...")
             success, msg = updater.create_temp_table(schema, target_table, key_column, update_column)
             if not success:
                 self.add_log(f"创建临时表失败: {msg}", "ERROR")
-                messagebox.showerror("创建临时表失败", msg)
+                self.root.after(0, lambda: messagebox.showerror("创建临时表失败", msg))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
             self.add_log(f"临时表: {updater.temp_table_name}", "SUCCESS")
             self.add_log("正在导入Excel数据...")
             success, error, count = updater.import_excel_data(schema, key_column, update_column, data_rows)
             if not success:
                 self.add_log(f"导入失败: {error}", "ERROR")
-                messagebox.showerror("导入失败", error)
+                self.root.after(0, lambda: messagebox.showerror("导入失败", error))
                 self.start_btn.config(state=tk.NORMAL)
+                self.close_progress_window()
                 return
             self.add_log(f"成功导入 {count} 条数据", "SUCCESS")
+            
+            # 更新步骤指示器 - 更新
+            if self.progress_window:
+                self.root.after(0, lambda: self._update_step(1, "success"))
+                self.root.after(0, lambda: self._update_step(2, "active"))
+            
             self.add_log("正在执行数据更新...")
             success_count, fail_count, failed_records = updater.execute_update(
                 schema, target_table, key_column, update_column
             )
+            
+            # 更新进度条
+            total = success_count + fail_count
+            if self.progress_window and total > 0:
+                self.root.after(0, lambda: self.progress_var.set(100))
+                self.root.after(0, lambda: self.progress_label.config(text=f"处理进度: {success_count}/{total}"))
+            
             self.add_log(f"更新完成 - 成功: {success_count}, 失败: {fail_count}")
             updater.cleanup_temp_table(schema)
+            
+            # 更新步骤指示器 - 完成
+            if self.progress_window:
+                self.root.after(0, lambda: self._update_step(2, "success"))
+            
             if failed_records:
-                self.show_failure_dialog(failed_records)
+                self.root.after(0, lambda: self.show_failure_dialog(failed_records))
             else:
-                messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {fail_count}")
+                self.root.after(0, lambda: messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {fail_count}"))
+            
             self.start_btn.config(state=tk.NORMAL)
+            
         except Exception as e:
             self.add_log(f"执行出错: {str(e)}", "ERROR")
-            messagebox.showerror("错误", str(e))
+            self.root.after(0, lambda: messagebox.showerror("错误", str(e)))
             self.start_btn.config(state=tk.NORMAL)
+            self.close_progress_window()
+
+    def _update_step(self, step_index, status):
+        if not self.progress_window:
+            return
+        step_num, step_text = self.step_labels[step_index]
+        if status == "success":
+            step_num.configure(background="#28a745", foreground="white")
+        elif status == "active":
+            step_num.configure(background="#4facfe", foreground="white")
 
     def show_failure_dialog(self, failed_records):
         dialog = tk.Toplevel(self.root)
