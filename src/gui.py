@@ -449,6 +449,12 @@ class OracleBatchUpdaterGUI:
         self.status_bar.configure(style="StatusBar.TFrame")
         self.style.configure("StatusBar.TFrame", background=theme["status_bg"])
         
+        # 连接名称（最左侧）
+        self.connection_name_label = ttk.Label(self.status_bar, text="连接: -", style="Status.TLabel", font=("Microsoft YaHei", 9, "bold"))
+        self.connection_name_label.pack(side=tk.LEFT)
+        
+        ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
+        
         # 用户信息
         self.db_user_label = ttk.Label(self.status_bar, text="用户: -", style="Status.TLabel")
         self.db_user_label.pack(side=tk.LEFT)
@@ -474,7 +480,7 @@ class OracleBatchUpdaterGUI:
         self.operation_status_label = ttk.Label(self.status_bar, text="状态: 就绪", style="Status.TLabel")
         self.operation_status_label.pack(side=tk.LEFT)
 
-    def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪"):
+    def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪", conn_name="-"):
         if connected:
             self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#4e9a06")
             self.conn_status_label.config(text="已连接")
@@ -482,6 +488,7 @@ class OracleBatchUpdaterGUI:
             self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#c75050")
             self.conn_status_label.config(text="未连接")
         
+        self.connection_name_label.config(text=f"连接: {conn_name}")
         self.db_name_label.config(text=f"数据库: {db_name}")
         self.db_user_label.config(text=f"用户: {db_user}")
         self.operation_status_label.config(text=f"状态: {operation}")
@@ -508,6 +515,11 @@ class OracleBatchUpdaterGUI:
             self.first_update_entry.insert(0, last_used['update_column'])
         if last_used.get('schema'):
             self.schema_var.set(last_used['schema'])
+        
+        # 更新状态栏的连接名称
+        conn_name = self.connection_var.get()
+        if conn_name:
+            self.update_status_bar(conn_name=conn_name)
 
     def save_config(self):
         self.config.set_last_used(
@@ -520,7 +532,9 @@ class OracleBatchUpdaterGUI:
         self.add_log("配置已保存 (Ctrl+S)", "SUCCESS")
 
     def on_connection_selected(self, event=None):
-        pass
+        conn_name = self.connection_var.get()
+        if conn_name:
+            self.update_status_bar(conn_name=conn_name)
 
     def test_connection(self):
         conn_name = self.connection_var.get()
@@ -533,7 +547,7 @@ class OracleBatchUpdaterGUI:
             return
         
         self.add_log("正在测试数据库连接...")
-        self.update_status_bar(connected=False, operation="正在连接...")
+        self.update_status_bar(connected=False, conn_name=conn_name, operation="正在连接...")
         
         success, msg = self.db_connection.connect(
             host=conn_info['host'],
@@ -547,7 +561,7 @@ class OracleBatchUpdaterGUI:
             self.is_connected = True
             self.current_connection_info = conn_info
             self.connection_status_label.config(text=f"✅ 已连接: {conn_info['username']}@{conn_info['host']}", foreground="#28a745")
-            self.update_status_bar(connected=True, db_name=conn_info['service'], 
+            self.update_status_bar(connected=True, conn_name=conn_name, db_name=conn_info['service'], 
                                    db_user=conn_info['username'], operation="已连接")
             self.log_manager.log_connection(conn_info['host'], conn_info['service'], 
                                            conn_info['username'], True)
@@ -556,7 +570,7 @@ class OracleBatchUpdaterGUI:
         else:
             self.is_connected = False
             self.connection_status_label.config(text="❌ 连接失败", foreground="#dc3545")
-            self.update_status_bar(connected=False, operation="连接失败")
+            self.update_status_bar(connected=False, conn_name=conn_name, operation="连接失败")
             self.log_manager.log_connection(conn_info['host'], conn_info['service'], 
                                            conn_info['username'], False, str(msg))
             self.add_log(msg, "ERROR")

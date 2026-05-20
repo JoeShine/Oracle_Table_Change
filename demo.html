@@ -748,7 +748,7 @@
             <div class="config-grid">
                 <div class="form-group">
                     <label class="form-label">选择连接</label>
-                    <select class="form-select" id="connectionSelect">
+                    <select class="form-select" id="connectionSelect" onchange="switchConnection()">
                         <option value="dev" selected>开发环境</option>
                         <option value="test">测试环境</option>
                         <option value="prod">生产环境</option>
@@ -840,6 +840,10 @@
         </div>
         
         <div class="status-bar">
+            <div class="status-item">
+                <span style="font-weight: bold;">连接: 开发环境</span>
+            </div>
+            <div class="status-separator"></div>
             <div class="status-item">
                 <span>用户: SCOTT</span>
             </div>
@@ -1028,6 +1032,12 @@
                 <button class="column-remove" onclick="this.parentElement.remove()">-</button>
             `;
             list.appendChild(div);
+        }
+        
+        function switchConnection() {
+            const select = document.getElementById('connectionSelect');
+            const connName = select.options[select.selectedIndex].text;
+            document.querySelector('.status-bar .status-item:first-child span').textContent = `连接: ${connName}`;
         }
         
         function testConnection() {
