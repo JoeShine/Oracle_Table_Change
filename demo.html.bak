@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oracle数据批量修改工具 - 操作原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg: #f5f5f5;
+            --fg: #3c3f41;
+            --primary: #4a86e8;
+            --primary-dark: #3d65a5;
+            --success: #3592c4;
+            --error: #c75050;
+            --warning: #ca8230;
+            --card-bg: #ffffff;
+            --card-border: #e5e5e5;
+            --text-muted: #6c757d;
+            --text-heading: #2b2b2b;
+            --entry-bg: #ffffff;
+            --tree-bg: #ffffff;
+            --tree-alt: #f5f5f5;
+            --log-bg: #f7f7f7;
+            --status-bg: #f0f0f0;
+            --tab-bg: #e8e8e8;
+            --tab-selected: #ffffff;
+            --tab-border: #d4d4d4;
+        }
+        
+        body.dark-mode {
+            --bg: #2b2b2b;
+            --fg: #a9b7c6;
+            --primary: #4a86e8;
+            --primary-dark: #3d65a5;
+            --success: #4e9a06;
+            --error: #cc6666;
+            --warning: #cc7832;
+            --card-bg: #3c3f41;
+            --card-border: #555555;
+            --text-muted: #808080;
+            --text-heading: #dcdcdc;
+            --entry-bg: #3c3f41;
+            --tree-bg: #3c3f41;
+            --tree-alt: #45494a;
+            --log-bg: #2b2b2b;
+            --status-bg: #3c3f41;
+            --tab-bg: #35383a;
+            --tab-selected: #2b2b2b;
+            --tab-border: #4e4e4e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--fg);
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-content {
+            flex: 1;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 13px;
+        }
+        
+        .theme-toggle {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        
+        .tabs {
+            display: flex;
+            background: var(--tab-bg);
+            border-bottom: 1px solid var(--tab-border);
+            position: relative;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 14px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-right: 1px solid var(--tab-border);
+        }
+        
+        .tab:last-child {
+            border-right: none;
+        }
+        
+        .tab:hover {
+            background: rgba(74, 134, 232, 0.1);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            background: var(--tab-selected);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 25px 30px;
+            background: var(--card-bg);
+            min-height: 450px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .config-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--text-heading);
+            font-size: 14px;
+        }
+        
+        .form-input, .form-select {
+            padding: 10px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            font-size: 14px;
+            background: var(--entry-bg);
+            color: var(--fg);
+            width: 100%;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 134, 232, 0.15);
+        }
+        
+        .file-upload {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .file-path {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            background: var(--entry-bg);
+            color: var(--fg);
+            font-size: 13px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary {
+            background: var(--tab-bg);
+            color: var(--fg);
+            border: 1px solid var(--card-border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(74, 134, 232, 0.1);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .preview-box {
+            margin-top: 25px;
+            background: var(--tree-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .preview-header {
+            padding: 12px 15px;
+            background: var(--tab-bg);
+            border-bottom: 1px solid var(--card-border);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .preview-content {
+            padding: 15px;
+            overflow-x: auto;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .preview-table th,
+        .preview-table td {
+            border: 1px solid var(--card-border);
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .preview-table th {
+            background: var(--tab-bg);
+            font-weight: 500;
+        }
+        
+        .preview-table tr:nth-child(even) td {
+            background: var(--tree-alt);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+        
+        .log-box {
+            background: var(--log-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            height: 400px;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .log-content {
+            padding: 15px;
+        }
+        
+        .log-line {
+            margin: 4px 0;
+        }
+        
+        .log-success { color: var(--success); }
+        .log-error { color: var(--error); }
+        .log-warning { color: var(--warning); }
+        .log-info { color: var(--primary); }
+        
+        .status-bar {
+            background: var(--status-bg);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 13px;
+            border-top: 1px solid var(--card-border);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--error);
+        }
+        
+        .status-dot.connected {
+            background: var(--success);
+        }
+        
+        .status-separator {
+            width: 1px;
+            height: 16px;
+            background: var(--card-border);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .modal {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 550px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 18px;
+        }
+        
+        .modal-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .modal-footer {
+            padding: 15px 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--card-border);
+        }
+        
+        .progress-steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--tab-bg);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--tab-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .progress-detail {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .confirm-list {
+            background: var(--tree-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .confirm-item {
+            padding: 8px 0;
+            display: flex;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .confirm-item:last-child {
+            border-bottom: none;
+        }
+        
+        .confirm-label {
+            width: 120px;
+            font-weight: 500;
+            color: var(--text-heading);
+        }
+        
+        .confirm-value {
+            color: var(--fg);
+        }
+        
+        .columns-list {
+            background: var(--tree-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .column-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        
+        .column-item input {
+            flex: 1;
+        }
+        
+        .column-remove {
+            background: var(--error);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .column-add {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .empty-hint {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .history-table th,
+        .history-table td {
+            border: 1px solid var(--card-border);
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .history-table th {
+            background: var(--tab-bg);
+            font-weight: 500;
+        }
+        
+        .history-table tr:nth-child(even) td {
+            background: var(--tree-alt);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge.success {
+            background: rgba(78, 154, 6, 0.15);
+            color: var(--success);
+        }
+        
+        .status-badge.partial {
+            background: rgba(204, 120, 50, 0.15);
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-content">
+                <h1>📦 Oracle数据批量修改工具</h1>
+                <p>Oracle Data Batch Modifier - v2.0</p>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 深色模式</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(0)">📋 当前配置</div>
+            <div class="tab" onclick="switchTab(1)">📜 操作日志</div>
+            <div class="tab" onclick="switchTab(2)">🔌 数据库连接</div>
+            <div class="tab" onclick="switchTab(3)">📊 历史记录</div>
+        </div>
+        
+        <div class="tab-content active" id="tab-0">
+            <div class="config-grid">
+                <div class="form-group">
+                    <label class="form-label">数据库模式</label>
+                    <select class="form-select" id="schema">
+                        <option value="APPS" selected>APPS</option>
+                        <option value="SYS">SYS</option>
+                        <option value="SYSTEM">SYSTEM</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">目标表名</label>
+                    <input type="text" class="form-input" id="tableName" placeholder="请输入目标表名">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">唯一标识列</label>
+                    <input type="text" class="form-input" id="keyColumn" placeholder="请输入唯一标识列名">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">待修改列</label>
+                    <div>
+                        <div class="columns-list" id="columnsList">
+                            <div class="column-item">
+                                <input type="text" class="form-input" placeholder="列名 1">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary column-add" onclick="addColumn()">➕ 添加列</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Excel文件</label>
+                    <div class="file-upload">
+                        <div class="file-path" id="filePath">未选择文件</div>
+                        <button class="btn btn-secondary" onclick="selectFile()">📁 浏览</button>
+                        <button class="btn btn-secondary" onclick="previewExcel()">👁 预览</button>
+                        <button class="btn btn-secondary" onclick="checkDuplicates()">🔍 重复性校验</button>
+                        <button class="btn btn-secondary" onclick="checkConsistency()">✅ 一致性校验</button>
+                    </div>
+                    <div style="margin-top: 6px; color: var(--text-muted); font-size: 12px;">
+                        支持 .xlsx/.xls 文件，最大10MB，最多10万行
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-box">
+                <div class="preview-header">Excel数据预览（前50行）</div>
+                <div class="preview-content">
+                    <table class="preview-table" id="previewTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>AGE</th>
+                                <th>DEPT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1001</td>
+                                <td>张三</td>
+                                <td>28</td>
+                                <td>技术部</td>
+                            </tr>
+                            <tr>
+                                <td>1002</td>
+                                <td>李四</td>
+                                <td>32</td>
+                                <td>市场部</td>
+                            </tr>
+                            <tr>
+                                <td>1003</td>
+                                <td>王五</td>
+                                <td>25</td>
+                                <td>财务部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>1001</td>
+                                <td>张三</td>
+                                <td>28</td>
+                                <td>技术部</td>
+                            </tr>
+                            <tr>
+                                <td>1004</td>
+                                <td>赵六</td>
+                                <td>30</td>
+                                <td>人事部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>1002</td>
+                                <td>李四</td>
+                                <td>32</td>
+                                <td>市场部</td>
+                            </tr>
+                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                                <td>9999</td>
+                                <td>不存在的人</td>
+                                <td>30</td>
+                                <td>未知部门</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="showConfirmModal()">✅ 确认</button>
+                <button class="btn btn-secondary" onclick="clearForm()">🗑 清空</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="tab-1">
+            <div class="log-box">
+                <div class="log-content" id="logContent">
+                    <div class="log-line log-info">[2025-05-20 10:30:00] 开始数据更新操作</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:01] 目标表: EMPLOYEE</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:02] 唯一标识列: EMP_ID</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:02] 待修改列: NAME, AGE, DEPT</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:03] 备份表已创建: EMPLOYEE_BAK_20250520_103000</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:05] Excel验证通过，共125条数据</div>
+                    <div class="log-line log-success">[2025-05-20 10:30:08] 更新完成 - 成功: 120, 失败: 5</div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary">📊 导出日志</button>
+                <button class="btn btn-secondary">❌ 导出失败记录</button>
+                <button class="btn btn-secondary" onclick="clearLogs()">🗑 清空</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="tab-2">
+            <div class="config-grid">
+                <div class="form-group">
+                    <label class="form-label">选择连接</label>
+                    <select class="form-select" id="connectionSelect" onchange="switchConnection()">
+                        <option value="dev" selected>开发环境</option>
+                        <option value="test">测试环境</option>
+                        <option value="prod">生产环境</option>
+                    </select>
+                    <button class="btn btn-secondary" style="margin-left: 10px;" onclick="testConnection()">🔗 测试连接</button>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <div class="preview-box" style="margin-top: 0;">
+                        <div class="preview-header">连接信息</div>
+                        <div class="preview-content">
+                            <div class="confirm-item">
+                                <div class="confirm-label">主机</div>
+                                <div class="confirm-value" id="connHost">192.168.1.100</div>
+                            </div>
+                            <div class="confirm-item">
+                                <div class="confirm-label">端口</div>
+                                <div class="confirm-value">1521</div>
+                            </div>
+                            <div class="confirm-item">
+                                <div class="confirm-label">服务名</div>
+                                <div class="confirm-value">ORCL</div>
+                            </div>
+                            <div class="confirm-item">
+                                <div class="confirm-label">用户名</div>
+                                <div class="confirm-value">SCOTT</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary">➕ 添加连接</button>
+                    <button class="btn btn-secondary">➖ 删除连接</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="tab-3">
+            <div class="btn-group" style="margin-top: 0; padding-top: 0; border-top: none;">
+                <button class="btn btn-secondary" onclick="refreshHistory()">🔄 刷新</button>
+                <button class="btn btn-secondary">🗑 批量删除</button>
+            </div>
+            
+            <div class="preview-box" style="margin-top: 15px;">
+                <div class="preview-header">历史导入记录</div>
+                <div class="preview-content">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">选择</th>
+                                <th style="width: 60px;">序号</th>
+                                <th style="width: 160px;">操作时间</th>
+                                <th style="width: 120px;">目标表</th>
+                                <th style="width: 80px;">模式</th>
+                                <th style="width: 70px;">总数</th>
+                                <th style="width: 70px;">成功</th>
+                                <th style="width: 70px;">失败</th>
+                                <th style="width: 80px;">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>1</td>
+                                <td>2025-05-20 10:30:00</td>
+                                <td>EMPLOYEE</td>
+                                <td>APPS</td>
+                                <td style="text-align: center;">125</td>
+                                <td style="text-align: center;">120</td>
+                                <td style="text-align: center;">5</td>
+                                <td><span class="status-badge partial">部分失败</span></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>2</td>
+                                <td>2025-05-19 15:45:00</td>
+                                <td>DEPARTMENT</td>
+                                <td>APPS</td>
+                                <td style="text-align: center;">50</td>
+                                <td style="text-align: center;">50</td>
+                                <td style="text-align: center;">0</td>
+                                <td><span class="status-badge success">成功</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span style="font-weight: bold;">连接: 开发环境</span>
+            </div>
+            <div class="status-separator"></div>
+            <div class="status-item">
+                <span>用户: SCOTT</span>
+            </div>
+            <div class="status-separator"></div>
+            <div class="status-item">
+                <span>数据库: ORCL</span>
+            </div>
+            <div class="status-separator"></div>
+            <div class="status-item">
+                <div class="status-dot connected" id="statusDot"></div>
+                <span id="statusText">已连接</span>
+            </div>
+            <div class="status-separator"></div>
+            <div class="status-item">
+                <span>状态: 就绪</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⚠️ 确认操作</h3>
+                <button class="modal-close" onclick="hideConfirmModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>请确认以下配置信息：</p>
+                <div class="confirm-list">
+                    <div class="confirm-item">
+                        <div class="confirm-label">数据库模式</div>
+                        <div class="confirm-value">APPS</div>
+                    </div>
+                    <div class="confirm-item">
+                        <div class="confirm-label">目标表名</div>
+                        <div class="confirm-value">EMPLOYEE</div>
+                    </div>
+                    <div class="confirm-item">
+                        <div class="confirm-label">唯一标识列</div>
+                        <div class="confirm-value">EMP_ID</div>
+                    </div>
+                    <div class="confirm-item">
+                        <div class="confirm-label">待修改列</div>
+                        <div class="confirm-value">NAME, AGE, DEPT</div>
+                    </div>
+                </div>
+                <p style="color: var(--warning); margin-top: 15px;">
+                    ⚠️ 警告：系统将自动备份目标表数据。如果更新失败，将自动回滚到初始状态。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideConfirmModal()">取消</button>
+                <button class="btn btn-primary" onclick="showProgressModal()">确认更新</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="progressModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⏳ 正在更新数据</h3>
+                <button class="modal-close" onclick="hideProgressModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="progress-steps">
+                    <div class="step completed" id="step1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">备份</div>
+                    </div>
+                    <div class="step active" id="step2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">导入</div>
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">更新</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div class="progress-text" id="progressText">处理进度: 0/0 (0%)</div>
+                <div class="progress-detail" id="progressDetail">正在连接数据库...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="duplicateModal">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>⚠️ 发现重复值</h3>
+                <button class="modal-close" onclick="hideDuplicateModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--error); font-weight: 500;">发现Excel中存在重复的唯一标识值</p>
+                <div class="preview-box" style="margin-top: 15px;">
+                    <div class="preview-header">重复值列表</div>
+                    <div class="preview-content">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>唯一标识值</th>
+                                    <th>出现的行号</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1001</td>
+                                    <td>2, 5</td>
+                                </tr>
+                                <tr>
+                                    <td>1002</td>
+                                    <td>3, 7</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
+                    请修正Excel中的重复数据后再次进行更新操作。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideDuplicateModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="consistencyModal">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>⚠️ 发现不一致数据</h3>
+                <button class="modal-close" onclick="hideConsistencyModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--error); font-weight: 500;">发现Excel中的唯一标识在数据库表中不存在</p>
+                <div class="preview-box" style="margin-top: 15px;">
+                    <div class="preview-header">缺失的唯一标识列表</div>
+                    <div class="preview-content">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>缺失的唯一标识值</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>9999</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
+                    这些标识在数据库中不存在，请确认数据正确性或先在数据库中添加这些记录。
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideConsistencyModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="successModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #4e9a06 0%, #3592c4 100%);">
+                <h3>✅ 校验通过</h3>
+                <button class="modal-close" onclick="hideSuccessModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage" style="text-align: center; font-size: 15px; line-height: 1.6;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="hideSuccessModal()">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTab = 0;
+        let progress = 0;
+        
+        function switchTab(index) {
+            document.querySelectorAll('.tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+            currentTab = index;
+        }
+        
+        let isDarkMode = false;
+        
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            document.querySelector('.theme-toggle').textContent = isDarkMode ? '☀️ 浅色模式' : '🌙 深色模式';
+        }
+        
+        function showConfirmModal() {
+            document.getElementById('confirmModal').classList.add('active');
+        }
+        
+        function hideConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+        
+        function showProgressModal() {
+            hideConfirmModal();
+            document.getElementById('progressModal').classList.add('active');
+            simulateProgress();
+        }
+        
+        function hideProgressModal() {
+            document.getElementById('progressModal').classList.remove('active');
+        }
+        
+        function simulateProgress() {
+            progress = 0;
+            const steps = ['正在备份数据...', '正在导入Excel数据...', '正在执行数据更新...', '正在清理临时表...', '完成!'];
+            const stepElements = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3')];
+            
+            let stepIndex = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                if (progress > 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                
+                const newStepIndex = Math.min(Math.floor(progress / 35), 2);
+                if (newStepIndex > stepIndex) {
+                    stepElements[stepIndex].classList.remove('active');
+                    stepElements[stepIndex].classList.add('completed');
+                    stepIndex = newStepIndex;
+                    if (stepIndex < 3) {
+                        stepElements[stepIndex].classList.add('active');
+                    }
+                }
+                
+                document.getElementById('progressFill').style.width = progress + '%';
+                const total = 125;
+                const current = Math.floor((progress / 100) * total);
+                document.getElementById('progressText').textContent = `处理进度: ${current}/${total} (${progress}%)`;
+                document.getElementById('progressDetail').textContent = steps[newStepIndex];
+                
+            }, 100);
+        }
+        
+        function selectFile() {
+            document.getElementById('filePath').textContent = 'employee_update_20250520.xlsx';
+        }
+        
+        function previewExcel() {
+            document.getElementById('previewTable').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkDuplicates() {
+            const filePath = document.getElementById('filePath').textContent;
+            if (filePath === '未选择文件') {
+                alert('请先选择Excel文件！');
+                return;
+            }
+            
+            addLog('正在检查Excel中的重复值...', 'info');
+            updateStatus('正在检查重复值...');
+            
+            setTimeout(() => {
+                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现重复值）\n点击"取消"显示校验通过')) {
+                    addLog('发现 2 个重复值', 'error');
+                    document.getElementById('duplicateModal').classList.add('active');
+                } else {
+                    addLog('重复性校验通过，没有发现重复值', 'success');
+                    showSuccessModal('✅ 重复性校验通过！\n\nExcel中没有发现重复的唯一标识值。');
+                }
+                updateStatus('就绪');
+            }, 800);
+        }
+        
+        function checkConsistency() {
+            const filePath = document.getElementById('filePath').textContent;
+            if (filePath === '未选择文件') {
+                alert('请先选择Excel文件！');
+                return;
+            }
+            
+            const isConnected = document.getElementById('statusDot').classList.contains('connected');
+            if (!isConnected) {
+                alert('请先连接数据库！');
+                switchTab(2);
+                return;
+            }
+            
+            const tableName = document.getElementById('tableName').value;
+            const keyColumn = document.getElementById('keyColumn').value;
+            if (!tableName || !keyColumn) {
+                alert('请填写目标表名和唯一标识列！');
+                return;
+            }
+            
+            addLog('正在检查数据一致性...', 'info');
+            updateStatus('正在检查一致性...');
+            
+            setTimeout(() => {
+                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现缺失标识）\n点击"取消"显示校验通过')) {
+                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
+                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
+                    addLog('发现 1 个标识在数据库中不存在', 'error');
+                    document.getElementById('consistencyModal').classList.add('active');
+                } else {
+                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
+                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
+                    addLog('一致性校验通过，所有标识都存在于数据库中', 'success');
+                    showSuccessModal('✅ 一致性校验通过！\n\nExcel中的所有唯一标识值都存在于数据库表中。');
+                }
+                updateStatus('就绪');
+            }, 1000);
+        }
+        
+        function clearForm() {
+            document.getElementById('tableName').value = '';
+            document.getElementById('keyColumn').value = '';
+            document.getElementById('filePath').textContent = '未选择文件';
+        }
+        
+        function clearLogs() {
+            document.getElementById('logContent').innerHTML = '<div class="log-line log-info">[2025-05-20 10:30:00] 日志已清空</div>';
+        }
+        
+        function addColumn() {
+            const list = document.getElementById('columnsList');
+            const count = list.querySelectorAll('.column-item').length + 1;
+            const div = document.createElement('div');
+            div.className = 'column-item';
+            div.innerHTML = `
+                <input type="text" class="form-input" placeholder="列名 ${count}">
+                <button class="column-remove" onclick="this.parentElement.remove()">-</button>
+            `;
+            list.appendChild(div);
+        }
+        
+        function switchConnection() {
+            const select = document.getElementById('connectionSelect');
+            const connName = select.options[select.selectedIndex].text;
+            document.querySelector('.status-bar .status-item:first-child span').textContent = `连接: ${connName}`;
+        }
+        
+        function testConnection() {
+            alert('连接测试成功!');
+            document.getElementById('statusDot').className = 'status-dot connected';
+            document.getElementById('statusText').textContent = '已连接';
+        }
+        
+        function refreshHistory() {
+            alert('历史记录已刷新!');
+        }
+        
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' + 
+                String(now.getHours()).padStart(2, '0') + ':' + 
+                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                String(now.getSeconds()).padStart(2, '0');
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line log-' + type;
+            logLine.textContent = '[' + timeStr + '] ' + message;
+            logContent.insertBefore(logLine, logContent.firstChild);
+        }
+        
+        function updateStatus(message) {
+            const statusItems = document.querySelectorAll('.status-bar .status-item');
+            if (statusItems.length > 0) {
+                statusItems[statusItems.length - 1].innerHTML = '<span>状态: ' + message + '</span>';
+            }
+        }
+        
+        function hideDuplicateModal() {
+            document.getElementById('duplicateModal').classList.remove('active');
+        }
+        
+        function hideConsistencyModal() {
+            document.getElementById('consistencyModal').classList.remove('active');
+        }
+        
+        function showSuccessModal(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
+        }
+        
+        function hideSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
