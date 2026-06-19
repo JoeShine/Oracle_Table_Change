@@ -25,7 +25,9 @@ class ConfigManager:
                 "target_table": "",
                 "key_column": "",
                 "update_column": "",
-                "schema": "APPS"
+                "schema": "APPS",
+                "theme_style": "idea",
+                "theme_dark": False
             },
             "connections": []
         }
@@ -42,13 +44,16 @@ class ConfigManager:
     def get_last_used(self):
         return self.config.get("last_used", {})
 
-    def set_last_used(self, connection_name="", target_table="", key_column="", update_column="", schema="APPS"):
+    def set_last_used(self, connection_name="", target_table="", key_column="", update_column="", schema="APPS",
+                      theme_style="idea", theme_dark=False):
         self.config["last_used"] = {
             "connection_name": connection_name,
             "target_table": target_table,
             "key_column": key_column,
             "update_column": update_column,
-            "schema": schema
+            "schema": schema,
+            "theme_style": theme_style,
+            "theme_dark": theme_dark
         }
         self.save_config()
 

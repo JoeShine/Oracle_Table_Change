@@ -262,6 +262,12 @@ class ThemeManager:
         self._apply_current_theme()
         return self.current_style, self.is_dark, self.theme
 
+    def switch_theme_style(self, style_key):
+        """切换主题风格（idea / terminal / clean），保留深浅色模式"""
+        self.current_style = style_key
+        self._apply_current_theme()
+        return self.current_style, self.is_dark, self.theme
+
 
 class OracleBatchUpdaterGUI:
     def __init__(self, root):
@@ -432,21 +438,56 @@ class OracleBatchUpdaterGUI:
         mode_text = "浅色" if is_dark else "深色"
         if hasattr(self, 'theme_btn'):
             self.theme_btn.config(text=f"{icon} {mode_text}模式")
+        # 持久化深色模式设置
+        self._save_theme_config()
+
+    def switch_theme_style(self, style_key):
+        """切换主题风格（idea / terminal / clean）"""
+        self.theme_manager.switch_theme_style(style_key)
+        self.apply_theme()
+        self.update_styles()
+        self.update_treeview_style()
+        self.update_log_style()
+        self.update_history_tree_style()
+        self._update_theme_selector_buttons()
+        # 更新深浅色按钮文本
+        style_name, is_dark, _ = self.theme_manager.get_theme()
+        icon = "☀️" if is_dark else "🌙"
+        mode_text = "浅色" if is_dark else "深色"
+        if hasattr(self, 'theme_btn'):
+            self.theme_btn.config(text=f"{icon} {mode_text}模式")
+        # 持久化主题风格设置
+        self._save_theme_config()
+
+    def _save_theme_config(self):
+        """持久化当前主题设置"""
+        style_name, is_dark, _ = self.theme_manager.get_theme()
+        self.config.set_last_used(
+            connection_name=self.connection_var.get(),
+            target_table=self.target_table_var.get(),
+            key_column=self.key_column_var.get(),
+            update_column=self.first_update_entry.get() if hasattr(self, 'first_update_entry') else "",
+            schema=self.schema_var.get() if hasattr(self, 'schema_var') else "APPS",
+            theme_style=style_name,
+            theme_dark=is_dark
+        )
 
     def _update_theme_selector_buttons(self):
-        """更新主题选择器按钮状态"""
-        style_name, _, _ = self.theme_manager.get_theme()
+        """更新主题选择器按钮状态 - 匹配原型风格"""
+        style_name, is_dark, theme = self.theme_manager.get_theme()
         for btn_style, btn in self.theme_buttons.items():
             if btn:
                 try:
                     is_active = (btn_style == style_name)
                     if is_active:
-                        btn.configure(relief="sunken", bg=self.theme_manager.theme["primary"])
-                        btn.configure(fg="white")
+                        btn.configure(relief="flat", bg=theme["primary"], fg="white",
+                                      bd=1, highlightbackground=theme["primary"])
                     else:
-                        btn.configure(relief="raised", bg=self.theme_manager.theme.get("button_secondary_bg", "#e8e8e8"))
-                        btn.configure(fg=self.theme_manager.theme.get("text_heading", "#3c3f41"))
-                except:
+                        bg_color = theme.get("button_secondary_bg", "#e8e8e8")
+                        fg_color = theme.get("button_secondary_fg", "#3c3f41")
+                        btn.configure(relief="flat", bg=bg_color, fg=fg_color,
+                                      bd=1, highlightbackground=theme.get("card_border", "#cccccc"))
+                except Exception:
                     pass
 
     def update_treeview_style(self):
@@ -757,18 +798,34 @@ class OracleBatchUpdaterGUI:
         if last_used.get('schema'):
             self.schema_var.set(last_used['schema'])
         
+        # 恢复主题设置（在UI渲染后应用）
+        saved_style = last_used.get('theme_style', 'idea')
+        saved_dark = last_used.get('theme_dark', False)
+        if saved_style in ('idea', 'terminal', 'clean'):
+            self.root.after(50, lambda: self._restore_theme(saved_style, saved_dark))
+        
         # 更新状态栏的连接名称
         conn_name = self.connection_var.get()
         if conn_name:
             self.update_status_bar(conn_name=conn_name)
 
+    def _restore_theme(self, style_key, is_dark):
+        """恢复保存的主题设置"""
+        if is_dark:
+            self.theme_manager.toggle_theme()
+        if style_key != 'idea':
+            self.switch_theme_style(style_key)
+
     def save_config(self):
+        style_name, is_dark, _ = self.theme_manager.get_theme()
         self.config.set_last_used(
             connection_name=self.connection_var.get(),
             target_table=self.target_table_var.get(),
             key_column=self.key_column_var.get(),
             update_column=self.first_update_entry.get(),
-            schema=self.schema_var.get()
+            schema=self.schema_var.get(),
+            theme_style=style_name,
+            theme_dark=is_dark
         )
         self.add_log("配置已保存 (Ctrl+S)", "SUCCESS")
 

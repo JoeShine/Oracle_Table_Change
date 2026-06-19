@@ -1,9 +1,12 @@
 {
   "last_used": {
-    "connection_name": "测试数据库",
-    "target_table": "TEST_TABLE",
-    "key_column": "ID",
-    "update_column": "VALUE"
+    "connection_name": "",
+    "target_table": "",
+    "key_column": "",
+    "update_column": "",
+    "schema": "APPS",
+    "theme_style": "clean",
+    "theme_dark": true
   },
   "connections": [
     {
