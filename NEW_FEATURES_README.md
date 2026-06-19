@@ -59,25 +59,51 @@
 ## 3. 三套主题风格系统 (🎨 主题切换)
 
 ### 功能说明
-系统提供三套主题风格，每套均支持浅色/深色模式，共六种视觉方案。
+系统提供三套主题风格，每套均支持浅色/深色模式，共六种视觉方案。**默认风格为深墨琥珀（terminal）**，与 demo.html 原型一致。
 
 ### 三种风格
-| 风格 | 主色调 | 设计灵感 |
-|------|--------|----------|
-| **Idea 蓝色** | #4A86E8 蓝色 | IntelliJ IDEA IDE |
-| **深墨琥珀** | #E8A317 琥珀金 | 经典终端/命令行界面 |
-| **清爽浅色** | #5B9BD5 清新蓝 | 极简干净设计 |
+| 风格 | 主色调 | 设计灵感 | 默认 |
+|------|--------|----------|------|
+| **Idea 蓝色** | #4A86E8 蓝色 | IntelliJ IDEA IDE | - |
+| **深墨琥珀** | #E8A44C 琥珀金 | Frontend Design / 终端风格 | ✓ |
+| **清爽浅色** | #0066CC 清新蓝 | 极简干净设计 | - |
+
+### 配色键（每套 26 个）
+- name / name_en / bg / fg / primary / primary_dark / secondary
+- success / error / warning / info
+- card_bg / card_border / text_muted / text_heading
+- button_bg / button_fg / button_secondary_bg / button_secondary_fg
+- entry_bg / entry_border
+- tree_bg / tree_alt / log_bg
+- scrollbar_bg / status_bg
+- tab_bg / tab_selected / tab_border
+- header_bg（linear-gradient）/ header_fg
+
+### 主题按钮（与代码 `gui.py` 第 393-397 行一致）
+- 风格按钮：`Idea💡` / `深墨🖥` / `清爽✨`
+- 深浅色按钮：`🌙 深色模式`（当前浅色时） / `☀️ 浅色模式`（当前深色时）
 
 ### 使用步骤
-1. 点击顶部工具栏的「Idea」「Terminal」「Clean」按钮切换风格
-2. 点击「☀️ 浅色模式」/「🌙 深色模式」切换当前风格的明暗模式
-3. 主题设置自动保存，下次启动时自动恢复
+1. 点击顶部控制栏"主题:"标签后的风格按钮切换风格
+2. 点击 `🌙 深色模式` / `☀️ 浅色模式` 切换当前风格的明暗模式
+3. 主题设置自动保存到 `config.json`，下次启动时自动恢复
+
+### 持久化字段
+- `config.json` → `last_used.theme_style`：`idea` / `terminal` / `clean`，默认 `terminal`
+- `config.json` → `last_used.theme_dark`：`true` / `false`，默认 `false`
+
+### 启动恢复流程
+1. `load_last_config` 读取 `theme_style` / `theme_dark`
+2. `root.after(50, ...)` 延迟到 UI 渲染完成后应用
+3. 调用 `_restore_theme(style_key, is_dark)` 切换主题
+4. 异常时回退默认值，不影响程序启动
 
 ### 功能特点
-- 每套风格有独立的浅色/深色配色方案
-- 风格切换和深浅色切换独立工作
-- 主题设置持久化到 config.json（theme_style / theme_dark 字段）
-- 按钮、输入框、表格、日志等所有组件统一配色
+- 每套风格有独立的浅色/深色配色方案（26 字段全部独立）
+- 风格切换和深浅色切换独立工作，互不影响
+- 按钮、输入框、表格、日志、标签页、滚动条、状态栏等所有组件统一配色
+- 按钮选中态使用 `primary` 主色，按下态使用 `primary_dark` 加深
+- 与 `demo.html` 原型视觉一致（含响应式断点 380px / 780px）
 
 ---
 
@@ -123,9 +149,12 @@
 - `OracleBatchUpdaterGUI.check_consistency()` - 一致性校验主逻辑
 - `OracleBatchUpdaterGUI.show_consistency_dialog()` - 显示一致性问题对话框
 - `OracleBatchUpdaterGUI.switch_theme_style()` - 主题风格切换
+- `OracleBatchUpdaterGUI.toggle_theme()` - 深浅色切换
 - `OracleBatchUpdaterGUI._save_theme_config()` - 主题配置持久化
-- `OracleBatchUpdaterGUI._restore_theme()` - 启动时恢复主题
+- `OracleBatchUpdaterGUI._restore_theme(style_key, is_dark)` - 启动时恢复主题
+- `OracleBatchUpdaterGUI._update_theme_selector_buttons()` - 风格按钮选中态更新
 - `ThemeManager.switch_theme_style()` - 切换风格并保留深浅模式
+- `ThemeManager.set_style()` / `set_dark_mode()` / `toggle_dark_mode()` - 风格与模式 API
 
 ---
 
@@ -150,5 +179,6 @@
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
+| 2.2 | 2026-06-19 | 校正默认风格为深墨琥珀；按代码 26 字段重写配色；补充按钮文字、持久化字段、启动恢复流程 |
 | 2.1 | 2026-06-19 | 新增三套主题风格系统（Idea/Terminal/Clean） |
 | 2.0 | 2026-05-20 | 新增重复性校验和一致性校验功能 |
