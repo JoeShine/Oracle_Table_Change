@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 from pathlib import Path
 
 
@@ -8,6 +9,19 @@ class ConfigManager:
         self.app_dir = Path(__file__).parent.parent
         self.config_file = self.app_dir / "config.json"
         self.config = self.load_config()
+
+    @staticmethod
+    def _encode_password(password: str) -> str:
+        """Base64 编码密码"""
+        return base64.b64encode(password.encode('utf-8')).decode('utf-8')
+
+    @staticmethod
+    def _decode_password(encoded: str) -> str:
+        """Base64 解码密码，兼容旧版明文存储"""
+        try:
+            return base64.b64decode(encoded.encode('utf-8')).decode('utf-8')
+        except Exception:
+            return encoded  # 兼容旧版明文密码
 
     def load_config(self):
         if self.config_file.exists():
@@ -58,10 +72,18 @@ class ConfigManager:
         self.save_config()
 
     def get_connections(self):
-        return self.config.get("connections", [])
+        connections = self.config.get("connections", [])
+        # 解码密码后返回
+        for conn in connections:
+            if "password" in conn:
+                conn["password"] = self._decode_password(conn["password"])
+        return connections
 
     def add_connection(self, conn_info):
         connections = self.get_connections()
+        # 编码密码后存储
+        conn_info = conn_info.copy()
+        conn_info["password"] = self._encode_password(conn_info["password"])
         for i, conn in enumerate(connections):
             if conn["name"] == conn_info["name"]:
                 connections[i] = conn_info

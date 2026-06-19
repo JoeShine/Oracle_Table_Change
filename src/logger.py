@@ -7,10 +7,10 @@ from typing import List, Dict, Any, Optional
 
 
 class AuditLogger:
-    def __init__(self, app_dir: Path):
-        self.audit_file = app_dir / "logs" / "audit.log"
-        self.app_dir = app_dir
-        self.app_dir.mkdir(exist_ok=True)
+    def __init__(self, log_dir: Path):
+        self.log_dir = log_dir
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.audit_file = self.log_dir / "audit.log"
         
     def log_action(self, action_type: str, details: Dict[str, Any], user: str = "system", success: bool = True, error_msg: str = ""):
         entry = {
@@ -78,10 +78,10 @@ class AuditLogger:
 
 
 class HistoryManager:
-    def __init__(self, app_dir: Path):
-        self.history_file = app_dir / "logs" / "history.json"
-        self.app_dir = app_dir
-        self.app_dir.mkdir(exist_ok=True)
+    def __init__(self, log_dir: Path):
+        self.log_dir = log_dir
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.history_file = self.log_dir / "history.json"
         self.history = self._load_history()
     
     def _load_history(self) -> List[Dict[str, Any]]:

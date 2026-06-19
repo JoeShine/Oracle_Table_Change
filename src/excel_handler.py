@@ -209,7 +209,7 @@ class ExcelHandler:
             return False, f"预览失败: {str(e)}", {}
 
     @staticmethod
-    def get_preview_data(file_path: str, max_rows: int = MAX_PREVIEW_ROWS) -> Tuple[bool, str, List[Dict[str, Any]]]:
+    def get_preview_data(file_path: str, max_rows: int = MAX_PREVIEW_ROWS) -> Tuple[bool, str, Dict[str, Any]]:
         try:
             file_size = os.path.getsize(file_path)
             if file_size > MAX_FILE_SIZE:

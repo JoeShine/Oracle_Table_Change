@@ -4,6 +4,8 @@ from pathlib import Path
 from datetime import datetime
 import threading
 import os
+import sys
+import subprocess
 from src.config_manager import ConfigManager
 from src.db_connection import DBConnection
 from src.excel_handler import ExcelHandler, MAX_FILE_SIZE, MAX_ROWS, MAX_PREVIEW_ROWS
@@ -424,7 +426,7 @@ class OracleBatchUpdaterGUI:
         else:
             self.root.state("zoomed")
 
-    def toggle_theme(self):
+    def toggle_theme(self, persist=True):
         """切换深浅色模式"""
         style_name, is_dark, theme = self.theme_manager.toggle_theme()
         self.update_styles()
@@ -433,15 +435,11 @@ class OracleBatchUpdaterGUI:
         self.update_log_style()
         self.update_history_tree_style()
         self._update_theme_selector_buttons()
-        # 更新深浅色按钮文本
-        icon = "☀️" if is_dark else "🌙"
-        mode_text = "浅色" if is_dark else "深色"
-        if hasattr(self, 'theme_btn'):
-            self.theme_btn.config(text=f"{icon} {mode_text}模式")
-        # 持久化深色模式设置
-        self._save_theme_config()
+        self._update_theme_button_text()
+        if persist:
+            self._save_theme_config()
 
-    def switch_theme_style(self, style_key):
+    def switch_theme_style(self, style_key, persist=True):
         """切换主题风格（idea / terminal / clean）"""
         self.theme_manager.switch_theme_style(style_key)
         self.apply_theme()
@@ -450,14 +448,9 @@ class OracleBatchUpdaterGUI:
         self.update_log_style()
         self.update_history_tree_style()
         self._update_theme_selector_buttons()
-        # 更新深浅色按钮文本
-        style_name, is_dark, _ = self.theme_manager.get_theme()
-        icon = "☀️" if is_dark else "🌙"
-        mode_text = "浅色" if is_dark else "深色"
-        if hasattr(self, 'theme_btn'):
-            self.theme_btn.config(text=f"{icon} {mode_text}模式")
-        # 持久化主题风格设置
-        self._save_theme_config()
+        self._update_theme_button_text()
+        if persist:
+            self._save_theme_config()
 
     def _save_theme_config(self):
         """持久化当前主题设置"""
@@ -471,6 +464,14 @@ class OracleBatchUpdaterGUI:
             theme_style=style_name,
             theme_dark=is_dark
         )
+
+    def _update_theme_button_text(self):
+        """根据当前深浅色模式更新主题按钮文本"""
+        style_name, is_dark, _ = self.theme_manager.get_theme()
+        icon = "☀️" if is_dark else "🌙"
+        mode_text = "浅色" if is_dark else "深色"
+        if hasattr(self, 'theme_btn'):
+            self.theme_btn.config(text=f"{icon} {mode_text}模式")
 
     def _update_theme_selector_buttons(self):
         """更新主题选择器按钮状态 - 匹配原型风格"""
@@ -585,6 +586,17 @@ class OracleBatchUpdaterGUI:
         hint_label = ttk.Label(config_panel, text=f"支持 .xlsx/.xls 文件，最大10MB，最多10万行", 
                                font=("Microsoft YaHei", 9), foreground="#6c757d")
         hint_label.pack(anchor=tk.W, pady=(5, 0))
+        
+        config_path_frame = ttk.Frame(config_panel)
+        config_path_frame.pack(fill=tk.X, pady=(8, 0))
+        ttk.Label(config_path_frame, text="配置文件:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.config_path_var = tk.StringVar(value=str(self.config.config_file))
+        config_path_entry = ttk.Entry(config_path_frame, textvariable=self.config_path_var, 
+                                      state="readonly", font=("Microsoft YaHei", 9))
+        config_path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        open_config_btn = ttk.Button(config_path_frame, text="📁 打开目录", 
+                                     command=self.open_config_directory, style="Action.TButton", width=10)
+        open_config_btn.pack(side=tk.LEFT, padx=(5, 0))
         
         preview_panel = ttk.LabelFrame(tab, text=f"Excel数据预览（前{MAX_PREVIEW_ROWS}行）", padding="12", style="Card.TFrame")
         preview_panel.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
@@ -752,7 +764,7 @@ class OracleBatchUpdaterGUI:
         # 连接状态（带指示器）
         self.conn_indicator = tk.Canvas(self.status_bar, width=10, height=10, bg="#c75050", highlightthickness=0)
         self.conn_indicator.pack(side=tk.LEFT, padx=(0, 5))
-        self.conn_indicator.create_oval(2, 2, 8, 8, fill="#c75050", outline="")
+        self.indicator_item = self.conn_indicator.create_oval(2, 2, 8, 8, fill="#c75050", outline="")
         
         self.conn_status_label = ttk.Label(self.status_bar, text="未连接", style="Status.TLabel")
         self.conn_status_label.pack(side=tk.LEFT)
@@ -764,10 +776,10 @@ class OracleBatchUpdaterGUI:
 
     def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪", conn_name="-"):
         if connected:
-            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#4e9a06")
+            self.conn_indicator.itemconfig(self.indicator_item, fill="#4e9a06")
             self.conn_status_label.config(text="已连接")
         else:
-            self.conn_indicator.itemconfig(self.conn_indicator.create_oval(2, 2, 8, 8), fill="#c75050")
+            self.conn_indicator.itemconfig(self.indicator_item, fill="#c75050")
             self.conn_status_label.config(text="未连接")
         
         self.connection_name_label.config(text=f"连接: {conn_name}")
@@ -778,6 +790,20 @@ class OracleBatchUpdaterGUI:
     def clear_logs(self):
         self.log_text.delete(1.0, tk.END)
         self.log_manager = LogManager()
+
+    def open_config_directory(self):
+        """打开配置文件所在目录"""
+        config_path = Path(self.config.config_file)
+        config_dir = str(config_path.parent)
+        try:
+            if os.name == 'nt':
+                os.startfile(config_dir)
+            elif sys.platform == 'darwin':
+                subprocess.Popen(['open', config_dir])
+            else:
+                subprocess.Popen(['xdg-open', config_dir])
+        except Exception as e:
+            messagebox.showinfo("配置路径", f"配置文件路径:\n{config_path}")
 
     def update_connection_list(self):
         connections = self.config.get_connections()
@@ -810,10 +836,17 @@ class OracleBatchUpdaterGUI:
             self.update_status_bar(conn_name=conn_name)
 
     def _restore_theme(self, style_key, is_dark):
-        """恢复保存的主题设置"""
+        """恢复保存的主题设置（启动时调用，不持久化）"""
         self.theme_manager.set_dark_mode(is_dark)
         if style_key != 'terminal':
-            self.switch_theme_style(style_key)
+            self.theme_manager.switch_theme_style(style_key)
+        self.update_styles()
+        self.apply_theme()
+        self.update_treeview_style()
+        self.update_log_style()
+        self.update_history_tree_style()
+        self._update_theme_selector_buttons()
+        self._update_theme_button_text()
 
     def save_config(self):
         style_name, is_dark, _ = self.theme_manager.get_theme()
