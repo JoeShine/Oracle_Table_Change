@@ -2,6 +2,7 @@ import os
 import json
 import base64
 from pathlib import Path
+from datetime import datetime
 
 
 class ConfigManager:
@@ -43,7 +44,8 @@ class ConfigManager:
                 "theme_style": "terminal",
                 "theme_dark": False
             },
-            "connections": []
+            "connections": [],
+            "templates": []  # 配置模板列表
         }
 
     def save_config(self):
@@ -104,3 +106,73 @@ class ConfigManager:
             if conn["name"] == name:
                 return conn
         return None
+
+    # ==================== 模板管理功能 ====================
+
+    def get_templates(self):
+        """获取所有配置模板"""
+        return self.config.get("templates", [])
+
+    def get_template_by_name(self, name):
+        """根据名称获取模板"""
+        for template in self.get_templates():
+            if template["name"] == name:
+                return template
+        return None
+
+    def add_template(self, template_info):
+        """添加或更新配置模板"""
+        # 验证模板名称
+        name = template_info.get("name", "")
+        if not name or not name.strip():
+            return False, "模板名称不能为空"
+        name = name.strip()
+        if len(name) > 100:
+            return False, "模板名称不能超过100个字符"
+        
+        # 更新名称（去除空格）
+        template_info["name"] = name
+        
+        templates = self.config.get("templates", [])
+        # 检查是否已存在同名模板
+        for i, template in enumerate(templates):
+            if template["name"] == name:
+                templates[i] = template_info
+                self.config["templates"] = templates
+                self.save_config()
+                return True, "模板已更新"
+        # 新增模板
+        templates.append(template_info)
+        self.config["templates"] = templates
+        self.save_config()
+        return True, "模板已添加"
+
+    def delete_template(self, name):
+        """删除配置模板"""
+        templates = self.config.get("templates", [])
+        templates = [t for t in templates if t["name"] != name]
+        self.config["templates"] = templates
+        self.save_config()
+        return True
+
+    def create_template_from_current(self, name, description="", connection_name="", target_table="", 
+                                      key_column="", update_columns=None, schema="APPS"):
+        """从当前配置创建模板"""
+        # 验证模板名称
+        if not name or not name.strip():
+            return False, "模板名称不能为空"
+        name = name.strip()
+        if len(name) > 100:
+            return False, "模板名称不能超过100个字符"
+        
+        template = {
+            "name": name,
+            "description": description,
+            "connection_name": connection_name,
+            "target_table": target_table,
+            "key_column": key_column,
+            "update_columns": update_columns or [],
+            "schema": schema,
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        return self.add_template(template)

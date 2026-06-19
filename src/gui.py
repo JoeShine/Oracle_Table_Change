@@ -6,11 +6,117 @@ import threading
 import os
 import sys
 import subprocess
+import platform
 from src.config_manager import ConfigManager
 from src.db_connection import DBConnection
 from src.excel_handler import ExcelHandler, MAX_FILE_SIZE, MAX_ROWS, MAX_PREVIEW_ROWS
 from src.data_updater import DataUpdater
 from src.logger import LogManager
+
+
+class OSCompatibility:
+    """操作系统兼容性检测与适配"""
+    
+    # 操作系统类型常量
+    WINDOWS = "windows"
+    MACOS = "macos"
+    LINUX = "linux"
+    KYLIN = "kylin"  # 麒麟操作系统
+    
+    def __init__(self):
+        self.os_type = self._detect_os()
+        self.os_name = self._get_os_name()
+        self.is_server = self._detect_server()
+        self.font_family = self._get_font_family()
+    
+    def _detect_os(self) -> str:
+        """检测操作系统类型"""
+        if os.name == 'nt':
+            return self.WINDOWS
+        elif sys.platform == 'darwin':
+            return self.MACOS
+        else:
+            # 检测麒麟操作系统
+            try:
+                with open('/etc/os-release', 'r') as f:
+                    content = f.read().lower()
+                    if 'kylin' in content or '麒麟' in content:
+                        return self.KYLIN
+            except Exception:
+                pass
+            return self.LINUX
+    
+    def _get_os_name(self) -> str:
+        """获取操作系统完整名称"""
+        try:
+            if self.os_type == self.WINDOWS:
+                return f"Windows {platform.win32_ver()[0]} ({platform.architecture()[0]})"
+            elif self.os_type == self.MACOS:
+                return f"macOS {platform.mac_ver()[0]}"
+            elif self.os_type == self.KYLIN:
+                return self._get_kylin_version()
+            else:
+                return f"Linux {platform.uname().system} {platform.uname().release}"
+        except Exception:
+            return platform.system()
+    
+    def _get_kylin_version(self) -> str:
+        """获取麒麟操作系统版本"""
+        try:
+            with open('/etc/os-release', 'r') as f:
+                for line in f:
+                    if line.startswith('PRETTY_NAME='):
+                        return line.split('=')[1].strip().replace('"', '')
+                    if line.startswith('VERSION='):
+                        return f"麒麟 {line.split('=')[1].strip().replace('"', '')}"
+            return "麒麟操作系统"
+        except Exception:
+            return "麒麟操作系统"
+    
+    def _detect_server(self) -> bool:
+        """检测是否为服务器操作系统"""
+        if self.os_type == self.WINDOWS:
+            # Windows Server 检测
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
+                    r"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion") as key:
+                    product_name = winreg.QueryValueEx(key, "ProductName")[0]
+                    return "Server" in product_name
+            except Exception:
+                return False
+        elif self.os_type == self.KYLIN:
+            # 麒麟服务器版检测
+            try:
+                with open('/etc/os-release', 'r') as f:
+                    content = f.read().lower()
+                    return 'server' in content or '服务器' in content
+            except Exception:
+                return False
+        return False
+    
+    def _get_font_family(self) -> str:
+        """根据操作系统获取合适的字体"""
+        if self.os_type == self.WINDOWS:
+            return "Microsoft YaHei"
+        elif self.os_type == self.MACOS:
+            return "PingFang SC"
+        elif self.os_type == self.KYLIN:
+            # 麒麟系统使用 Noto Sans CJK 或文泉驿
+            return "Noto Sans CJK SC"
+        else:
+            return "Noto Sans CJK SC"
+    
+    def get_info(self) -> dict:
+        """获取操作系统信息"""
+        return {
+            "os_type": self.os_type,
+            "os_name": self.os_name,
+            "is_server": self.is_server,
+            "font_family": self.font_family,
+            "python_version": platform.python_version(),
+            "architecture": platform.architecture()[0]
+        }
 
 
 class ThemeManager:
@@ -278,6 +384,11 @@ class OracleBatchUpdaterGUI:
         self.root.geometry("1000x800")
         self.root.resizable(True, True)
         self.root.minsize(900, 700)
+        
+        # 操作系统兼容性检测
+        self.os_compat = OSCompatibility()
+        self.os_info = self.os_compat.get_info()
+        
         self.config = ConfigManager()
         self.log_manager = LogManager()
         self.db_connection = DBConnection()
@@ -302,25 +413,77 @@ class OracleBatchUpdaterGUI:
 
     def update_styles(self):
         _, is_dark, theme = self.theme_manager.get_theme()
-        self.style.configure("Title.TLabel", font=("Microsoft YaHei", 16, "bold"), foreground=theme["text_heading"])
-        self.style.configure("Header.TLabel", font=("Microsoft YaHei", 11, "bold"), foreground=theme["text_heading"])
-        self.style.configure("Action.TButton", font=("Microsoft YaHei", 10), padding=6)
-        self.style.configure("Primary.TButton", font=("Microsoft YaHei", 11, "bold"), padding=8)
+        font_family = self.os_info["font_family"]
+        self.style.configure("Title.TLabel", font=(font_family, 16, "bold"), foreground=theme["text_heading"])
+        self.style.configure("Header.TLabel", font=(font_family, 11, "bold"), foreground=theme["text_heading"])
+        self.style.configure("Action.TButton", font=(font_family, 10), padding=6)
+        self.style.configure("Primary.TButton", font=(font_family, 11, "bold"), padding=8)
         self.style.map("Primary.TButton",
                        background=[('active', theme["primary_dark"])],
                        foreground=[('active', 'white')])
-        self.style.configure("Secondary.TButton", font=("Microsoft YaHei", 10), padding=6)
+        self.style.configure("Secondary.TButton", font=(font_family, 10), padding=6)
         self.style.map("Secondary.TButton",
                        background=[('active', theme.get("button_secondary_bg", theme["tab_bg"]))],
                        foreground=[('active', theme.get("button_secondary_fg", theme["fg"]))])
         self.style.configure("Card.TFrame", background=theme["card_bg"], borderwidth=1, relief="solid")
-        self.style.configure("Status.TLabel", font=("Microsoft YaHei", 9))
+        self.style.configure("Status.TLabel", font=(font_family, 9))
         self.style.configure("TNotebook", background=theme["bg"], borderwidth=0)
-        self.style.configure("TNotebook.Tab", padding=[20, 8], font=("Microsoft YaHei", 10))
+        self.style.configure("TNotebook.Tab", padding=[20, 8], font=(font_family, 10))
 
     def bind_shortcuts(self):
         self.root.bind('<Control-s>', lambda e: self.save_config())
         self.root.bind('<Control-S>', lambda e: self.save_config())
+        # 键盘导航：左右键切换标签页
+        self.root.bind('<Left>', lambda e: self._switch_tab(-1))
+        self.root.bind('<Right>', lambda e: self._switch_tab(1))
+        # 键盘导航：上下键纵向滚动
+        self.root.bind('<Up>', lambda e: self._scroll_page(-1))
+        self.root.bind('<Down>', lambda e: self._scroll_page(1))
+
+    def _switch_tab(self, direction: int):
+        """切换标签页（direction: -1=左/前一个, 1=右/后一个）"""
+        try:
+            current = self.notebook.index(self.notebook.select())
+            total = self.notebook.index("end")
+            new_index = (current + direction) % total
+            self.notebook.select(new_index)
+        except Exception:
+            pass
+
+    def _scroll_page(self, direction: int):
+        """纵向滚动当前标签页内容（direction: -1=上, 1=下）"""
+        try:
+            current_tab = self.notebook.select()
+            if not current_tab:
+                return
+            # 查找当前标签页中的可滚动控件
+            for widget in current_tab.winfo_children():
+                self._scroll_widget_recursive(widget, direction)
+        except Exception:
+            pass
+
+    def _scroll_widget_recursive(self, widget, direction: int):
+        """递归查找并滚动可滚动控件"""
+        # ScrolledText 滚动
+        if isinstance(widget, scrolledtext.ScrolledText):
+            widget.yview_scroll(direction, "units")
+            return True
+        # Treeview 滚动
+        if isinstance(widget, ttk.Treeview):
+            widget.yview_scroll(direction, "units")
+            return True
+        # Canvas 滚动
+        if isinstance(widget, tk.Canvas):
+            widget.yview_scroll(direction, "units")
+            return True
+        # 递归子控件
+        try:
+            for child in widget.winfo_children():
+                if self._scroll_widget_recursive(child, direction):
+                    return True
+        except Exception:
+            pass
+        return False
 
     def apply_theme(self):
         style_name, is_dark, theme = self.theme_manager.get_theme()
@@ -525,6 +688,34 @@ class OracleBatchUpdaterGUI:
         tab = ttk.Frame(self.notebook, padding="10")
         self.notebook.add(tab, text="📋 当前配置")
         
+        # ========== 模板选择区域 ==========
+        template_panel = ttk.LabelFrame(tab, text="📝 配置模板", padding="15", style="Card.TFrame")
+        template_panel.pack(fill=tk.X, pady=(0, 10))
+        
+        template_row1 = ttk.Frame(template_panel)
+        template_row1.pack(fill=tk.X, pady=6)
+        
+        ttk.Label(template_row1, text="选择模板:", width=14, font=(self.os_info["font_family"], 10)).pack(side=tk.LEFT)
+        self.template_var = tk.StringVar()
+        self.template_combo = ttk.Combobox(template_row1, textvariable=self.template_var, 
+                                            state="readonly", font=(self.os_info["font_family"], 10), width=30)
+        self.template_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.template_combo.bind("<<ComboboxSelected>>", self.on_template_selected)
+        
+        # 模板操作按钮
+        load_btn = ttk.Button(template_row1, text="📂 加载", command=self.load_template, style="Action.TButton", width=8)
+        load_btn.pack(side=tk.LEFT, padx=(5, 0))
+        
+        save_btn = ttk.Button(template_row1, text="💾 保存为模板", command=self.save_as_template, style="Action.TButton", width=12)
+        save_btn.pack(side=tk.LEFT, padx=(3, 0))
+        
+        delete_btn = ttk.Button(template_row1, text="🗑 删除", command=self.delete_template, style="Action.TButton", width=8)
+        delete_btn.pack(side=tk.LEFT, padx=(3, 0))
+        
+        # 刷新模板列表
+        self.refresh_template_list()
+        
+        # ========== 当前配置区域 ==========
         config_panel = ttk.LabelFrame(tab, text="当前配置", padding="15", style="Card.TFrame")
         config_panel.pack(fill=tk.X, pady=(0, 10))
         
@@ -773,6 +964,16 @@ class OracleBatchUpdaterGUI:
         
         self.operation_status_label = ttk.Label(self.status_bar, text="状态: 就绪", style="Status.TLabel")
         self.operation_status_label.pack(side=tk.LEFT)
+        
+        # 操作系统信息（右侧）
+        ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
+        
+        # 显示操作系统名称，服务器版特殊标记
+        os_display = self.os_info["os_name"]
+        if self.os_info["is_server"]:
+            os_display += " [服务器版]"
+        self.os_label = ttk.Label(self.status_bar, text=f"系统: {os_display}", style="Status.TLabel")
+        self.os_label.pack(side=tk.RIGHT)
 
     def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪", conn_name="-"):
         if connected:
@@ -1617,6 +1818,178 @@ Excel文件: {excel_path}
             else:
                 self.log_manager.log_export("失败记录", file_path, 0, False, str(msg))
                 messagebox.showerror("导出失败", msg)
+
+    # ==================== 模板管理功能 ====================
+
+    def refresh_template_list(self):
+        """刷新模板下拉列表"""
+        templates = self.config.get_templates()
+        template_names = [t["name"] for t in templates]
+        self.template_combo['values'] = template_names
+        if template_names:
+            self.template_combo.set('')
+        self.add_log(f"已加载 {len(templates)} 个配置模板", "INFO")
+
+    def on_template_selected(self, event=None):
+        """模板选择事件处理"""
+        template_name = self.template_var.get()
+        if template_name:
+            template = self.config.get_template_by_name(template_name)
+            if template:
+                self.add_log(f"已选择模板: {template_name}", "INFO")
+
+    def load_template(self):
+        """加载选中的模板"""
+        template_name = self.template_var.get()
+        if not template_name:
+            messagebox.showwarning("提示", "请先选择一个模板")
+            return
+        
+        template = self.config.get_template_by_name(template_name)
+        if not template:
+            messagebox.showerror("错误", f"模板 '{template_name}' 不存在")
+            return
+        
+        # 应用模板配置
+        self.schema_var.set(template.get("schema", "APPS"))
+        self.target_table_var.set(template.get("target_table", ""))
+        self.key_column_var.set(template.get("key_column", ""))
+        
+        # 设置连接
+        if template.get("connection_name"):
+            self.connection_var.set(template["connection_name"])
+        
+        # 设置更新列
+        update_columns = template.get("update_columns", [])
+        # 清空现有更新列
+        for widget in self.update_column_widgets[1:]:
+            widget.destroy()
+        self.update_column_widgets = [self.first_update_entry]
+        
+        # 设置第一列
+        if update_columns:
+            self.first_update_entry.delete(0, tk.END)
+            self.first_update_entry.insert(0, update_columns[0])
+            # 添加其他列
+            for col in update_columns[1:]:
+                self.add_update_column_with_value(col)
+        
+        self.add_log(f"已加载模板: {template_name}", "SUCCESS")
+        messagebox.showinfo("成功", f"模板 '{template_name}' 已加载")
+
+    def add_update_column_with_value(self, value):
+        """添加更新列并设置值"""
+        new_row = ttk.Frame(self.update_columns_frame)
+        new_row.pack(fill=tk.X, pady=2)
+        entry = ttk.Entry(new_row, font=(self.os_info["font_family"], 10), width=30)
+        entry.insert(0, value)
+        entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        remove_btn = ttk.Button(new_row, text="➖", width=3, 
+                                command=lambda: self.remove_update_column_with_row(new_row, entry), 
+                                style="Action.TButton")
+        remove_btn.pack(side=tk.LEFT, padx=(5, 0))
+        self.update_column_widgets.append(entry)
+
+    def remove_update_column_with_row(self, row, entry):
+        """移除指定的更新列"""
+        if entry in self.update_column_widgets and entry != self.first_update_entry:
+            self.update_column_widgets.remove(entry)
+            row.destroy()
+
+    def save_as_template(self):
+        """保存当前配置为模板"""
+        # 获取当前配置
+        connection_name = self.connection_var.get()
+        target_table = self.target_table_var.get().strip()
+        key_column = self.key_column_var.get().strip()
+        schema = self.schema_var.get()
+        update_columns = self.get_update_columns()
+        
+        if not target_table or not key_column:
+            messagebox.showwarning("提示", "请先填写目标表名和唯一标识列")
+            return
+        
+        # 弹出对话框输入模板名称
+        dialog = tk.Toplevel(self.root)
+        dialog.title("保存为模板")
+        dialog.geometry("400x200")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # 模板名称
+        name_frame = ttk.Frame(dialog, padding="10")
+        name_frame.pack(fill=tk.X)
+        ttk.Label(name_frame, text="模板名称:", width=12).pack(side=tk.LEFT)
+        name_var = tk.StringVar()
+        name_entry = ttk.Entry(name_frame, textvariable=name_var, width=30)
+        name_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 模板描述
+        desc_frame = ttk.Frame(dialog, padding="10")
+        desc_frame.pack(fill=tk.X)
+        ttk.Label(desc_frame, text="模板描述:", width=12).pack(side=tk.LEFT)
+        desc_var = tk.StringVar()
+        desc_entry = ttk.Entry(desc_frame, textvariable=desc_var, width=30)
+        desc_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 按钮
+        btn_frame = ttk.Frame(dialog, padding="10")
+        btn_frame.pack(fill=tk.X)
+        
+        def do_save():
+            name = name_var.get().strip()
+            if not name:
+                messagebox.showwarning("提示", "请输入模板名称")
+                return
+            
+            if len(name) > 100:
+                messagebox.showwarning("提示", "模板名称不能超过100个字符")
+                return
+            
+            # 检查是否已存在
+            existing = self.config.get_template_by_name(name)
+            if existing:
+                if not messagebox.askyesno("确认", f"模板 '{name}' 已存在，是否覆盖？"):
+                    return
+            
+            # 创建模板
+            success, msg = self.config.create_template_from_current(
+                name=name,
+                description=desc_var.get().strip(),
+                connection_name=connection_name,
+                target_table=target_table,
+                key_column=key_column,
+                update_columns=update_columns,
+                schema=schema
+            )
+            
+            if success:
+                self.refresh_template_list()
+                self.template_var.set(name)
+                self.add_log(f"已保存模板: {name}", "SUCCESS")
+                messagebox.showinfo("成功", msg)
+                dialog.destroy()
+            else:
+                messagebox.showwarning("提示", msg)
+        
+        save_btn = ttk.Button(btn_frame, text="保存", command=do_save, style="Primary.TButton")
+        save_btn.pack(side=tk.LEFT, padx=(10, 0))
+        cancel_btn = ttk.Button(btn_frame, text="取消", command=dialog.destroy, style="Action.TButton")
+        cancel_btn.pack(side=tk.LEFT, padx=(5, 0))
+
+    def delete_template(self):
+        """删除选中的模板"""
+        template_name = self.template_var.get()
+        if not template_name:
+            messagebox.showwarning("提示", "请先选择一个模板")
+            return
+        
+        if messagebox.askyesno("确认", f"确定要删除模板 '{template_name}' 吗？"):
+            self.config.delete_template(template_name)
+            self.refresh_template_list()
+            self.template_var.set('')
+            self.add_log(f"已删除模板: {template_name}", "INFO")
+            messagebox.showinfo("成功", f"模板 '{template_name}' 已删除")
 
     def on_closing(self):
         if self.db_connection.is_connected():

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Oracle 数据批量修改工具 · v2.0</title>
+    <title>Oracle 数据批量修改工具 · v2.6</title>
     <style>
         /* ============================================================
            三套主题系统 · 设计令牌 / Design Tokens
@@ -1736,7 +1736,7 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <div class="version-tag">v 2.0.0</div>
+                    <div class="version-tag">v 2.6.0</div>
                     <!-- 主题切换器 -->
                     <div class="theme-switcher">
                         <button class="theme-btn" id="themeBtn" onclick="toggleThemePanel()">
@@ -1771,6 +1771,34 @@
 
         <!-- ============== 页面 01：配置与预览 ============== -->
         <div class="tab-content active" id="tab-0">
+
+            <!-- 配置模板 -->
+            <div class="config-section">
+                <div class="section-header">
+                    <span class="section-marker">§ TEMPLATE</span>
+                    <span class="section-title">配置模板</span>
+                    <span class="section-rule"></span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">
+                            选择模板
+                            <span class="label-code">TEMPLATE</span>
+                        </label>
+                        <select class="field-select" id="templateSelect">
+                            <option value="">-- 请选择模板 --</option>
+                            <option value="emp_update">员工表更新模板</option>
+                            <option value="dept_update">部门表更新模板</option>
+                            <option value="order_update">订单表更新模板</option>
+                        </select>
+                    </div>
+                    <div class="form-field" style="display: flex; gap: 8px; align-items: flex-end;">
+                        <button class="btn btn-secondary" onclick="loadTemplate()">📂 加载</button>
+                        <button class="btn btn-secondary" onclick="saveAsTemplate()">💾 保存为模板</button>
+                        <button class="btn btn-secondary" onclick="deleteTemplate()">🗑 删除</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- 数据库与表配置 -->
             <div class="config-section">
@@ -2178,6 +2206,10 @@
             </div>
             <div class="status-spacer"></div>
             <div class="status-cell">
+                <span class="status-label">系统</span>
+                <span class="status-value" id="sbOS">Windows 10 [服务器版]</span>
+            </div>
+            <div class="status-cell">
                 <span class="status-label">状态</span>
                 <span class="status-value" id="sbAction">就绪</span>
             </div>
@@ -2567,6 +2599,88 @@
             document.querySelectorAll('.tab-content').forEach((c, i) => {
                 c.classList.toggle('active', i === idx);
             });
+        }
+
+        // ================== 键盘导航 ==================
+        // 左右键切换标签页
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                switchTab(-1);
+            } else if (e.key === 'ArrowRight') {
+                switchTab(1);
+            } else if (e.key === 'ArrowUp') {
+                scrollPage(-1);
+            } else if (e.key === 'ArrowDown') {
+                scrollPage(1);
+            }
+        });
+
+        function switchTab(direction) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (!activeTab) return;
+            let currentIdx = 0;
+            tabs.forEach((t, i) => { if (t.classList.contains('active')) currentIdx = i; });
+            let newIdx = (currentIdx + direction + tabs.length) % tabs.length;
+            tabs[newIdx].click();
+        }
+
+        function scrollPage(direction) {
+            const activeContent = document.querySelector('.tab-content.active');
+            if (!activeContent) return;
+            activeContent.scrollTop += direction * 100;
+        }
+
+        // ================== 模板功能 ==================
+        function loadTemplate() {
+            const templateId = document.getElementById('templateSelect').value;
+            if (!templateId) {
+                alert('请先选择一个模板');
+                return;
+            }
+            // 模拟加载模板
+            const templates = {
+                'emp_update': { schema: 'APPS', table: 'EMPLOYEE', keyColumn: 'EMP_ID', updateColumns: ['EMP_NAME', 'DEPT'] },
+                'dept_update': { schema: 'APPS', table: 'DEPARTMENT', keyColumn: 'DEPT_ID', updateColumns: ['DEPT_NAME', 'LOCATION'] },
+                'order_update': { schema: 'APPS', table: 'ORDERS', keyColumn: 'ORDER_ID', updateColumns: ['STATUS', 'AMOUNT'] }
+            };
+            const template = templates[templateId];
+            if (template) {
+                document.getElementById('schema').value = template.schema;
+                document.getElementById('tableName').value = template.table;
+                document.getElementById('keyColumn').value = template.keyColumn;
+                addLog('已加载模板: ' + templateId, 'success');
+                alert('模板已加载');
+            }
+        }
+
+        function saveAsTemplate() {
+            const tableName = document.getElementById('tableName').value;
+            if (!tableName) {
+                alert('请先填写目标表名');
+                return;
+            }
+            const templateName = prompt('请输入模板名称:');
+            if (!templateName) return;
+            if (templateName.length > 100) {
+                alert('模板名称不能超过100个字符');
+                return;
+            }
+            addLog('已保存模板: ' + templateName, 'success');
+            alert('模板 "' + templateName + '" 已保存');
+        }
+
+        function deleteTemplate() {
+            const templateId = document.getElementById('templateSelect').value;
+            if (!templateId) {
+                alert('请先选择一个模板');
+                return;
+            }
+            if (confirm('确定要删除该模板吗？')) {
+                addLog('已删除模板: ' + templateId, 'info');
+                document.getElementById('templateSelect').value = '';
+                alert('模板已删除');
+            }
         }
 
         // ================== 工具函数 ==================
