@@ -2,7 +2,7 @@
 
 ## 功能概述
 
-本次更新新增了两个重要的数据校验功能，帮助用户在进行数据批量更新前提前发现问题。
+本次更新新增了两个重要的数据校验功能和一个全新的主题系统，帮助用户在进行数据批量更新前提前发现问题，同时提供更丰富的界面风格选择。
 
 ---
 
@@ -56,6 +56,31 @@
 
 ---
 
+## 3. 三套主题风格系统 (🎨 主题切换)
+
+### 功能说明
+系统提供三套主题风格，每套均支持浅色/深色模式，共六种视觉方案。
+
+### 三种风格
+| 风格 | 主色调 | 设计灵感 |
+|------|--------|----------|
+| **Idea 蓝色** | #4A86E8 蓝色 | IntelliJ IDEA IDE |
+| **深墨琥珀** | #E8A317 琥珀金 | 经典终端/命令行界面 |
+| **清爽浅色** | #5B9BD5 清新蓝 | 极简干净设计 |
+
+### 使用步骤
+1. 点击顶部工具栏的「Idea」「Terminal」「Clean」按钮切换风格
+2. 点击「☀️ 浅色模式」/「🌙 深色模式」切换当前风格的明暗模式
+3. 主题设置自动保存，下次启动时自动恢复
+
+### 功能特点
+- 每套风格有独立的浅色/深色配色方案
+- 风格切换和深浅色切换独立工作
+- 主题设置持久化到 config.json（theme_style / theme_dark 字段）
+- 按钮、输入框、表格、日志等所有组件统一配色
+
+---
+
 ## 界面更新
 
 ### 按钮位置
@@ -86,7 +111,8 @@
 ### 修改的文件
 1. `src/excel_handler.py` - 添加了Excel数据读取相关函数
 2. `src/db_connection.py` - 添加了数据库查询功能
-3. `src/gui.py` - 添加了新按钮和校验逻辑
+3. `src/gui.py` - 添加了新按钮和校验逻辑，新增三套主题系统
+4. `src/config_manager.py` - 配置持久化增加 theme_style / theme_dark 字段
 
 ### 新增函数
 - `ExcelHandler.get_key_values_from_excel()` - 获取Excel中唯一标识值
@@ -96,6 +122,10 @@
 - `OracleBatchUpdaterGUI.show_duplicate_dialog()` - 显示重复值对话框
 - `OracleBatchUpdaterGUI.check_consistency()` - 一致性校验主逻辑
 - `OracleBatchUpdaterGUI.show_consistency_dialog()` - 显示一致性问题对话框
+- `OracleBatchUpdaterGUI.switch_theme_style()` - 主题风格切换
+- `OracleBatchUpdaterGUI._save_theme_config()` - 主题配置持久化
+- `OracleBatchUpdaterGUI._restore_theme()` - 启动时恢复主题
+- `ThemeManager.switch_theme_style()` - 切换风格并保留深浅模式
 
 ---
 
@@ -120,4 +150,5 @@
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
+| 2.1 | 2026-06-19 | 新增三套主题风格系统（Idea/Terminal/Clean） |
 | 2.0 | 2026-05-20 | 新增重复性校验和一致性校验功能 |
