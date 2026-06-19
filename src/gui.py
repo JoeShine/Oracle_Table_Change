@@ -12,22 +12,29 @@ from src.logger import LogManager
 
 
 class ThemeManager:
-    LIGHT_THEME = {
+    """三套主题系统：Idea蓝色（经典）、深墨琥珀（专业）、清爽浅色（简约）"""
+
+    # 主题 A：Idea 蓝色（经典 IDE 风格）
+    IDEA_LIGHT = {
+        "name": "Idea 蓝色",
+        "name_en": "Idea Blue",
         "bg": "#f5f5f5",
         "fg": "#3c3f41",
         "primary": "#4a86e8",
         "primary_dark": "#3d65a5",
         "secondary": "#909090",
-        "success": "#3592c4",
+        "success": "#4e9a06",
         "error": "#c75050",
         "warning": "#ca8230",
-        "info": "#3592c4",
+        "info": "#4a86e8",
         "card_bg": "#ffffff",
         "card_border": "#e5e5e5",
         "text_muted": "#6c757d",
         "text_heading": "#2b2b2b",
         "button_bg": "#4a86e8",
         "button_fg": "#ffffff",
+        "button_secondary_bg": "#e8e8e8",
+        "button_secondary_fg": "#3c3f41",
         "entry_bg": "#ffffff",
         "entry_border": "#ced4da",
         "tree_bg": "#ffffff",
@@ -38,9 +45,13 @@ class ThemeManager:
         "tab_bg": "#e8e8e8",
         "tab_selected": "#ffffff",
         "tab_border": "#d4d4d4",
+        "header_bg": "linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%)",
+        "header_fg": "#ffffff",
     }
 
-    DARK_THEME = {
+    IDEA_DARK = {
+        "name": "Idea 蓝色",
+        "name_en": "Idea Blue",
         "bg": "#2b2b2b",
         "fg": "#a9b7c6",
         "primary": "#4a86e8",
@@ -56,6 +67,8 @@ class ThemeManager:
         "text_heading": "#dcdcdc",
         "button_bg": "#4a86e8",
         "button_fg": "#ffffff",
+        "button_secondary_bg": "#35383a",
+        "button_secondary_fg": "#a9b7c6",
         "entry_bg": "#3c3f41",
         "entry_border": "#555555",
         "tree_bg": "#3c3f41",
@@ -66,23 +79,188 @@ class ThemeManager:
         "tab_bg": "#35383a",
         "tab_selected": "#2b2b2b",
         "tab_border": "#4e4e4e",
+        "header_bg": "linear-gradient(135deg, #1a1a1a 0%, #2b2b2b 100%)",
+        "header_fg": "#dcdcdc",
+    }
+
+    # 主题 B：深墨琥珀（专业终端风格）
+    TERMINAL_LIGHT = {
+        "name": "深墨琥珀",
+        "name_en": "Amber Terminal",
+        "bg": "#F7F5F0",
+        "fg": "#2C3E50",
+        "primary": "#E8A44C",
+        "primary_dark": "#C7862A",
+        "secondary": "#5A6B7D",
+        "success": "#4ECDC4",
+        "error": "#C25B56",
+        "warning": "#E8A44C",
+        "info": "#4ECDC4",
+        "card_bg": "#EFEEE8",
+        "card_border": "#E0DDD4",
+        "text_muted": "#8E9AA8",
+        "text_heading": "#2C3E50",
+        "button_bg": "#E8A44C",
+        "button_fg": "#0D1B2A",
+        "button_secondary_bg": "#EFEEE8",
+        "button_secondary_fg": "#2C3E50",
+        "entry_bg": "#F7F5F0",
+        "entry_border": "#E0DDD4",
+        "tree_bg": "#EFEEE8",
+        "tree_alt": "#E8E5DC",
+        "log_bg": "#0D1B2A",
+        "scrollbar_bg": "#D0CCC0",
+        "status_bg": "#0D1B2A",
+        "tab_bg": "#F7F5F0",
+        "tab_selected": "#EFEEE8",
+        "tab_border": "#E0DDD4",
+        "header_bg": "linear-gradient(135deg, #0D1B2A 0%, #1B3A5A 100%)",
+        "header_fg": "#ffffff",
+    }
+
+    TERMINAL_DARK = {
+        "name": "深墨琥珀",
+        "name_en": "Amber Terminal",
+        "bg": "#0F1E2E",
+        "fg": "#E8ECF1",
+        "primary": "#E8A44C",
+        "primary_dark": "#C7862A",
+        "secondary": "#6B7A8C",
+        "success": "#4ECDC4",
+        "error": "#C25B56",
+        "warning": "#E8A44C",
+        "info": "#4ECDC4",
+        "card_bg": "#152538",
+        "card_border": "#253D54",
+        "text_muted": "#6B7A8C",
+        "text_heading": "#E8ECF1",
+        "button_bg": "#E8A44C",
+        "button_fg": "#0D1B2A",
+        "button_secondary_bg": "#152538",
+        "button_secondary_fg": "#A8B5C4",
+        "entry_bg": "#0F1E2E",
+        "entry_border": "#253D54",
+        "tree_bg": "#152538",
+        "tree_alt": "#1A2F46",
+        "log_bg": "#0D1B2A",
+        "scrollbar_bg": "#2C4A6B",
+        "status_bg": "#0D1B2A",
+        "tab_bg": "#152538",
+        "tab_selected": "#0F1E2E",
+        "tab_border": "#253D54",
+        "header_bg": "linear-gradient(135deg, #0D1B2A 0%, #1B3A5A 100%)",
+        "header_fg": "#E8ECF1",
+    }
+
+    # 主题 C：清爽浅色（简约现代风格）
+    CLEAN_LIGHT = {
+        "name": "清爽浅色",
+        "name_en": "Clean Light",
+        "bg": "#FAFBFC",
+        "fg": "#1A202C",
+        "primary": "#0066CC",
+        "primary_dark": "#004C99",
+        "secondary": "#718096",
+        "success": "#00A86B",
+        "error": "#DC3545",
+        "warning": "#FD7E14",
+        "info": "#0066CC",
+        "card_bg": "#FFFFFF",
+        "card_border": "#E8ECF0",
+        "text_muted": "#A0AEC0",
+        "text_heading": "#1A202C",
+        "button_bg": "#0066CC",
+        "button_fg": "#ffffff",
+        "button_secondary_bg": "#FFFFFF",
+        "button_secondary_fg": "#1A202C",
+        "entry_bg": "#FFFFFF",
+        "entry_border": "#E2E8F0",
+        "tree_bg": "#FFFFFF",
+        "tree_alt": "#F7FAFC",
+        "log_bg": "#F7FAFC",
+        "scrollbar_bg": "#CBD5E0",
+        "status_bg": "#FFFFFF",
+        "tab_bg": "#FAFBFC",
+        "tab_selected": "#FFFFFF",
+        "tab_border": "#E8ECF0",
+        "header_bg": "linear-gradient(135deg, #0066CC 0%, #0088FF 100%)",
+        "header_fg": "#ffffff",
+    }
+
+    CLEAN_DARK = {
+        "name": "清爽浅色",
+        "name_en": "Clean Light",
+        "bg": "#1A1D23",
+        "fg": "#E8ECF0",
+        "primary": "#0088FF",
+        "primary_dark": "#0066CC",
+        "secondary": "#9CA3AF",
+        "success": "#00D68F",
+        "error": "#FF6B6B",
+        "warning": "#FFB347",
+        "info": "#0088FF",
+        "card_bg": "#22262E",
+        "card_border": "#2D323C",
+        "text_muted": "#6B7280",
+        "text_heading": "#E8ECF0",
+        "button_bg": "#0088FF",
+        "button_fg": "#ffffff",
+        "button_secondary_bg": "#22262E",
+        "button_secondary_fg": "#E8ECF0",
+        "entry_bg": "#1A1D23",
+        "entry_border": "#2D323C",
+        "tree_bg": "#22262E",
+        "tree_alt": "#2A2F38",
+        "log_bg": "#1A1D23",
+        "scrollbar_bg": "#4A5568",
+        "status_bg": "#22262E",
+        "tab_bg": "#22262E",
+        "tab_selected": "#1A1D23",
+        "tab_border": "#2D323C",
+        "header_bg": "linear-gradient(135deg, #1A1D23 0%, #2D323C 100%)",
+        "header_fg": "#E8ECF0",
     }
 
     def __init__(self):
-        self.current_theme = "light"
-        self.theme = self.LIGHT_THEME
+        self.current_style = "idea"  # 'idea' | 'terminal' | 'clean'
+        self.is_dark = False
+        self.theme = self.IDEA_LIGHT
 
-    def toggle_theme(self):
-        if self.current_theme == "light":
-            self.current_theme = "dark"
-            self.theme = self.DARK_THEME
+    def set_style(self, style):
+        """设置主题风格（保留深浅色模式）"""
+        self.current_style = style
+        self._apply_current_theme()
+
+    def toggle_dark_mode(self):
+        """切换深浅色模式"""
+        self.is_dark = not self.is_dark
+        self._apply_current_theme()
+        return self.is_dark
+
+    def set_dark_mode(self, is_dark):
+        """设置深浅色模式"""
+        self.is_dark = is_dark
+        self._apply_current_theme()
+
+    def _apply_current_theme(self):
+        """根据当前风格和深浅色模式应用主题"""
+        if self.current_style == "idea":
+            self.theme = self.IDEA_DARK if self.is_dark else self.IDEA_LIGHT
+        elif self.current_style == "terminal":
+            self.theme = self.TERMINAL_DARK if self.is_dark else self.TERMINAL_LIGHT
+        elif self.current_style == "clean":
+            self.theme = self.CLEAN_DARK if self.is_dark else self.CLEAN_LIGHT
         else:
-            self.current_theme = "light"
-            self.theme = self.LIGHT_THEME
-        return self.current_theme, self.theme
+            self.theme = self.IDEA_DARK if self.is_dark else self.IDEA_LIGHT
 
     def get_theme(self):
-        return self.current_theme, self.theme
+        return self.current_style, self.is_dark, self.theme
+
+    def toggle_theme(self):
+        """切换深浅色模式"""
+        self.is_dark = not self.is_dark
+        self._apply_current_theme()
+        return self.current_style, self.is_dark, self.theme
 
 
 class OracleBatchUpdaterGUI:
@@ -102,6 +280,7 @@ class OracleBatchUpdaterGUI:
         self.progress_window = None
         self.update_column_widgets = []
         self.current_progress_callback = None
+        self.theme_buttons = {}  # 存储主题按钮引用
         self.setup_styles()
         self.create_widgets()
         self.load_last_config()
@@ -114,7 +293,7 @@ class OracleBatchUpdaterGUI:
         self.update_styles()
 
     def update_styles(self):
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         self.style.configure("Title.TLabel", font=("Microsoft YaHei", 16, "bold"), foreground=theme["text_heading"])
         self.style.configure("Header.TLabel", font=("Microsoft YaHei", 11, "bold"), foreground=theme["text_heading"])
         self.style.configure("Action.TButton", font=("Microsoft YaHei", 10), padding=6)
@@ -122,6 +301,10 @@ class OracleBatchUpdaterGUI:
         self.style.map("Primary.TButton",
                        background=[('active', theme["primary_dark"])],
                        foreground=[('active', 'white')])
+        self.style.configure("Secondary.TButton", font=("Microsoft YaHei", 10), padding=6)
+        self.style.map("Secondary.TButton",
+                       background=[('active', theme.get("button_secondary_bg", theme["tab_bg"]))],
+                       foreground=[('active', theme.get("button_secondary_fg", theme["fg"]))])
         self.style.configure("Card.TFrame", background=theme["card_bg"], borderwidth=1, relief="solid")
         self.style.configure("Status.TLabel", font=("Microsoft YaHei", 9))
         self.style.configure("TNotebook", background=theme["bg"], borderwidth=0)
@@ -132,7 +315,7 @@ class OracleBatchUpdaterGUI:
         self.root.bind('<Control-S>', lambda e: self.save_config())
 
     def apply_theme(self):
-        _, theme = self.theme_manager.get_theme()
+        style_name, is_dark, theme = self.theme_manager.get_theme()
         self.root.configure(bg=theme["bg"])
         for widget in self.root.winfo_children():
             self.apply_theme_recursive(widget, theme)
@@ -187,8 +370,43 @@ class OracleBatchUpdaterGUI:
         subtitle_label.pack(pady=(2, 0))
         control_frame = ttk.Frame(header_frame)
         control_frame.pack(side=tk.RIGHT)
+
+        # 主题风格选择器（三个按钮）
+        theme_selector_frame = ttk.Frame(control_frame)
+        theme_selector_frame.pack(side=tk.RIGHT, padx=(0, 8))
+
+        # 深浅色切换按钮
         self.theme_btn = ttk.Button(control_frame, text="🌙 深色模式", command=self.toggle_theme, style="Action.TButton")
         self.theme_btn.pack(side=tk.RIGHT)
+
+        # 主题风格标签
+        style_label = ttk.Label(control_frame, text="主题:", font=("Microsoft YaHei", 9))
+        style_label.pack(side=tk.RIGHT, padx=(0, 4))
+
+        # 三个主题风格按钮
+        themes = [
+            ("idea", "Idea💡"),
+            ("terminal", "深墨🖥"),
+            ("clean", "清爽✨"),
+        ]
+        for i, (style_key, style_label_text) in enumerate(themes):
+            btn = tk.Button(
+                theme_selector_frame,
+                text=style_label_text,
+                font=("Microsoft YaHei", 9),
+                padx=8,
+                pady=3,
+                bd=1,
+                relief="raised",
+                cursor="hand2",
+                command=lambda s=style_key: self.switch_theme_style(s)
+            )
+            btn.pack(side=tk.LEFT, padx=2)
+            self.theme_buttons[style_key] = btn
+
+        # 初始化主题按钮状态
+        self.root.after(100, self._update_theme_selector_buttons)
+
         minimize_btn = ttk.Button(control_frame, text="▁", width=3, command=self.root.iconify, style="Action.TButton")
         minimize_btn.pack(side=tk.RIGHT, padx=(5, 0))
         maximize_btn = ttk.Button(control_frame, text="⬜", width=3, command=self.toggle_maximize, style="Action.TButton")
@@ -201,19 +419,38 @@ class OracleBatchUpdaterGUI:
             self.root.state("zoomed")
 
     def toggle_theme(self):
-        theme_name, _ = self.theme_manager.toggle_theme()
+        """切换深浅色模式"""
+        style_name, is_dark, theme = self.theme_manager.toggle_theme()
         self.update_styles()
         self.apply_theme()
         self.update_treeview_style()
         self.update_log_style()
         self.update_history_tree_style()
-        if theme_name == "dark":
-            self.theme_btn.config(text="☀️ 浅色模式")
-        else:
-            self.theme_btn.config(text="🌙 深色模式")
+        self._update_theme_selector_buttons()
+        # 更新深浅色按钮文本
+        icon = "☀️" if is_dark else "🌙"
+        mode_text = "浅色" if is_dark else "深色"
+        if hasattr(self, 'theme_btn'):
+            self.theme_btn.config(text=f"{icon} {mode_text}模式")
+
+    def _update_theme_selector_buttons(self):
+        """更新主题选择器按钮状态"""
+        style_name, _, _ = self.theme_manager.get_theme()
+        for btn_style, btn in self.theme_buttons.items():
+            if btn:
+                try:
+                    is_active = (btn_style == style_name)
+                    if is_active:
+                        btn.configure(relief="sunken", bg=self.theme_manager.theme["primary"])
+                        btn.configure(fg="white")
+                    else:
+                        btn.configure(relief="raised", bg=self.theme_manager.theme.get("button_secondary_bg", "#e8e8e8"))
+                        btn.configure(fg=self.theme_manager.theme.get("text_heading", "#3c3f41"))
+                except:
+                    pass
 
     def update_treeview_style(self):
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         self.style.configure("Treeview",
                             background=theme["tree_bg"],
                             foreground=theme["fg"],
@@ -225,7 +462,7 @@ class OracleBatchUpdaterGUI:
             self.preview_tree.update()
 
     def update_log_style(self):
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         if hasattr(self, 'log_text'):
             self.log_text.configure(bg=theme["log_bg"], fg=theme["fg"])
             self.log_text.tag_config("INFO", foreground=theme["fg"])
@@ -234,7 +471,7 @@ class OracleBatchUpdaterGUI:
             self.log_text.tag_config("WARNING", foreground=theme["warning"])
 
     def update_history_tree_style(self):
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         if hasattr(self, 'history_tree'):
             self.style.configure("History.Treeview",
                                 background=theme["tree_bg"],
@@ -449,7 +686,7 @@ class OracleBatchUpdaterGUI:
         self.status_bar = ttk.Frame(self.main_frame, padding="8")
         self.status_bar.pack(fill=tk.X, pady=(5, 0))
         
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         self.status_bar.configure(style="StatusBar.TFrame")
         self.style.configure("StatusBar.TFrame", background=theme["status_bg"])
         
@@ -587,7 +824,7 @@ class OracleBatchUpdaterGUI:
         dialog.transient(self.root)
         dialog.grab_set()
         dialog.resizable(False, False)
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         dialog.configure(bg=theme["bg"])
         main_frame = ttk.Frame(dialog, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
@@ -749,7 +986,7 @@ class OracleBatchUpdaterGUI:
         dialog.geometry("600x500")
         dialog.transient(self.root)
         dialog.resizable(True, True)
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         dialog.configure(bg=theme["bg"])
         
         info_label = tk.Label(dialog, text="⚠️ 发现Excel中存在重复的唯一标识值",
@@ -843,7 +1080,7 @@ class OracleBatchUpdaterGUI:
         dialog.geometry("600x500")
         dialog.transient(self.root)
         dialog.resizable(True, True)
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         dialog.configure(bg=theme["bg"])
         
         info_label = tk.Label(dialog, text="⚠️ 发现Excel中的唯一标识在数据库表中不存在",
@@ -904,7 +1141,7 @@ class OracleBatchUpdaterGUI:
         self.progress_window.grab_set()
         self.progress_window.resizable(False, False)
         
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         self.progress_window.configure(bg=theme["bg"])
         
         title_frame = ttk.Frame(self.progress_window, padding="15")
@@ -1155,7 +1392,7 @@ Excel文件: {excel_path}
         dialog.geometry("650x500")
         dialog.transient(self.root)
         dialog.resizable(True, True)
-        _, theme = self.theme_manager.get_theme()
+        _, is_dark, theme = self.theme_manager.get_theme()
         dialog.configure(bg=theme["bg"])
         
         info_label = tk.Label(dialog, text="⚠️ 更新完成但存在失败记录。目标表数据未更新，已回滚到初始状态。",

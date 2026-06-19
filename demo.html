@@ -3,695 +3,1790 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Oracle数据批量修改工具 - 操作原型</title>
+    <title>Oracle 数据批量修改工具 · v2.0</title>
     <style>
+        /* ============================================================
+           三套主题系统 · 设计令牌 / Design Tokens
+           ============================================================ */
+
+        /* ---- 主题 A：深墨琥珀（默认 · Frontend Design 风格）---- */
+        :root,
+        body.theme-terminal {
+            /* 主色：深墨色 */
+            --ink-900: #0D1B2A;
+            --ink-800: #14283D;
+            --ink-700: #1B3A5A;
+            --ink-600: #2C4A6B;
+            --ink-500: #3E5C7E;
+
+            /* 强调色：琥珀金 */
+            --accent-primary: #E8A44C;
+            --accent-light: #F2BE6F;
+            --accent-dark: #C7862A;
+
+            /* 功能色 */
+            --color-success: #4ECDC4;
+            --color-success-dark: #3AB5AD;
+            --color-error: #C25B56;
+            --color-error-dark: #A5463F;
+            --color-warning: #E8A44C;
+
+            /* 中性色（浅色模式） */
+            --bg: #F7F5F0;
+            --bg-soft: #EFEEE8;
+            --bg-line: #E0DDD4;
+            --text-primary: #2C3E50;
+            --text-secondary: #5A6B7D;
+            --text-muted: #8E9AA8;
+
+            /* 结构 */
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 10px;
+
+            /* 阴影 */
+            --shadow-sm: 0 1px 3px rgba(13, 27, 42, 0.08);
+            --shadow-md: 0 4px 12px rgba(13, 27, 42, 0.10);
+            --shadow-lg: 0 12px 32px rgba(13, 27, 42, 0.18);
+
+            /* 字体 */
+            --font-sans: 'Inter', 'Segoe UI', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', monospace;
+        }
+
+        /* 深色模式变量覆盖 */
+        body.theme-terminal.dark-mode {
+            --bg: #0F1E2E;
+            --bg-soft: #152538;
+            --bg-line: #253D54;
+            --text-primary: #E8ECF1;
+            --text-secondary: #A8B5C4;
+            --text-muted: #6B7A8C;
+        }
+
+        /* ---- 主题 B：Idea 蓝色（经典 IDE 风格）---- */
+        body.theme-idea {
+            /* 主色：Idea 蓝 */
+            --ink-900: #3d65a5;
+            --ink-800: #4a86e8;
+            --ink-700: #6b9fe8;
+            --ink-600: #89b4f0;
+            --ink-500: #a8c8f5;
+
+            /* 强调色：经典蓝 */
+            --accent-primary: #4a86e8;
+            --accent-light: #6b9fe8;
+            --accent-dark: #3d65a5;
+
+            /* 功能色 */
+            --color-success: #4e9a06;
+            --color-success-dark: #3d7a05;
+            --color-error: #c75050;
+            --color-error-dark: #a54040;
+            --color-warning: #ca8230;
+
+            /* 中性色 */
+            --bg: #f5f5f5;
+            --bg-soft: #ffffff;
+            --bg-line: #e5e5e5;
+            --text-primary: #3c3f41;
+            --text-secondary: #6c757d;
+            --text-muted: #808080;
+
+            /* 结构 */
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+
+            /* 阴影 */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+            --shadow-md: 0 2px 10px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.20);
+
+            /* 字体 */
+            --font-sans: 'Segoe UI', 'Microsoft YaHei', -apple-system, sans-serif;
+            --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        /* 深色 Idea 模式 */
+        body.theme-idea.dark-mode {
+            --bg: #2b2b2b;
+            --bg-soft: #3c3f41;
+            --bg-line: #555555;
+            --text-primary: #dcdcdc;
+            --text-secondary: #a9b7c6;
+            --text-muted: #808080;
+        }
+
+        /* ---- 主题 C：清爽浅色（简约现代）---- */
+        body.theme-light {
+            /* 主色：现代青蓝 */
+            --ink-900: #0066CC;
+            --ink-800: #0088FF;
+            --ink-700: #3399FF;
+            --ink-600: #66B3FF;
+            --ink-500: #99CCFF;
+
+            /* 强调色：活力蓝 */
+            --accent-primary: #0066CC;
+            --accent-light: #3399FF;
+            --accent-dark: #004C99;
+
+            /* 功能色 */
+            --color-success: #00A86B;
+            --color-success-dark: #00704A;
+            --color-error: #DC3545;
+            --color-error-dark: #A71D2A;
+            --color-warning: #FD7E14;
+
+            /* 中性色 */
+            --bg: #FAFBFC;
+            --bg-soft: #FFFFFF;
+            --bg-line: #E8ECF0;
+            --text-primary: #1A202C;
+            --text-secondary: #4A5568;
+            --text-muted: #A0AEC0;
+
+            /* 结构 */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            /* 阴影 */
+            --shadow-sm: 0 1px 4px rgba(0, 102, 204, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 102, 204, 0.08);
+            --shadow-lg: 0 12px 40px rgba(0, 102, 204, 0.12);
+
+            /* 字体 */
+            --font-sans: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        /* 简洁深色 */
+        body.theme-light.dark-mode {
+            --bg: #1A1D23;
+            --bg-soft: #22262E;
+            --bg-line: #2D323C;
+            --text-primary: #E8ECF0;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+        }
+
+        /* ============================================================
+           基础样式
+           ============================================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        :root {
-            --bg: #f5f5f5;
-            --fg: #3c3f41;
-            --primary: #4a86e8;
-            --primary-dark: #3d65a5;
-            --success: #3592c4;
-            --error: #c75050;
-            --warning: #ca8230;
-            --card-bg: #ffffff;
-            --card-border: #e5e5e5;
-            --text-muted: #6c757d;
-            --text-heading: #2b2b2b;
-            --entry-bg: #ffffff;
-            --tree-bg: #ffffff;
-            --tree-alt: #f5f5f5;
-            --log-bg: #f7f7f7;
-            --status-bg: #f0f0f0;
-            --tab-bg: #e8e8e8;
-            --tab-selected: #ffffff;
-            --tab-border: #d4d4d4;
-        }
-        
-        body.dark-mode {
-            --bg: #2b2b2b;
-            --fg: #a9b7c6;
-            --primary: #4a86e8;
-            --primary-dark: #3d65a5;
-            --success: #4e9a06;
-            --error: #cc6666;
-            --warning: #cc7832;
-            --card-bg: #3c3f41;
-            --card-border: #555555;
-            --text-muted: #808080;
-            --text-heading: #dcdcdc;
-            --entry-bg: #3c3f41;
-            --tree-bg: #3c3f41;
-            --tree-alt: #45494a;
-            --log-bg: #2b2b2b;
-            --status-bg: #3c3f41;
-            --tab-bg: #35383a;
-            --tab-selected: #2b2b2b;
-            --tab-border: #4e4e4e;
-        }
-        
+
         body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: var(--font-sans);
             background: var(--bg);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
-            color: var(--fg);
+            padding: 24px;
+            font-size: 14px;
+            line-height: 1.55;
+            transition: background-color 0.35s ease, color 0.35s ease;
+            -webkit-font-smoothing: antialiased;
         }
-        
+
+        body.dark-mode {
+            background: var(--bg);
+        }
+
+        /* ============================================================
+           主容器
+           ============================================================ */
         .app-container {
-            max-width: 1200px;
+            max-width: 1240px;
             margin: 0 auto;
-            background: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ============================================================
+           头部 · 签名元素：数据流可视化
+           ============================================================ */
+        .header {
+            position: relative;
+            background: linear-gradient(135deg, var(--ink-900) 0%, var(--ink-700) 100%);
+            color: #fff;
+            padding: 28px 32px;
             overflow: hidden;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%);
-            color: white;
-            padding: 20px 30px;
+
+        /* 数据流背景动画 */
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 22px,
+                    rgba(232, 164, 76, 0.08) 22px,
+                    rgba(232, 164, 76, 0.08) 23px
+                );
+            pointer-events: none;
+        }
+
+        .data-stream {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 520px;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+
+        .data-row {
+            position: absolute;
+            right: -100px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--accent-primary);
+            white-space: nowrap;
+            opacity: 0;
+            animation: flowRow 6s linear infinite;
+        }
+
+        .data-row::before {
+            content: '▸ ';
+            color: var(--teal-500);
+        }
+
+        @keyframes flowRow {
+            0% { transform: translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            85% { opacity: 0.6; }
+            100% { transform: translateX(-620px); opacity: 0; }
+        }
+
+        .header-inner {
+            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 1;
         }
-        
-        .header-content {
-            flex: 1;
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 4px;
+
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--amber-500), var(--amber-600));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--ink-900);
+            letter-spacing: -0.5px;
+            box-shadow: 0 4px 14px rgba(232, 164, 76, 0.35);
         }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 13px;
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
-        
+
+        .brand-title {
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            color: #F5F7FA;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.3px;
+        }
+
+        .brand-subtitle .dot {
+            color: var(--amber-500);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .version-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent-primary);
+            padding: 4px 10px;
+            border: 1px solid rgba(232, 164, 76, 0.35);
+            border-radius: var(--radius-sm);
+            background: rgba(232, 164, 76, 0.08);
+            letter-spacing: 0.5px;
+        }
+
         .theme-toggle {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #E8ECF1;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 13px;
-            transition: all 0.3s;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        
+
         .theme-toggle:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(232, 164, 76, 0.4);
         }
-        
+
+        /* ============================================================
+           标签页导航 · 数据库表选项卡风格
+           ============================================================ */
         .tabs {
             display: flex;
-            background: var(--tab-bg);
-            border-bottom: 1px solid var(--tab-border);
+            background: var(--bg);
+            border-bottom: 1px solid var(--bg-line);
             position: relative;
+            padding: 0 12px;
         }
-        
+
         .tab {
             flex: 1;
-            padding: 14px 20px;
+            padding: 14px 16px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             position: relative;
             background: transparent;
             border: none;
-            font-size: 14px;
-            color: var(--text-muted);
+            font-size: 13px;
             font-weight: 500;
-            border-right: 1px solid var(--tab-border);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        
-        .tab:last-child {
-            border-right: none;
+
+        .tab-icon {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--amber-600);
+            font-weight: 700;
         }
-        
+
         .tab:hover {
-            background: rgba(74, 134, 232, 0.1);
+            color: var(--text-primary);
+            background: var(--bg-soft);
         }
-        
+
         .tab.active {
-            color: var(--primary);
-            background: var(--tab-selected);
+            color: var(--text-primary);
+            font-weight: 600;
         }
-        
+
+        .tab.active .tab-icon {
+            color: var(--amber-500);
+        }
+
         .tab.active::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            bottom: -1px;
+            left: 20%;
+            right: 20%;
             height: 2px;
-            background: var(--primary);
+            background: var(--amber-500);
+            border-radius: 2px 2px 0 0;
         }
-        
+
+        .tab.active::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: 10px;
+            left: 12px;
+            right: 12px;
+            background: rgba(232, 164, 76, 0.08);
+            border-radius: var(--radius-sm);
+            z-index: -1;
+        }
+
         .tab-content {
             display: none;
-            padding: 25px 30px;
-            background: var(--card-bg);
-            min-height: 450px;
+            padding: 32px;
+            background: var(--bg-soft);
+            min-height: 500px;
         }
-        
+
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: fadeSlide 0.35s ease;
         }
-        
-        @keyframes fadeIn {
+
+        @keyframes fadeSlide {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(6px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
-        .config-grid {
-            display: grid;
-            gap: 20px;
+
+        /* ============================================================
+           配置分组 · 数据库表结构风格
+           ============================================================ */
+        .config-section {
+            margin-bottom: 28px;
         }
-        
-        .form-group {
-            display: grid;
-            grid-template-columns: 140px 1fr;
+
+        .section-header {
+            display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--bg-line);
         }
-        
-        .form-label {
-            font-weight: 500;
-            color: var(--text-heading);
+
+        .section-marker {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--amber-600);
+            font-weight: 700;
+            letter-spacing: 0.8px;
+        }
+
+        .section-title {
             font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.1px;
         }
-        
-        .form-input, .form-select {
-            padding: 10px 12px;
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            font-size: 14px;
-            background: var(--entry-bg);
-            color: var(--fg);
-            width: 100%;
-        }
-        
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74, 134, 232, 0.15);
-        }
-        
-        .file-upload {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .file-path {
+
+        .section-rule {
             flex: 1;
-            padding: 10px 12px;
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            background: var(--entry-bg);
-            color: var(--fg);
-            font-size: 13px;
+            height: 1px;
+            background: linear-gradient(to right, var(--bg-line), transparent);
         }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
         }
-        
-        .btn-secondary {
-            background: var(--tab-bg);
-            color: var(--fg);
-            border: 1px solid var(--card-border);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(74, 134, 232, 0.1);
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-        
-        .preview-box {
-            margin-top: 25px;
-            background: var(--tree-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .preview-header {
-            padding: 12px 15px;
-            background: var(--tab-bg);
-            border-bottom: 1px solid var(--card-border);
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .preview-content {
-            padding: 15px;
-            overflow-x: auto;
-        }
-        
-        .preview-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .preview-table th,
-        .preview-table td {
-            border: 1px solid var(--card-border);
-            padding: 8px 12px;
-            text-align: left;
-            font-size: 13px;
-        }
-        
-        .preview-table th {
-            background: var(--tab-bg);
-            font-weight: 500;
-        }
-        
-        .preview-table tr:nth-child(even) td {
-            background: var(--tree-alt);
-        }
-        
-        .btn-group {
+
+        .form-field {
             display: flex;
-            gap: 12px;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--card-border);
+            flex-direction: column;
+            gap: 6px;
         }
-        
-        .log-box {
-            background: var(--log-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            height: 400px;
-            overflow: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
-            line-height: 1.6;
+
+        .form-field.full {
+            grid-column: 1 / -1;
         }
-        
-        .log-content {
-            padding: 15px;
-        }
-        
-        .log-line {
-            margin: 4px 0;
-        }
-        
-        .log-success { color: var(--success); }
-        .log-error { color: var(--error); }
-        .log-warning { color: var(--warning); }
-        .log-info { color: var(--primary); }
-        
-        .status-bar {
-            background: var(--status-bg);
-            padding: 10px 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 13px;
-            border-top: 1px solid var(--card-border);
-        }
-        
-        .status-item {
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
+
+        .field-label .label-code {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 1px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--bg-line);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .field-input,
+        .field-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+            font-size: 13.5px;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            transition: all 0.18s ease;
+        }
+
+        .field-input:focus,
+        .field-select:focus {
+            outline: none;
+            border-color: var(--amber-500);
+            box-shadow: 0 0 0 3px rgba(232, 164, 76, 0.15);
+            background: var(--bg);
+        }
+
+        .field-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23E8A44C' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 34px;
+        }
+
+        /* ============================================================
+           文件上传区域 · 行式布局
+           ============================================================ */
+        .file-panel {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .file-display {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+        }
+
+        .file-icon {
+            color: var(--amber-600);
+            font-size: 15px;
+        }
+
+        .file-meta {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+        .file-path-muted {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           按钮样式
+           ============================================================ */
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.18s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            font-family: var(--font-sans);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 主按钮：琥珀色 */
+        .btn-primary {
+            background: var(--amber-500);
+            color: var(--ink-900);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(232, 164, 76, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--amber-400);
+            box-shadow: 0 4px 14px rgba(232, 164, 76, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* 次按钮：描边 */
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text-primary);
+            border: 1px solid var(--bg-line);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-soft);
+            border-color: var(--ink-500);
+            color: var(--text-primary);
+        }
+
+        /* 幽灵按钮：用于校验类操作 */
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--bg-line);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg);
+            border-color: var(--amber-500);
+            color: var(--amber-600);
+        }
+
+        .btn-teal {
+            background: var(--teal-500);
+            color: var(--ink-900);
+            font-weight: 600;
+        }
+
+        .btn-teal:hover {
+            background: var(--teal-600);
+        }
+
+        .btn-clay {
+            background: var(--clay-500);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .btn-clay:hover {
+            background: var(--clay-600);
+        }
+
+        .btn .btn-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        /* ============================================================
+           表格预览 · 数据库终端风格
+           ============================================================ */
+        .data-panel {
+            margin-top: 24px;
+            background: var(--bg);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--bg-line);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title::before {
+            content: '▤';
+            color: var(--amber-500);
+            font-size: 12px;
+        }
+
+        .panel-badge {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 3px 8px;
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+        }
+
+        .data-table th {
+            padding: 11px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--bg-soft);
+            border-bottom: 2px solid var(--bg-line);
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-right: 1px solid var(--bg-line);
+        }
+
+        .data-table th:last-child {
+            border-right: none;
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--bg-line);
+            color: var(--text-primary);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(232, 164, 76, 0.06);
+        }
+
+        /* 高亮：重复/问题数据行 */
+        .data-table tr.row-error td {
+            background: rgba(194, 91, 86, 0.10);
+            color: var(--clay-500);
+        }
+
+        .data-table tr.row-error td:first-child {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .data-table tr.row-error td:first-child::before {
+            content: '⚠';
+            position: absolute;
+            left: 12px;
+            color: var(--clay-500);
+        }
+
+        .row-num {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* ============================================================
+           日志区域
+           ============================================================ */
+        .log-panel {
+            background: var(--ink-900);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            min-height: 400px;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            line-height: 1.8;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .log-line {
+            padding: 2px 0;
+            animation: logIn 0.3s ease;
+        }
+
+        @keyframes logIn {
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-time {
+            color: #5A6B7D;
+            margin-right: 10px;
+        }
+
+        .log-arrow {
+            color: var(--amber-500);
+            margin-right: 6px;
+        }
+
+        .log-info { color: #7AA7D4; }
+        .log-success { color: var(--teal-500); }
+        .log-error { color: #E88A84; }
+        .log-warning { color: var(--accent-primary); }
+
+        /* ============================================================
+           状态栏
+           ============================================================ */
+        .status-bar {
+            background: var(--ink-800);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: #A8B5C4;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .status-cell {
+            padding: 4px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .status-cell:last-child {
+            border-right: none;
+        }
+
+        .status-cell:first-child {
+            padding-left: 4px;
+        }
+
+        .status-label {
+            color: #6B7A8C;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+        }
+
+        .status-value {
+            color: #E8ECF1;
+            font-weight: 500;
+        }
+
+        .status-value.conn-name {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--error);
+            background: var(--clay-500);
+            position: relative;
         }
-        
-        .status-dot.connected {
-            background: var(--success);
+
+        .status-indicator.connected {
+            background: var(--teal-500);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
         }
-        
-        .status-separator {
-            width: 1px;
-            height: 16px;
-            background: var(--card-border);
+
+        .status-indicator.connected::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid var(--teal-500);
+            opacity: 0.4;
+            animation: pulse 2s ease-out infinite;
         }
-        
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .status-spacer {
+            flex: 1;
+        }
+
+        /* ============================================================
+           模态框
+           ============================================================ */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(13, 27, 42, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s;
+            transition: opacity 0.25s ease;
+            padding: 20px;
         }
-        
+
         .modal-overlay.active {
             opacity: 1;
             pointer-events: auto;
         }
-        
+
         .modal {
-            background: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 550px;
-            width: 90%;
-            max-height: 90vh;
-            overflow: auto;
-            transform: scale(0.9);
-            transition: transform 0.3s;
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 560px;
+            width: 100%;
+            max-height: 85vh;
+            overflow: hidden;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.25s ease;
+            border: 1px solid var(--bg-line);
         }
-        
+
         .modal-overlay.active .modal {
-            transform: scale(1);
+            transform: translateY(0) scale(1);
         }
-        
+
+        .modal.wide {
+            max-width: 680px;
+        }
+
         .modal-header {
-            background: linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%);
-            color: white;
-            padding: 20px 25px;
+            background: linear-gradient(135deg, var(--ink-900) 0%, var(--ink-700) 100%);
+            color: #fff;
+            padding: 18px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
-        .modal-header h3 {
-            font-size: 18px;
+
+        .modal-header.success {
+            background: linear-gradient(135deg, #2C5F5B 0%, var(--teal-600) 100%);
         }
-        
-        .modal-close {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
+
+        .modal-header.warning {
+            background: linear-gradient(135deg, var(--ink-800) 0%, #8B5A20 100%);
+        }
+
+        .modal-header.error {
+            background: linear-gradient(135deg, #6B3A36 0%, var(--clay-600) 100%);
+        }
+
+        .modal-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
             width: 32px;
             height: 32px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
-        }
-        
-        .modal-body {
-            padding: 25px;
-        }
-        
-        .modal-footer {
-            padding: 15px 25px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid var(--card-border);
-        }
-        
-        .progress-steps {
-            display: flex;
-            gap: 0;
-            margin-bottom: 30px;
-        }
-        
-        .step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-        }
-        
-        .step-number {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--tab-bg);
-            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.12);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-weight: bold;
             font-size: 16px;
-            transition: all 0.3s;
         }
-        
-        .step.active .step-number {
-            background: var(--primary);
-            color: white;
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #F5F7FA;
         }
-        
-        .step.completed .step-number {
-            background: var(--success);
-            color: white;
+
+        .modal-subtitle {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.55);
+            font-family: var(--font-mono);
+            margin-top: 2px;
         }
-        
-        .step-label {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background: var(--tab-bg);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
-            border-radius: 4px;
-        }
-        
-        .progress-text {
-            text-align: center;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
-        .progress-detail {
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        
-        .confirm-list {
-            background: var(--tree-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        
-        .confirm-item {
-            padding: 8px 0;
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
             display: flex;
-            border-bottom: 1px solid var(--card-border);
+            align-items: center;
+            justify-content: center;
+            transition: all 0.18s;
         }
-        
-        .confirm-item:last-child {
-            border-bottom: none;
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: rotate(90deg);
         }
-        
-        .confirm-label {
-            width: 120px;
-            font-weight: 500;
-            color: var(--text-heading);
+
+        .modal-body {
+            padding: 24px;
+            color: var(--text-primary);
         }
-        
-        .confirm-value {
-            color: var(--fg);
+
+        .modal-desc {
+            font-size: 14px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
-        
-        .columns-list {
-            background: var(--tree-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
+
+        .modal-footer {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--bg-line);
+            background: var(--bg-soft);
         }
-        
-        .column-item {
+
+        /* ============================================================
+           进度 · 数据库风格步骤
+           ============================================================ */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .step-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 0;
+            padding: 10px 16px;
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            position: relative;
         }
-        
-        .column-item input {
-            flex: 1;
-        }
-        
-        .column-remove {
-            background: var(--error);
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .column-add {
-            margin-top: 10px;
-            width: 100%;
-        }
-        
-        .empty-hint {
-            text-align: center;
+
+        .step-marker {
             color: var(--text-muted);
-            padding: 40px;
+            font-weight: 700;
+            font-size: 13px;
+            transition: color 0.3s;
         }
-        
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
+
+        .step-name {
+            font-weight: 500;
+            transition: color 0.3s;
         }
-        
-        .history-table th,
-        .history-table td {
-            border: 1px solid var(--card-border);
-            padding: 10px 12px;
-            text-align: left;
+
+        .step-item.active {
+            background: rgba(232, 164, 76, 0.10);
+            border-color: var(--amber-500);
+            color: var(--text-primary);
+        }
+
+        .step-item.active .step-marker {
+            color: var(--amber-500);
+        }
+
+        .step-item.completed {
+            background: rgba(78, 205, 196, 0.10);
+            border-color: var(--teal-500);
+            color: var(--teal-600);
+        }
+
+        .step-item.completed .step-marker {
+            color: var(--teal-500);
+        }
+
+        .step-arrow {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* 进度条 */
+        .progress-track {
+            height: 6px;
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 16px 0 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--amber-500), var(--amber-400));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .progress-detail {
+            padding: 12px 14px;
+            background: var(--bg-soft);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            border-left: 3px solid var(--amber-500);
+        }
+
+        /* ============================================================
+           信息列表（确认模态）
+           ============================================================ */
+        .info-list {
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--bg-line);
             font-size: 13px;
         }
-        
-        .history-table th {
-            background: var(--tab-bg);
-            font-weight: 500;
+
+        .info-row:last-child {
+            border-bottom: none;
         }
-        
-        .history-table tr:nth-child(even) td {
-            background: var(--tree-alt);
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
+
+        .info-key {
+            color: var(--text-secondary);
             font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .info-val {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
             font-weight: 500;
         }
-        
-        .status-badge.success {
-            background: rgba(78, 154, 6, 0.15);
-            color: var(--success);
+
+        /* ============================================================
+           校验结果展示
+           ============================================================ */
+        .validation-result {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--bg-line);
+            background: var(--bg-soft);
         }
-        
-        .status-badge.partial {
-            background: rgba(204, 120, 50, 0.15);
-            color: var(--warning);
+
+        .validation-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--bg-line);
+        }
+
+        .validation-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .validation-icon.warn {
+            background: rgba(194, 91, 86, 0.15);
+            color: var(--clay-500);
+        }
+
+        .validation-text strong {
+            color: var(--text-primary);
+        }
+
+        .validation-text small {
+            display: block;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+        }
+
+        /* ============================================================
+           历史记录状态标签
+           ============================================================ */
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 500;
+            font-family: var(--font-mono);
+            letter-spacing: 0.3px;
+        }
+
+        .status-tag::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-tag.success {
+            background: rgba(78, 205, 196, 0.12);
+            color: var(--teal-600);
+        }
+
+        .status-tag.success::before {
+            background: var(--teal-500);
+        }
+
+        .status-tag.partial {
+            background: rgba(232, 164, 76, 0.12);
+            color: var(--amber-600);
+        }
+
+        .status-tag.partial::before {
+            background: var(--amber-500);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ============================================================
+           警告文本
+           ============================================================ */
+        .alert-box {
+            padding: 12px 14px;
+            background: rgba(232, 164, 76, 0.08);
+            border-left: 3px solid var(--amber-500);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-top: 14px;
+            line-height: 1.6;
+        }
+
+        .alert-box strong {
+            color: var(--amber-600);
+        }
+
+        /* ============================================================
+           列编辑
+           ============================================================ */
+        .columns-editor {
+            background: var(--bg);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+        }
+
+        .column-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        .column-row .field-input {
+            padding: 8px 10px;
+        }
+
+        .column-remove {
+            background: transparent;
+            border: 1px solid var(--bg-line);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.18s;
+        }
+
+        .column-remove:hover {
+            background: rgba(194, 91, 86, 0.10);
+            border-color: var(--clay-500);
+            color: var(--clay-500);
+        }
+
+        .column-add-btn {
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: var(--bg-soft);
+            border: 1px dashed var(--bg-line);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12.5px;
+            width: 100%;
+            transition: all 0.18s;
+        }
+
+        .column-add-btn:hover {
+            background: rgba(232, 164, 76, 0.08);
+            border-color: var(--amber-500);
+            color: var(--amber-600);
+        }
+
+        /* ============================================================
+           滚动条美化
+           ============================================================ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-soft);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--ink-500);
+            border-radius: 4px;
+            opacity: 0.4;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--ink-600);
+        }
+
+        .log-panel ::-webkit-scrollbar-track {
+            background: var(--ink-800);
+        }
+
+        .log-panel ::-webkit-scrollbar-thumb {
+            background: var(--ink-500);
+        }
+
+        /* ============================================================
+           响应式
+           ============================================================ */
+        @media (max-width: 780px) {
+            body { padding: 12px; }
+            .tab-content { padding: 20px 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .header { padding: 20px; }
+            .data-stream { display: none; }
+            .status-bar { flex-wrap: wrap; gap: 4px; }
+            .status-cell { border-right: none; padding: 4px 10px; }
+            .tab { font-size: 11px; padding: 12px 6px; }
+        }
+        /* ============================================================
+           主题切换器 UI 组件
+           ============================================================ */
+        .theme-switcher {
+            position: relative;
+        }
+
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #E8ECF1;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(232, 164, 76, 0.4);
+        }
+
+        .theme-arrow {
+            font-size: 9px;
+            opacity: 0.6;
+            margin-left: 2px;
+        }
+
+        .theme-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 280px;
+            background: var(--bg-soft);
+            border: 1px solid var(--bg-line);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .theme-panel.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .theme-panel-title {
+            padding: 12px 16px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--bg-line);
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--bg-line);
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--bg);
+        }
+
+        .theme-option.active {
+            background: rgba(232, 164, 76, 0.08);
+        }
+
+        .theme-option.active .theme-check {
+            color: var(--accent-primary);
+            opacity: 1;
+        }
+
+        .theme-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+            border: 1px solid rgba(0,0,0,0.10);
+        }
+
+        .swatch-terminal {
+            background: linear-gradient(135deg, #0D1B2A 50%, #E8A44C 50%);
+        }
+
+        .swatch-idea {
+            background: linear-gradient(135deg, #3d65a5 50%, #4a86e8 50%);
+        }
+
+        .swatch-light {
+            background: linear-gradient(135deg, #FFFFFF 50%, #0066CC 50%);
+            border-color: #E8ECF0;
+        }
+
+        .swatch-dark {
+            background: linear-gradient(135deg, #1A202C 50%, #2D323C 50%);
+        }
+
+        .theme-info {
+            flex: 1;
+        }
+
+        .theme-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .theme-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .theme-check {
+            font-size: 14px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .theme-panel-divider {
+            height: 1px;
+            background: var(--bg-line);
+            margin: 4px 0;
+        }
+
+        .dark-toggle .theme-check {
+            opacity: 1;
+            font-size: 16px;
+        }
+
+        /* 覆盖层 */
+        .theme-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            display: none;
+        }
+
+        .theme-overlay.active {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <div class="theme-overlay" id="themeOverlay" onclick="closeThemePanel()"></div>
     <div class="app-container">
+
+        <!-- ============== 头部：数据流签名元素 ============== -->
         <div class="header">
-            <div class="header-content">
-                <h1>📦 Oracle数据批量修改工具</h1>
-                <p>Oracle Data Batch Modifier - v2.0</p>
+            <!-- 数据流动画 -->
+            <div class="data-stream">
+                <div class="data-row" style="top: 18px; animation-delay: 0s;">UPDATE EMPLOYEE SET NAME = 'Zhang San' WHERE ID = 1001</div>
+                <div class="data-row" style="top: 44px; animation-delay: 1.2s;">UPDATE EMPLOYEE SET DEPT = 'Engineering' WHERE ID = 1002</div>
+                <div class="data-row" style="top: 70px; animation-delay: 2.4s;">SELECT COUNT(*) FROM EMPLOYEE_BAK_20250619</div>
+                <div class="data-row" style="top: 96px; animation-delay: 3.6s;">COMMIT; -- 125 rows affected</div>
+                <div class="data-row" style="top: 122px; animation-delay: 4.8s;">BEGIN BATCH_UPDATE_PKG.PROCESS_ROWS(p_batch_id => 8472)</div>
             </div>
-            <button class="theme-toggle" onclick="toggleTheme()">🌙 深色模式</button>
-        </div>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab(0)">📋 当前配置</div>
-            <div class="tab" onclick="switchTab(1)">📜 操作日志</div>
-            <div class="tab" onclick="switchTab(2)">🔌 数据库连接</div>
-            <div class="tab" onclick="switchTab(3)">📊 历史记录</div>
-        </div>
-        
-        <div class="tab-content active" id="tab-0">
-            <div class="config-grid">
-                <div class="form-group">
-                    <label class="form-label">数据库模式</label>
-                    <select class="form-select" id="schema">
-                        <option value="APPS" selected>APPS</option>
-                        <option value="SYS">SYS</option>
-                        <option value="SYSTEM">SYSTEM</option>
-                    </select>
+
+            <div class="header-inner">
+                <div class="header-brand">
+                    <div class="brand-mark">∎O</div>
+                    <div class="brand-text">
+                        <div class="brand-title">Oracle 数据批量修改工具</div>
+                        <div class="brand-subtitle">ORACLE <span class="dot">·</span> BATCH MODIFIER <span class="dot">·</span> 数据安全更新</div>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">目标表名</label>
-                    <input type="text" class="form-input" id="tableName" placeholder="请输入目标表名">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">唯一标识列</label>
-                    <input type="text" class="form-input" id="keyColumn" placeholder="请输入唯一标识列名">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">待修改列</label>
-                    <div>
-                        <div class="columns-list" id="columnsList">
-                            <div class="column-item">
-                                <input type="text" class="form-input" placeholder="列名 1">
+                <div class="header-actions">
+                    <div class="version-tag">v 2.0.0</div>
+                    <!-- 主题切换器 -->
+                    <div class="theme-switcher">
+                        <button class="theme-btn" id="themeBtn" onclick="toggleThemePanel()">
+                            <span id="themeIcon">◐</span>
+                            <span id="themeLabel">切换主题</span>
+                            <span class="theme-arrow">▼</span>
+                        </button>
+                        <div class="theme-panel" id="themePanel">
+                            <div class="theme-panel-title">选择界面风格</div>
+                            <div class="theme-option active" data-theme="terminal" onclick="setTheme('terminal')">
+                                <div class="theme-swatch swatch-terminal"></div>
+                                <div class="theme-info">
+                                    <div class="theme-name">深墨琥珀</div>
+                                    <div class="theme-desc">专业终端风格 · 琥珀金强调</div>
+                                </div>
+                                <div class="theme-check">✓</div>
+                            </div>
+                            <div class="theme-option" data-theme="idea" onclick="setTheme('idea')">
+                                <div class="theme-swatch swatch-idea"></div>
+                                <div class="theme-info">
+                                    <div class="theme-name">Idea 蓝色</div>
+                                    <div class="theme-desc">经典 IDE 风格 · 开发者首选</div>
+                                </div>
+                                <div class="theme-check">✓</div>
+                            </div>
+                            <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+                                <div class="theme-swatch swatch-light"></div>
+                                <div class="theme-info">
+                                    <div class="theme-name">清爽浅色</div>
+                                    <div class="theme-desc">简约现代 · 清晰易读</div>
+                                </div>
+                                <div class="theme-check">✓</div>
+                            </div>
+                            <div class="theme-panel-divider"></div>
+                            <div class="theme-option dark-toggle" onclick="toggleDarkMode()">
+                                <div class="theme-swatch swatch-dark"></div>
+                                <div class="theme-info">
+                                    <div class="theme-name">深色模式</div>
+                                    <div class="theme-desc" id="darkModeDesc">当前：已开启</div>
+                                </div>
+                                <div class="theme-check" id="darkModeCheck">☾</div>
                             </div>
                         </div>
-                        <button class="btn btn-secondary column-add" onclick="addColumn()">➕ 添加列</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Excel文件</label>
-                    <div class="file-upload">
-                        <div class="file-path" id="filePath">未选择文件</div>
-                        <button class="btn btn-secondary" onclick="selectFile()">📁 浏览</button>
-                        <button class="btn btn-secondary" onclick="previewExcel()">👁 预览</button>
-                        <button class="btn btn-secondary" onclick="checkDuplicates()">🔍 重复性校验</button>
-                        <button class="btn btn-secondary" onclick="checkConsistency()">✅ 一致性校验</button>
-                    </div>
-                    <div style="margin-top: 6px; color: var(--text-muted); font-size: 12px;">
-                        支持 .xlsx/.xls 文件，最大10MB，最多10万行
                     </div>
                 </div>
             </div>
-            
-            <div class="preview-box">
-                <div class="preview-header">Excel数据预览（前50行）</div>
-                <div class="preview-content">
-                    <table class="preview-table" id="previewTable">
+        </div>
+
+        <!-- ============== 标签页导航 ============== -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(0)">
+                <span class="tab-icon">[01]</span>
+                <span>配置与预览</span>
+            </div>
+            <div class="tab" onclick="switchTab(1)">
+                <span class="tab-icon">[02]</span>
+                <span>操作日志</span>
+            </div>
+            <div class="tab" onclick="switchTab(2)">
+                <span class="tab-icon">[03]</span>
+                <span>数据库连接</span>
+            </div>
+            <div class="tab" onclick="switchTab(3)">
+                <span class="tab-icon">[04]</span>
+                <span>历史记录</span>
+            </div>
+        </div>
+
+        <!-- ============== 页面 01：配置与预览 ============== -->
+        <div class="tab-content active" id="tab-0">
+
+            <!-- 数据库与表配置 -->
+            <div class="config-section">
+                <div class="section-header">
+                    <span class="section-marker">§ DATABASE</span>
+                    <span class="section-title">数据库与目标表配置</span>
+                    <span class="section-rule"></span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">
+                            Schema 模式
+                            <span class="label-code">VARCHAR2</span>
+                        </label>
+                        <select class="field-select" id="schema">
+                            <option value="APPS" selected>APPS</option>
+                            <option value="SYS">SYS</option>
+                            <option value="SYSTEM">SYSTEM</option>
+                            <option value="SCOTT">SCOTT</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            目标表名
+                            <span class="label-code">TABLE</span>
+                        </label>
+                        <input type="text" class="field-input" id="tableName" placeholder="EMPLOYEE" value="EMPLOYEE">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            唯一标识列
+                            <span class="label-code">PK_COLUMN</span>
+                        </label>
+                        <input type="text" class="field-input" id="keyColumn" placeholder="EMP_ID" value="EMP_ID">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            待修改列
+                            <span class="label-code">COLS</span>
+                        </label>
+                        <div class="columns-editor">
+                            <div id="columnsList">
+                                <div class="column-row">
+                                    <input type="text" class="field-input" placeholder="列名 1" value="NAME">
+                                    <button class="column-remove" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                                <div class="column-row">
+                                    <input type="text" class="field-input" placeholder="列名 2" value="AGE">
+                                    <button class="column-remove" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                                <div class="column-row">
+                                    <input type="text" class="field-input" placeholder="列名 3" value="DEPT">
+                                    <button class="column-remove" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                            </div>
+                            <button class="column-add-btn" onclick="addColumn()">+ 添加列</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excel 文件与校验 -->
+            <div class="config-section">
+                <div class="section-header">
+                    <span class="section-marker">§ DATAFILE</span>
+                    <span class="section-title">Excel 数据源与校验</span>
+                    <span class="section-rule"></span>
+                </div>
+
+                <div class="file-panel">
+                    <div class="file-display">
+                        <span class="file-icon">▤</span>
+                        <span id="filePath">employee_update_20250619.xlsx</span>
+                        <span class="file-meta" id="fileMeta">42 KB · 125 rows</span>
+                    </div>
+                </div>
+
+                <div class="action-row" style="margin-top: 12px;">
+                    <button class="btn btn-secondary" onclick="selectFile()">
+                        <span class="btn-icon">📁</span>
+                        <span>选择文件</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="previewExcel()">
+                        <span class="btn-icon">▤</span>
+                        <span>预览数据</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="checkDuplicates()">
+                        <span class="btn-icon">Σ</span>
+                        <span>重复性校验</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="checkConsistency()">
+                        <span class="btn-icon">∃</span>
+                        <span>一致性校验</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 预览表格 -->
+            <div class="data-panel">
+                <div class="panel-header">
+                    <div class="panel-title">数据预览 <span style="color: var(--text-muted); font-weight: 400; font-size: 12px; font-family: var(--font-mono);">· rows 1..7 / 125</span></div>
+                    <div class="panel-badge">7 ROWS · 4 COLS</div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="previewTable">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="width: 50px;">#</th>
+                                <th>EMP_ID</th>
                                 <th>NAME</th>
                                 <th>AGE</th>
                                 <th>DEPT</th>
@@ -699,44 +1794,51 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td class="row-num">1</td>
                                 <td>1001</td>
                                 <td>张三</td>
                                 <td>28</td>
                                 <td>技术部</td>
                             </tr>
                             <tr>
+                                <td class="row-num">2</td>
                                 <td>1002</td>
                                 <td>李四</td>
                                 <td>32</td>
                                 <td>市场部</td>
                             </tr>
                             <tr>
+                                <td class="row-num">3</td>
                                 <td>1003</td>
                                 <td>王五</td>
                                 <td>25</td>
                                 <td>财务部</td>
                             </tr>
-                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                            <tr class="row-error">
+                                <td class="row-num">4</td>
                                 <td>1001</td>
                                 <td>张三</td>
                                 <td>28</td>
                                 <td>技术部</td>
                             </tr>
                             <tr>
+                                <td class="row-num">5</td>
                                 <td>1004</td>
                                 <td>赵六</td>
                                 <td>30</td>
                                 <td>人事部</td>
                             </tr>
-                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                            <tr class="row-error">
+                                <td class="row-num">6</td>
                                 <td>1002</td>
                                 <td>李四</td>
                                 <td>32</td>
                                 <td>市场部</td>
                             </tr>
-                            <tr style="background: rgba(199, 80, 80, 0.1);">
+                            <tr class="row-error">
+                                <td class="row-num">7</td>
                                 <td>9999</td>
-                                <td>不存在的人</td>
+                                <td>未知人员</td>
                                 <td>30</td>
                                 <td>未知部门</td>
                             </tr>
@@ -744,529 +1846,821 @@
                     </table>
                 </div>
             </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="showConfirmModal()">✅ 确认</button>
-                <button class="btn btn-secondary" onclick="clearForm()">🗑 清空</button>
+
+            <!-- 主操作按钮区 -->
+            <div style="margin-top: 28px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="clearForm()">
+                    <span class="btn-icon">↺</span>
+                    <span>清空配置</span>
+                </button>
+                <button class="btn btn-primary" onclick="showConfirmModal()">
+                    <span class="btn-icon">▶</span>
+                    <span>执行批量更新</span>
+                </button>
             </div>
         </div>
-        
+
+        <!-- ============== 页面 02：操作日志 ============== -->
         <div class="tab-content" id="tab-1">
-            <div class="log-box">
-                <div class="log-content" id="logContent">
-                    <div class="log-line log-info">[2025-05-20 10:30:00] 开始数据更新操作</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:01] 目标表: EMPLOYEE</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:02] 唯一标识列: EMP_ID</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:02] 待修改列: NAME, AGE, DEPT</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:03] 备份表已创建: EMPLOYEE_BAK_20250520_103000</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:05] Excel验证通过，共125条数据</div>
-                    <div class="log-line log-success">[2025-05-20 10:30:08] 更新完成 - 成功: 120, 失败: 5</div>
+            <div class="log-panel" id="logContent">
+                <div class="log-line log-success">
+                    <span class="log-time">[10:30:08]</span>
+                    <span class="log-arrow">▸</span>
+                    更新完成 · 成功 120 条 · 失败 5 条 · 耗时 3.42s
+                </div>
+                <div class="log-line log-info">
+                    <span class="log-time">[10:30:05]</span>
+                    <span class="log-arrow">▸</span>
+                    正在执行 UPDATE 语句 · batch_size = 50
+                </div>
+                <div class="log-line log-success">
+                    <span class="log-time">[10:30:02]</span>
+                    <span class="log-arrow">▸</span>
+                    数据校验通过 · 125 行可读
+                </div>
+                <div class="log-line log-info">
+                    <span class="log-time">[10:30:01]</span>
+                    <span class="log-arrow">▸</span>
+                    读取 Excel 文件 employee_update_20250619.xlsx
+                </div>
+                <div class="log-line log-warning">
+                    <span class="log-time">[10:30:00]</span>
+                    <span class="log-arrow">▸</span>
+                    已创建备份表: EMPLOYEE_BAK_20250619_103000
+                </div>
+                <div class="log-line log-info">
+                    <span class="log-time">[10:29:58]</span>
+                    <span class="log-arrow">▸</span>
+                    已连接数据库 ORCL @ 192.168.1.100:1521
+                </div>
+                <div class="log-line log-success">
+                    <span class="log-time">[10:29:55]</span>
+                    <span class="log-arrow">▸</span>
+                    工具启动 · 用户: SCOTT · 会话: SESSION_0x8472F1
                 </div>
             </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary">📊 导出日志</button>
-                <button class="btn btn-secondary">❌ 导出失败记录</button>
-                <button class="btn btn-secondary" onclick="clearLogs()">🗑 清空</button>
+
+            <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="alert('导出成功')">
+                    <span class="btn-icon">⤓</span>
+                    <span>导出日志</span>
+                </button>
+                <button class="btn btn-secondary" onclick="alert('已导出失败记录')">
+                    <span class="btn-icon">⚠</span>
+                    <span>导出失败记录</span>
+                </button>
+                <button class="btn btn-ghost" onclick="clearLogs()">
+                    <span class="btn-icon">🗑</span>
+                    <span>清空</span>
+                </button>
             </div>
         </div>
-        
+
+        <!-- ============== 页面 03：数据库连接 ============== -->
         <div class="tab-content" id="tab-2">
-            <div class="config-grid">
-                <div class="form-group">
-                    <label class="form-label">选择连接</label>
-                    <select class="form-select" id="connectionSelect" onchange="switchConnection()">
-                        <option value="dev" selected>开发环境</option>
-                        <option value="test">测试环境</option>
-                        <option value="prod">生产环境</option>
-                    </select>
-                    <button class="btn btn-secondary" style="margin-left: 10px;" onclick="testConnection()">🔗 测试连接</button>
+
+            <div class="config-section">
+                <div class="section-header">
+                    <span class="section-marker">§ CONNECTION</span>
+                    <span class="section-title">连接配置</span>
+                    <span class="section-rule"></span>
                 </div>
-                
-                <div style="margin-top: 15px;">
-                    <div class="preview-box" style="margin-top: 0;">
-                        <div class="preview-header">连接信息</div>
-                        <div class="preview-content">
-                            <div class="confirm-item">
-                                <div class="confirm-label">主机</div>
-                                <div class="confirm-value" id="connHost">192.168.1.100</div>
-                            </div>
-                            <div class="confirm-item">
-                                <div class="confirm-label">端口</div>
-                                <div class="confirm-value">1521</div>
-                            </div>
-                            <div class="confirm-item">
-                                <div class="confirm-label">服务名</div>
-                                <div class="confirm-value">ORCL</div>
-                            </div>
-                            <div class="confirm-item">
-                                <div class="confirm-label">用户名</div>
-                                <div class="confirm-value">SCOTT</div>
-                            </div>
-                        </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">
+                            连接名称
+                            <span class="label-code">ALIAS</span>
+                        </label>
+                        <select class="field-select" id="connectionSelect" onchange="switchConnection()">
+                            <option value="dev" selected>开发环境 · DEV</option>
+                            <option value="test">测试环境 · TEST</option>
+                            <option value="prod">生产环境 · PROD</option>
+                        </select>
+                    </div>
+                    <div class="form-field" style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-teal" onclick="testConnection()" style="width: 100%;">
+                            <span class="btn-icon">⇄</span>
+                            <span>测试连接</span>
+                        </button>
                     </div>
                 </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-secondary">➕ 添加连接</button>
-                    <button class="btn btn-secondary">➖ 删除连接</button>
+            </div>
+
+            <!-- 连接详情表 -->
+            <div class="data-panel">
+                <div class="panel-header">
+                    <div class="panel-title">连接参数 <span style="color: var(--text-muted); font-weight: 400; font-size: 12px; font-family: var(--font-mono);">· connection_info</span></div>
+                    <div class="panel-badge" id="connStatusBadge">CONNECTED</div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <tbody>
+                            <tr>
+                                <td style="width: 40%; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">主机 HOST</td>
+                                <td id="connHost" style="font-family: var(--font-mono);">192.168.1.100</td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">端口 PORT</td>
+                                <td style="font-family: var(--font-mono);">1521</td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">服务名 SID</td>
+                                <td style="font-family: var(--font-mono);">ORCL</td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">用户名 USER</td>
+                                <td style="font-family: var(--font-mono); color: var(--amber-600); font-weight: 600;">SCOTT</td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">字符集 CHARSET</td>
+                                <td style="font-family: var(--font-mono);">AL32UTF8</td>
+                            </tr>
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">版本 VERSION</td>
+                                <td style="font-family: var(--font-mono);">Oracle Database 19c Enterprise Edition</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-        
-        <div class="tab-content" id="tab-3">
-            <div class="btn-group" style="margin-top: 0; padding-top: 0; border-top: none;">
-                <button class="btn btn-secondary" onclick="refreshHistory()">🔄 刷新</button>
-                <button class="btn btn-secondary">🗑 批量删除</button>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="alert('添加连接配置')">
+                    <span class="btn-icon">+</span>
+                    <span>添加连接</span>
+                </button>
+                <button class="btn btn-ghost" onclick="alert('删除当前连接')">
+                    <span class="btn-icon">−</span>
+                    <span>删除连接</span>
+                </button>
             </div>
-            
-            <div class="preview-box" style="margin-top: 15px;">
-                <div class="preview-header">历史导入记录</div>
-                <div class="preview-content">
-                    <table class="history-table">
+        </div>
+
+        <!-- ============== 页面 04：历史记录 ============== -->
+        <div class="tab-content" id="tab-3">
+
+            <div class="config-section">
+                <div class="section-header">
+                    <span class="section-marker">§ HISTORY</span>
+                    <span class="section-title">历史操作记录</span>
+                    <span class="section-rule"></span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-secondary" onclick="refreshHistory()">
+                        <span class="btn-icon">↻</span>
+                        <span>刷新</span>
+                    </button>
+                    <button class="btn btn-ghost">
+                        <span class="btn-icon">⊘</span>
+                        <span>批量删除</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-panel">
+                <div class="panel-header">
+                    <div class="panel-title">操作历史 <span style="color: var(--text-muted); font-weight: 400; font-size: 12px; font-family: var(--font-mono);">· batch_log</span></div>
+                    <div class="panel-badge">2 RECORDS</div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">选择</th>
-                                <th style="width: 60px;">序号</th>
-                                <th style="width: 160px;">操作时间</th>
-                                <th style="width: 120px;">目标表</th>
-                                <th style="width: 80px;">模式</th>
-                                <th style="width: 70px;">总数</th>
-                                <th style="width: 70px;">成功</th>
-                                <th style="width: 70px;">失败</th>
-                                <th style="width: 80px;">状态</th>
+                                <th style="width: 40px;">#</th>
+                                <th>操作时间</th>
+                                <th>目标表</th>
+                                <th>模式</th>
+                                <th style="text-align: center;">总数</th>
+                                <th style="text-align: center;">成功</th>
+                                <th style="text-align: center;">失败</th>
+                                <th>状态</th>
                             </tr>
                         </thead>
-                        <tbody id="historyBody">
+                        <tbody>
                             <tr>
-                                <td><input type="checkbox"></td>
-                                <td>1</td>
-                                <td>2025-05-20 10:30:00</td>
-                                <td>EMPLOYEE</td>
-                                <td>APPS</td>
+                                <td class="row-num">1</td>
+                                <td style="font-family: var(--font-mono);">2025-06-19 10:30:08</td>
+                                <td style="font-family: var(--font-mono);">EMPLOYEE</td>
+                                <td style="font-family: var(--font-mono);">APPS</td>
                                 <td style="text-align: center;">125</td>
-                                <td style="text-align: center;">120</td>
-                                <td style="text-align: center;">5</td>
-                                <td><span class="status-badge partial">部分失败</span></td>
+                                <td style="text-align: center; color: var(--teal-600);">120</td>
+                                <td style="text-align: center; color: var(--clay-500);">5</td>
+                                <td><span class="status-tag partial">部分失败</span></td>
                             </tr>
                             <tr>
-                                <td><input type="checkbox"></td>
-                                <td>2</td>
-                                <td>2025-05-19 15:45:00</td>
-                                <td>DEPARTMENT</td>
-                                <td>APPS</td>
+                                <td class="row-num">2</td>
+                                <td style="font-family: var(--font-mono);">2025-06-18 15:45:00</td>
+                                <td style="font-family: var(--font-mono);">DEPARTMENT</td>
+                                <td style="font-family: var(--font-mono);">APPS</td>
                                 <td style="text-align: center;">50</td>
-                                <td style="text-align: center;">50</td>
+                                <td style="text-align: center; color: var(--teal-600);">50</td>
                                 <td style="text-align: center;">0</td>
-                                <td><span class="status-badge success">成功</span></td>
+                                <td><span class="status-tag success">成功</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-        
+
+        <!-- ============== 状态栏 ============== -->
         <div class="status-bar">
-            <div class="status-item">
-                <span style="font-weight: bold;">连接: 开发环境</span>
+            <div class="status-cell">
+                <span class="status-label">CONN</span>
+                <span class="status-value conn-name" id="sbConn">开发环境</span>
             </div>
-            <div class="status-separator"></div>
-            <div class="status-item">
-                <span>用户: SCOTT</span>
+            <div class="status-cell">
+                <span class="status-label">USER</span>
+                <span class="status-value" id="sbUser">SCOTT</span>
             </div>
-            <div class="status-separator"></div>
-            <div class="status-item">
-                <span>数据库: ORCL</span>
+            <div class="status-cell">
+                <span class="status-label">DB</span>
+                <span class="status-value" id="sbDb">ORCL</span>
             </div>
-            <div class="status-separator"></div>
-            <div class="status-item">
-                <div class="status-dot connected" id="statusDot"></div>
-                <span id="statusText">已连接</span>
+            <div class="status-cell">
+                <div class="status-indicator connected" id="statusDot"></div>
+                <span class="status-value" id="sbConnStatus">已连接</span>
             </div>
-            <div class="status-separator"></div>
-            <div class="status-item">
-                <span>状态: 就绪</span>
+            <div class="status-spacer"></div>
+            <div class="status-cell">
+                <span class="status-label">状态</span>
+                <span class="status-value" id="sbAction">就绪</span>
             </div>
         </div>
     </div>
-    
+
+    <!-- ============== 模态框：确认执行 ============== -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal">
-            <div class="modal-header">
-                <h3>⚠️ 确认操作</h3>
+            <div class="modal-header warning">
+                <div class="modal-title-group">
+                    <div class="modal-icon">⚠</div>
+                    <div>
+                        <div class="modal-title">确认执行批量更新</div>
+                        <div class="modal-subtitle">请仔细核对以下信息后继续</div>
+                    </div>
+                </div>
                 <button class="modal-close" onclick="hideConfirmModal()">×</button>
             </div>
             <div class="modal-body">
-                <p>请确认以下配置信息：</p>
-                <div class="confirm-list">
-                    <div class="confirm-item">
-                        <div class="confirm-label">数据库模式</div>
-                        <div class="confirm-value">APPS</div>
+                <p class="modal-desc">系统将按以下配置执行批量数据修改。操作前会自动创建备份表，失败可回滚。</p>
+                <div class="info-list">
+                    <div class="info-row">
+                        <div class="info-key">Schema</div>
+                        <div class="info-val" id="infoSchema">APPS</div>
                     </div>
-                    <div class="confirm-item">
-                        <div class="confirm-label">目标表名</div>
-                        <div class="confirm-value">EMPLOYEE</div>
+                    <div class="info-row">
+                        <div class="info-key">目标表</div>
+                        <div class="info-val" id="infoTable">EMPLOYEE</div>
                     </div>
-                    <div class="confirm-item">
-                        <div class="confirm-label">唯一标识列</div>
-                        <div class="confirm-value">EMP_ID</div>
+                    <div class="info-row">
+                        <div class="info-key">标识列</div>
+                        <div class="info-val" id="infoKey">EMP_ID</div>
                     </div>
-                    <div class="confirm-item">
-                        <div class="confirm-label">待修改列</div>
-                        <div class="confirm-value">NAME, AGE, DEPT</div>
+                    <div class="info-row">
+                        <div class="info-key">修改列</div>
+                        <div class="info-val" id="infoCols">NAME, AGE, DEPT</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">数据源</div>
+                        <div class="info-val">employee_update_20250619.xlsx</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">总行数</div>
+                        <div class="info-val">125 行</div>
                     </div>
                 </div>
-                <p style="color: var(--warning); margin-top: 15px;">
-                    ⚠️ 警告：系统将自动备份目标表数据。如果更新失败，将自动回滚到初始状态。
-                </p>
+                <div class="alert-box">
+                    <strong>安全提示：</strong>更新过程中会创建备份表 <code style="font-family: monospace; color: var(--amber-600);">EMPLOYEE_BAK_20250619</code>。如遇异常，系统将自动回滚。
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="hideConfirmModal()">取消</button>
-                <button class="btn btn-primary" onclick="showProgressModal()">确认更新</button>
+                <button class="btn btn-primary" onclick="showProgressModal()">
+                    <span class="btn-icon">▶</span>
+                    <span>确认执行</span>
+                </button>
             </div>
         </div>
     </div>
-    
+
+    <!-- ============== 模态框：进度 ============== -->
     <div class="modal-overlay" id="progressModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>⏳ 正在更新数据</h3>
+                <div class="modal-title-group">
+                    <div class="modal-icon">⏳</div>
+                    <div>
+                        <div class="modal-title">正在执行批量更新</div>
+                        <div class="modal-subtitle">请勿关闭窗口</div>
+                    </div>
+                </div>
                 <button class="modal-close" onclick="hideProgressModal()">×</button>
             </div>
             <div class="modal-body">
-                <div class="progress-steps">
-                    <div class="step completed" id="step1">
-                        <div class="step-number">1</div>
-                        <div class="step-label">备份</div>
+                <div class="step-indicator" id="stepIndicator">
+                    <div class="step-item completed" id="step1">
+                        <span class="step-marker">∎</span>
+                        <span class="step-name">备份</span>
                     </div>
-                    <div class="step active" id="step2">
-                        <div class="step-number">2</div>
-                        <div class="step-label">导入</div>
+                    <span class="step-arrow">→</span>
+                    <div class="step-item active" id="step2">
+                        <span class="step-marker">∎</span>
+                        <span class="step-name">导入</span>
                     </div>
-                    <div class="step" id="step3">
-                        <div class="step-number">3</div>
-                        <div class="step-label">更新</div>
+                    <span class="step-arrow">→</span>
+                    <div class="step-item" id="step3">
+                        <span class="step-marker">∎</span>
+                        <span class="step-name">更新</span>
                     </div>
                 </div>
-                
-                <div class="progress-bar">
+
+                <div class="progress-meta">
+                    <span>进度</span>
+                    <span id="progressPct">0%</span>
+                </div>
+                <div class="progress-track">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                
-                <div class="progress-text" id="progressText">处理进度: 0/0 (0%)</div>
-                <div class="progress-detail" id="progressDetail">正在连接数据库...</div>
+                <div class="progress-meta">
+                    <span id="progressRows">0 / 125 行</span>
+                    <span id="progressSpeed">—</span>
+                </div>
+
+                <div class="progress-detail" id="progressDetail">
+                    ▸ 正在连接数据库 ORCL @ 192.168.1.100:1521 ...
+                </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- ============== 模态框：重复性校验 ============== -->
     <div class="modal-overlay" id="duplicateModal">
-        <div class="modal" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3>⚠️ 发现重复值</h3>
+        <div class="modal wide">
+            <div class="modal-header error">
+                <div class="modal-title-group">
+                    <div class="modal-icon">⚠</div>
+                    <div>
+                        <div class="modal-title">发现重复的唯一标识</div>
+                        <div class="modal-subtitle">请修正 Excel 数据后再执行更新</div>
+                    </div>
+                </div>
                 <button class="modal-close" onclick="hideDuplicateModal()">×</button>
             </div>
             <div class="modal-body">
-                <p style="color: var(--error); font-weight: 500;">发现Excel中存在重复的唯一标识值</p>
-                <div class="preview-box" style="margin-top: 15px;">
-                    <div class="preview-header">重复值列表</div>
-                    <div class="preview-content">
-                        <table class="preview-table">
-                            <thead>
-                                <tr>
-                                    <th>唯一标识值</th>
-                                    <th>出现的行号</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1001</td>
-                                    <td>2, 5</td>
-                                </tr>
-                                <tr>
-                                    <td>1002</td>
-                                    <td>3, 7</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="validation-summary">
+                    <div class="validation-icon warn">!</div>
+                    <div class="validation-text">
+                        <strong>共有 <span style="color: var(--clay-500);">2</span> 个唯一标识值出现多次</strong>
+                        <small>重复会导致更新结果不可预测，必须先修正</small>
                     </div>
                 </div>
-                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
-                    请修正Excel中的重复数据后再次进行更新操作。
-                </p>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div class="info-key">1001</div>
+                        <div class="info-val" style="color: var(--clay-500);">出现在第 1、4 行</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">1002</div>
+                        <div class="info-val" style="color: var(--clay-500);">出现在第 2、6 行</div>
+                    </div>
+                </div>
+
+                <div class="alert-box">
+                    <strong>建议：</strong>请打开 Excel 文件，删除或合并重复行后重新加载。
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="hideDuplicateModal()">关闭</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- ============== 模态框：一致性校验 ============== -->
     <div class="modal-overlay" id="consistencyModal">
-        <div class="modal" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3>⚠️ 发现不一致数据</h3>
+        <div class="modal wide">
+            <div class="modal-header error">
+                <div class="modal-title-group">
+                    <div class="modal-icon">∄</div>
+                    <div>
+                        <div class="modal-title">数据库中不存在的标识</div>
+                        <div class="modal-subtitle">这些 ID 在目标表 EMPLOYEE 中未找到</div>
+                    </div>
+                </div>
                 <button class="modal-close" onclick="hideConsistencyModal()">×</button>
             </div>
             <div class="modal-body">
-                <p style="color: var(--error); font-weight: 500;">发现Excel中的唯一标识在数据库表中不存在</p>
-                <div class="preview-box" style="margin-top: 15px;">
-                    <div class="preview-header">缺失的唯一标识列表</div>
-                    <div class="preview-content">
-                        <table class="preview-table">
-                            <thead>
-                                <tr>
-                                    <th>缺失的唯一标识值</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>9999</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="validation-summary">
+                    <div class="validation-icon warn">!</div>
+                    <div class="validation-text">
+                        <strong>共有 <span style="color: var(--clay-500);">1</span> 个标识在目标表中不存在</strong>
+                        <small>这些数据将不会被更新，或需要先在数据库中插入</small>
                     </div>
                 </div>
-                <p style="margin-top: 15px; color: var(--text-muted); font-size: 13px;">
-                    这些标识在数据库中不存在，请确认数据正确性或先在数据库中添加这些记录。
-                </p>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div class="info-key">缺失 ID</div>
+                        <div class="info-val" style="color: var(--clay-500); font-size: 13px;">9999</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">Excel 行号</div>
+                        <div class="info-val">第 7 行</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-key">相关数据</div>
+                        <div class="info-val">未知人员 · 30 · 未知部门</div>
+                    </div>
+                </div>
+
+                <div class="alert-box">
+                    <strong>提示：</strong>你可以忽略这些行并继续更新（仅更新存在的记录），或先在数据库中 INSERT 这些记录后重试。
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="hideConsistencyModal()">关闭</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- ============== 模态框：校验通过 ============== -->
     <div class="modal-overlay" id="successModal">
-        <div class="modal" style="max-width: 450px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #4e9a06 0%, #3592c4 100%);">
-                <h3>✅ 校验通过</h3>
+        <div class="modal">
+            <div class="modal-header success">
+                <div class="modal-title-group">
+                    <div class="modal-icon">✓</div>
+                    <div>
+                        <div class="modal-title" id="successTitle">校验通过</div>
+                        <div class="modal-subtitle" id="successSubtitle">check passed</div>
+                    </div>
+                </div>
                 <button class="modal-close" onclick="hideSuccessModal()">×</button>
             </div>
-            <div class="modal-body">
-                <p id="successMessage" style="text-align: center; font-size: 15px; line-height: 1.6;"></p>
+            <div class="modal-body" style="text-align: center; padding: 32px 24px;">
+                <p id="successMessage" style="font-size: 15px; color: var(--text-primary); line-height: 1.7;"></p>
+                <div style="margin-top: 18px; font-family: monospace; color: var(--text-muted); font-size: 12px;">
+                    OK · ready to proceed
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="hideSuccessModal()">确定</button>
             </div>
         </div>
     </div>
-    
+
     <script>
-        let currentTab = 0;
-        let progress = 0;
-        
-        function switchTab(index) {
-            document.querySelectorAll('.tab').forEach((tab, i) => {
-                tab.classList.toggle('active', i === index);
-            });
-            document.querySelectorAll('.tab-content').forEach((content, i) => {
-                content.classList.toggle('active', i === index);
-            });
-            currentTab = index;
-        }
-        
+        // ================== 主题系统 ==================
+        let currentTheme = 'terminal'; // 'terminal' | 'idea' | 'light'
         let isDarkMode = false;
-        
-        function toggleTheme() {
+
+        function setTheme(theme) {
+            // 移除所有主题类
+            document.body.classList.remove('theme-terminal', 'theme-idea', 'theme-light', 'dark-mode');
+            // 应用新主题
+            if (theme !== 'terminal' || isDarkMode) {
+                document.body.classList.add('theme-' + theme);
+            }
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            }
+            currentTheme = theme;
+            
+            // 更新切换器选中状态
+            document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === theme);
+            });
+            
+            // 更新深色模式切换描述
+            updateDarkModeDesc();
+            
+            // 关闭面板
+            closeThemePanel();
+            
+            // 记录到 localStorage
+            try { localStorage.setItem('oracle-tool-theme', theme); } catch(e) {}
+        }
+
+        function toggleDarkMode() {
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('dark-mode', isDarkMode);
-            document.querySelector('.theme-toggle').textContent = isDarkMode ? '☀️ 浅色模式' : '🌙 深色模式';
+            if (!isDarkMode) {
+                document.body.classList.remove('theme-terminal', 'theme-idea', 'theme-light');
+            } else if (currentTheme !== 'terminal') {
+                document.body.classList.add('theme-' + currentTheme);
+            }
+            updateDarkModeDesc();
+            try { localStorage.setItem('oracle-tool-dark', isDarkMode); } catch(e) {}
+            closeThemePanel();
         }
-        
+
+        function updateDarkModeDesc() {
+            const desc = document.getElementById('darkModeDesc');
+            const check = document.getElementById('darkModeCheck');
+            if (desc) desc.textContent = '当前：' + (isDarkMode ? '已开启' : '已关闭');
+            if (check) check.textContent = isDarkMode ? '☀' : '☾';
+        }
+
+        function toggleThemePanel() {
+            const panel = document.getElementById('themePanel');
+            panel.classList.toggle('open');
+        }
+
+        function closeThemePanel() {
+            const panel = document.getElementById('themePanel');
+            if (panel) panel.classList.remove('open');
+        }
+
+        // 页面加载时恢复主题设置
+        function initTheme() {
+            try {
+                const savedTheme = localStorage.getItem('oracle-tool-theme');
+                const savedDark = localStorage.getItem('oracle-tool-dark');
+                if (savedTheme) {
+                    currentTheme = savedTheme;
+                    document.body.classList.add('theme-' + savedTheme);
+                    document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.theme === savedTheme);
+                    });
+                }
+                if (savedDark === 'true') {
+                    isDarkMode = true;
+                    document.body.classList.add('dark-mode');
+                    if (savedTheme && savedTheme !== 'terminal') {
+                        document.body.classList.add('theme-' + savedTheme);
+                    }
+                }
+            } catch(e) {}
+            updateDarkModeDesc();
+        }
+
+        // 初始化
+        initTheme();
+
+        // ================== 标签页切换 ==================
+        function switchTab(idx) {
+            document.querySelectorAll('.tab').forEach((t, i) => {
+                t.classList.toggle('active', i === idx);
+            });
+            document.querySelectorAll('.tab-content').forEach((c, i) => {
+                c.classList.toggle('active', i === idx);
+            });
+        }
+
+        // ================== 工具函数 ==================
+        function updateStatusBar(text) {
+            const el = document.getElementById('sbAction');
+            if (el) el.textContent = text;
+        }
+
+        function nowTime() {
+            const d = new Date();
+            return d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0') + ' ' +
+                String(d.getHours()).padStart(2, '0') + ':' +
+                String(d.getMinutes()).padStart(2, '0') + ':' +
+                String(d.getSeconds()).padStart(2, '0');
+        }
+
+        function addLog(message, type) {
+            const panel = document.getElementById('logContent');
+            if (!panel) return;
+            const line = document.createElement('div');
+            line.className = 'log-line log-' + (type || 'info');
+            line.innerHTML =
+                '<span class="log-time">[' + nowTime() + ']</span>' +
+                '<span class="log-arrow">▸</span>' +
+                message;
+            panel.insertBefore(line, panel.firstChild);
+        }
+
+        // ================== 表单操作 ==================
+        function selectFile() {
+            const path = 'employee_update_' +
+                new Date().getFullYear() +
+                String(new Date().getMonth() + 1).padStart(2, '0') +
+                String(new Date().getDate()).padStart(2, '0') + '.xlsx';
+            document.getElementById('filePath').textContent = path;
+            document.getElementById('fileMeta').textContent = '42 KB · 125 rows';
+            addLog('已加载文件: ' + path, 'info');
+            updateStatusBar('文件已加载');
+        }
+
+        function previewExcel() {
+            document.getElementById('previewTable').scrollIntoView({ behavior: 'smooth' });
+            addLog('预览数据 · 7 / 125 行', 'info');
+        }
+
+        function clearForm() {
+            document.getElementById('tableName').value = '';
+            document.getElementById('keyColumn').value = '';
+            document.getElementById('filePath').textContent = '未选择文件';
+            document.getElementById('fileMeta').textContent = '—';
+            updateStatusBar('配置已清空');
+        }
+
+        function clearLogs() {
+            const panel = document.getElementById('logContent');
+            if (panel) panel.innerHTML =
+                '<div class="log-line log-info"><span class="log-time">[' + nowTime() + ']</span><span class="log-arrow">▸</span>日志已清空</div>';
+        }
+
+        function addColumn() {
+            const list = document.getElementById('columnsList');
+            const count = list.querySelectorAll('.column-row').length + 1;
+            const row = document.createElement('div');
+            row.className = 'column-row';
+            row.innerHTML =
+                '<input type="text" class="field-input" placeholder="列名 ' + count + '">' +
+                '<button class="column-remove" onclick="this.parentElement.remove()">×</button>';
+            list.appendChild(row);
+        }
+
+        // ================== 重复性校验 ==================
+        function checkDuplicates() {
+            const path = document.getElementById('filePath').textContent;
+            if (!path || path === '未选择文件') {
+                alert('请先选择 Excel 文件！');
+                return;
+            }
+            updateStatusBar('正在校验重复值...');
+            addLog('开始校验唯一标识列的重复值...', 'info');
+
+            setTimeout(() => {
+                // 模拟：如果当前配置的表名非空则认为有重复，否则通过
+                const hasDup = (document.querySelectorAll('.row-error').length > 0);
+                if (hasDup) {
+                    addLog('发现 2 个重复的唯一标识值', 'error');
+                    document.getElementById('duplicateModal').classList.add('active');
+                } else {
+                    addLog('重复性校验通过', 'success');
+                    showSuccessModal('重复性校验通过', 'duplicate check · ok',
+                        'Excel 中所有唯一标识值均不重复，可以安全执行更新。');
+                }
+                updateStatusBar('校验完成');
+            }, 700);
+        }
+
+        function hideDuplicateModal() {
+            document.getElementById('duplicateModal').classList.remove('active');
+        }
+
+        // ================== 一致性校验 ==================
+        function checkConsistency() {
+            const path = document.getElementById('filePath').textContent;
+            if (!path || path === '未选择文件') {
+                alert('请先选择 Excel 文件！');
+                return;
+            }
+            const isConn = document.getElementById('statusDot').classList.contains('connected');
+            if (!isConn) {
+                alert('请先连接数据库后再执行一致性校验。');
+                switchTab(2);
+                return;
+            }
+            const tableName = document.getElementById('tableName').value;
+            if (!tableName) {
+                alert('请填写目标表名！');
+                return;
+            }
+            updateStatusBar('正在校验一致性...');
+            addLog('开始校验 Excel 标识与目标表的一致性...', 'info');
+
+            setTimeout(() => {
+                addLog('查询 ' + tableName + ' 的唯一标识列 ...', 'info');
+                // 模拟：当前预览表中有一个 9999 的缺失 ID，视为不通过
+                const hasMissing = true;
+                if (hasMissing) {
+                    addLog('发现 1 个标识在数据库中不存在', 'error');
+                    document.getElementById('consistencyModal').classList.add('active');
+                } else {
+                    addLog('一致性校验通过', 'success');
+                    showSuccessModal('一致性校验通过', 'consistency check · ok',
+                        'Excel 中的所有唯一标识值在目标表中均存在。');
+                }
+                updateStatusBar('校验完成');
+            }, 900);
+        }
+
+        function hideConsistencyModal() {
+            document.getElementById('consistencyModal').classList.remove('active');
+        }
+
+        function showSuccessModal(title, subtitle, message) {
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successSubtitle').textContent = subtitle;
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function hideSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+
+        // ================== 确认 / 进度 模态 ==================
         function showConfirmModal() {
             document.getElementById('confirmModal').classList.add('active');
         }
-        
+
         function hideConfirmModal() {
             document.getElementById('confirmModal').classList.remove('active');
         }
-        
+
         function showProgressModal() {
             hideConfirmModal();
             document.getElementById('progressModal').classList.add('active');
             simulateProgress();
         }
-        
+
         function hideProgressModal() {
             document.getElementById('progressModal').classList.remove('active');
         }
-        
+
         function simulateProgress() {
-            progress = 0;
-            const steps = ['正在备份数据...', '正在导入Excel数据...', '正在执行数据更新...', '正在清理临时表...', '完成!'];
-            const stepElements = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3')];
-            
-            let stepIndex = 0;
-            const interval = setInterval(() => {
-                progress += 5;
-                if (progress > 100) {
-                    progress = 100;
-                    clearInterval(interval);
+            let p = 0;
+            const fill = document.getElementById('progressFill');
+            const pct = document.getElementById('progressPct');
+            const rows = document.getElementById('progressRows');
+            const detail = document.getElementById('progressDetail');
+            const steps = [
+                { max: 33, text: '▸ 正在创建备份表 EMPLOYEE_BAK_20250619 ...', target: 'step1' },
+                { max: 66, text: '▸ 正在导入 Excel 数据到临时表 TMP_EMP_0x8472 ...', target: 'step2' },
+                { max: 100, text: '▸ 正在执行 MERGE INTO EMPLOYEE ...', target: 'step3' },
+                { max: 101, text: '▸ 清理临时对象 · 提交事务 ...', target: 'step3' }
+            ];
+            let stepIdx = 0;
+            const total = 125;
+
+            const timer = setInterval(() => {
+                p += 4 + Math.random() * 6;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(timer);
+                    // 完成：把所有步骤标记为 completed
+                    ['step1', 'step2', 'step3'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.classList.remove('active');
+                            el.classList.add('completed');
+                        }
+                    });
+                    detail.textContent = '✓ 完成！120 行更新成功，5 行失败（已记录到失败日志）';
+                    addLog('批量更新完成 · 成功 120 条 · 失败 5 条', 'success');
+                    updateStatusBar('更新完成');
                 }
-                
-                const newStepIndex = Math.min(Math.floor(progress / 35), 2);
-                if (newStepIndex > stepIndex) {
-                    stepElements[stepIndex].classList.remove('active');
-                    stepElements[stepIndex].classList.add('completed');
-                    stepIndex = newStepIndex;
-                    if (stepIndex < 3) {
-                        stepElements[stepIndex].classList.add('active');
+
+                fill.style.width = p + '%';
+                pct.textContent = Math.floor(p) + '%';
+                rows.textContent = Math.floor((p / 100) * total) + ' / ' + total + ' 行';
+
+                // 切换步骤高亮
+                const newIdx = p < 33 ? 0 : (p < 66 ? 1 : 2);
+                if (newIdx !== stepIdx || p >= 100) {
+                    if (p < 100) {
+                        const cur = document.getElementById(steps[stepIdx].target);
+                        if (cur) { cur.classList.remove('active'); cur.classList.add('completed'); }
+                        const next = document.getElementById(steps[newIdx].target);
+                        if (next) { next.classList.remove('completed'); next.classList.add('active'); }
+                        stepIdx = newIdx;
+                        detail.textContent = steps[newIdx].text;
                     }
+                } else if (stepIdx === 0) {
+                    detail.textContent = steps[0].text;
                 }
-                
-                document.getElementById('progressFill').style.width = progress + '%';
-                const total = 125;
-                const current = Math.floor((progress / 100) * total);
-                document.getElementById('progressText').textContent = `处理进度: ${current}/${total} (${progress}%)`;
-                document.getElementById('progressDetail').textContent = steps[newStepIndex];
-                
-            }, 100);
+            }, 200);
         }
-        
-        function selectFile() {
-            document.getElementById('filePath').textContent = 'employee_update_20250520.xlsx';
+
+        // ================== 数据库连接 ==================
+        function switchConnection() {
+            const sel = document.getElementById('connectionSelect');
+            const name = sel.options[sel.selectedIndex].text.split(' · ')[0];
+            document.getElementById('sbConn').textContent = name;
+            addLog('切换连接到: ' + name, 'info');
         }
-        
-        function previewExcel() {
-            document.getElementById('previewTable').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function checkDuplicates() {
-            const filePath = document.getElementById('filePath').textContent;
-            if (filePath === '未选择文件') {
-                alert('请先选择Excel文件！');
-                return;
-            }
-            
-            addLog('正在检查Excel中的重复值...', 'info');
-            updateStatus('正在检查重复值...');
-            
+
+        function testConnection() {
+            updateStatusBar('测试连接中...');
             setTimeout(() => {
-                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现重复值）\n点击"取消"显示校验通过')) {
-                    addLog('发现 2 个重复值', 'error');
-                    document.getElementById('duplicateModal').classList.add('active');
-                } else {
-                    addLog('重复性校验通过，没有发现重复值', 'success');
-                    showSuccessModal('✅ 重复性校验通过！\n\nExcel中没有发现重复的唯一标识值。');
-                }
-                updateStatus('就绪');
+                const dot = document.getElementById('statusDot');
+                const badge = document.getElementById('connStatusBadge');
+                dot.classList.add('connected');
+                document.getElementById('sbConnStatus').textContent = '已连接';
+                badge.textContent = 'CONNECTED';
+                addLog('数据库连接测试成功', 'success');
+                updateStatusBar('连接成功');
+                showSuccessModal('连接成功', 'connection · ok',
+                    '已成功连接到数据库 ORCL，当前用户 SCOTT，会话 SESSION_0x8472F1。');
             }, 800);
         }
-        
-        function checkConsistency() {
-            const filePath = document.getElementById('filePath').textContent;
-            if (filePath === '未选择文件') {
-                alert('请先选择Excel文件！');
-                return;
-            }
-            
-            const isConnected = document.getElementById('statusDot').classList.contains('connected');
-            if (!isConnected) {
-                alert('请先连接数据库！');
-                switchTab(2);
-                return;
-            }
-            
-            const tableName = document.getElementById('tableName').value;
-            const keyColumn = document.getElementById('keyColumn').value;
-            if (!tableName || !keyColumn) {
-                alert('请填写目标表名和唯一标识列！');
-                return;
-            }
-            
-            addLog('正在检查数据一致性...', 'info');
-            updateStatus('正在检查一致性...');
-            
-            setTimeout(() => {
-                if (confirm('模拟场景：\n\n点击"确定"显示校验失败（发现缺失标识）\n点击"取消"显示校验通过')) {
-                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
-                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
-                    addLog('发现 1 个标识在数据库中不存在', 'error');
-                    document.getElementById('consistencyModal').classList.add('active');
-                } else {
-                    addLog('从Excel中获取了 7 个唯一标识值', 'info');
-                    addLog('从数据库中获取了 100 个唯一标识值', 'info');
-                    addLog('一致性校验通过，所有标识都存在于数据库中', 'success');
-                    showSuccessModal('✅ 一致性校验通过！\n\nExcel中的所有唯一标识值都存在于数据库表中。');
-                }
-                updateStatus('就绪');
-            }, 1000);
-        }
-        
-        function clearForm() {
-            document.getElementById('tableName').value = '';
-            document.getElementById('keyColumn').value = '';
-            document.getElementById('filePath').textContent = '未选择文件';
-        }
-        
-        function clearLogs() {
-            document.getElementById('logContent').innerHTML = '<div class="log-line log-info">[2025-05-20 10:30:00] 日志已清空</div>';
-        }
-        
-        function addColumn() {
-            const list = document.getElementById('columnsList');
-            const count = list.querySelectorAll('.column-item').length + 1;
-            const div = document.createElement('div');
-            div.className = 'column-item';
-            div.innerHTML = `
-                <input type="text" class="form-input" placeholder="列名 ${count}">
-                <button class="column-remove" onclick="this.parentElement.remove()">-</button>
-            `;
-            list.appendChild(div);
-        }
-        
-        function switchConnection() {
-            const select = document.getElementById('connectionSelect');
-            const connName = select.options[select.selectedIndex].text;
-            document.querySelector('.status-bar .status-item:first-child span').textContent = `连接: ${connName}`;
-        }
-        
-        function testConnection() {
-            alert('连接测试成功!');
-            document.getElementById('statusDot').className = 'status-dot connected';
-            document.getElementById('statusText').textContent = '已连接';
-        }
-        
+
         function refreshHistory() {
-            alert('历史记录已刷新!');
-        }
-        
-        function addLog(message, type = 'info') {
-            const logContent = document.getElementById('logContent');
-            const now = new Date();
-            const timeStr = now.getFullYear() + '-' + 
-                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(now.getDate()).padStart(2, '0') + ' ' + 
-                String(now.getHours()).padStart(2, '0') + ':' + 
-                String(now.getMinutes()).padStart(2, '0') + ':' + 
-                String(now.getSeconds()).padStart(2, '0');
-            
-            const logLine = document.createElement('div');
-            logLine.className = 'log-line log-' + type;
-            logLine.textContent = '[' + timeStr + '] ' + message;
-            logContent.insertBefore(logLine, logContent.firstChild);
-        }
-        
-        function updateStatus(message) {
-            const statusItems = document.querySelectorAll('.status-bar .status-item');
-            if (statusItems.length > 0) {
-                statusItems[statusItems.length - 1].innerHTML = '<span>状态: ' + message + '</span>';
-            }
-        }
-        
-        function hideDuplicateModal() {
-            document.getElementById('duplicateModal').classList.remove('active');
-        }
-        
-        function hideConsistencyModal() {
-            document.getElementById('consistencyModal').classList.remove('active');
-        }
-        
-        function showSuccessModal(message) {
-            document.getElementById('successMessage').textContent = message;
-            document.getElementById('successModal').classList.add('active');
-        }
-        
-        function hideSuccessModal() {
-            document.getElementById('successModal').classList.remove('active');
+            addLog('刷新历史记录...', 'info');
+            setTimeout(() => {
+                updateStatusBar('已刷新');
+            }, 400);
         }
     </script>
 </body>
