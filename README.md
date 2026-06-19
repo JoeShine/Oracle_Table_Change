@@ -19,7 +19,7 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 - ✅ 操作日志记录
 - ✅ 审计日志记录
 - ✅ 历史记录管理
-- ✅ 三套主题风格切换（默认深墨琥珀 🖥，另含 Idea 蓝色 💡、清爽浅色 ✨，各支持深浅色模式，主题持久化）
+- ✅ 三套主题风格切换（默认深墨琥珀 🖥，另含 Idea 蓝色 💡、清爽浅色 ✨，各支持深浅色模式），主题设置持久化到 `config.json`（`last_used.theme_style` / `last_used.theme_dark`），启动时用 `set_dark_mode()` 恢复
 - ✅ 状态栏显示
 - ✅ 快捷键支持（Ctrl+S保存）
 
@@ -31,7 +31,7 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 - 状态栏显示连接名、用户、数据库、状态
 
 ### 主题
-- **Idea 蓝色**：蓝色系配色，灵感源自 IntelliJ IDEA（默认）
+- **Idea 蓝色**：蓝色系配色，灵感源自 IntelliJ IDEA
 - **深墨琥珀**：琥珀金配色，灵感源自经典终端界面
 - **清爽浅色**：蓝白配色，简洁干净
 - 每套风格均支持浅色/深色模式，共六种视觉方案

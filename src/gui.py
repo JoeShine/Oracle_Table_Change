@@ -222,9 +222,9 @@ class ThemeManager:
     }
 
     def __init__(self):
-        self.current_style = "idea"  # 'idea' | 'terminal' | 'clean'
+        self.current_style = "terminal"  # 'idea' | 'terminal' | 'clean'
         self.is_dark = False
-        self.theme = self.IDEA_LIGHT
+        self.theme = self.TERMINAL_LIGHT
 
     def set_style(self, style):
         """设置主题风格（保留深浅色模式）"""
@@ -799,7 +799,7 @@ class OracleBatchUpdaterGUI:
             self.schema_var.set(last_used['schema'])
         
         # 恢复主题设置（在UI渲染后应用）
-        saved_style = last_used.get('theme_style', 'idea')
+        saved_style = last_used.get('theme_style', 'terminal')
         saved_dark = last_used.get('theme_dark', False)
         if saved_style in ('idea', 'terminal', 'clean'):
             self.root.after(50, lambda: self._restore_theme(saved_style, saved_dark))
@@ -811,9 +811,8 @@ class OracleBatchUpdaterGUI:
 
     def _restore_theme(self, style_key, is_dark):
         """恢复保存的主题设置"""
-        if is_dark:
-            self.theme_manager.toggle_theme()
-        if style_key != 'idea':
+        self.theme_manager.set_dark_mode(is_dark)
+        if style_key != 'terminal':
             self.switch_theme_style(style_key)
 
     def save_config(self):
