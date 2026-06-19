@@ -1466,12 +1466,14 @@
             transform: translateY(-6px);
             transition: all 0.2s ease;
             overflow: hidden;
+            display: none;
         }
 
         .theme-panel.open {
             opacity: 1;
             pointer-events: auto;
             transform: translateY(0);
+            display: block;
         }
 
         .theme-panel-title {
@@ -2317,16 +2319,8 @@
         let isDarkMode = false;
 
         function setTheme(theme) {
-            // 移除所有主题类
-            document.body.classList.remove('theme-terminal', 'theme-idea', 'theme-light', 'dark-mode');
-            // 应用新主题
-            if (theme !== 'terminal' || isDarkMode) {
-                document.body.classList.add('theme-' + theme);
-            }
-            if (isDarkMode) {
-                document.body.classList.add('dark-mode');
-            }
             currentTheme = theme;
+            applyTheme();
             
             // 更新切换器选中状态
             document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
@@ -2345,15 +2339,26 @@
 
         function toggleDarkMode() {
             isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark-mode', isDarkMode);
-            if (!isDarkMode) {
-                document.body.classList.remove('theme-terminal', 'theme-idea', 'theme-light');
-            } else if (currentTheme !== 'terminal') {
-                document.body.classList.add('theme-' + currentTheme);
-            }
+            applyTheme();
             updateDarkModeDesc();
             try { localStorage.setItem('oracle-tool-dark', isDarkMode); } catch(e) {}
             closeThemePanel();
+        }
+
+        function applyTheme() {
+            const body = document.body;
+            // 先清除所有主题类
+            body.classList.remove('theme-terminal', 'theme-idea', 'theme-light', 'dark-mode');
+            
+            // 应用当前选中的主题风格（terminal是默认，不需要额外class）
+            if (currentTheme !== 'terminal') {
+                body.classList.add('theme-' + currentTheme);
+            }
+            
+            // 应用深浅色模式
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+            }
         }
 
         function updateDarkModeDesc() {
@@ -2365,12 +2370,21 @@
 
         function toggleThemePanel() {
             const panel = document.getElementById('themePanel');
-            panel.classList.toggle('open');
+            const overlay = document.getElementById('themeOverlay');
+            const isOpen = panel.classList.contains('open');
+            if (isOpen) {
+                closeThemePanel();
+            } else {
+                panel.classList.add('open');
+                if (overlay) overlay.classList.add('active');
+            }
         }
 
         function closeThemePanel() {
             const panel = document.getElementById('themePanel');
+            const overlay = document.getElementById('themeOverlay');
             if (panel) panel.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
         }
 
         // 页面加载时恢复主题设置
@@ -2380,19 +2394,19 @@
                 const savedDark = localStorage.getItem('oracle-tool-dark');
                 if (savedTheme) {
                     currentTheme = savedTheme;
-                    document.body.classList.add('theme-' + savedTheme);
-                    document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
-                        opt.classList.toggle('active', opt.dataset.theme === savedTheme);
-                    });
                 }
                 if (savedDark === 'true') {
                     isDarkMode = true;
-                    document.body.classList.add('dark-mode');
-                    if (savedTheme && savedTheme !== 'terminal') {
-                        document.body.classList.add('theme-' + savedTheme);
-                    }
                 }
             } catch(e) {}
+            
+            // 统一应用主题
+            applyTheme();
+            
+            // 更新UI状态
+            document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === currentTheme);
+            });
             updateDarkModeDesc();
         }
 
