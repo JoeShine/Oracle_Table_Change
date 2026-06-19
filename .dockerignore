@@ -1,0 +1,74 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 构建输出
+build/
+dist/
+*.egg-info/
+
+# 日志文件 (运行时生成)
+logs/
+*.log
+
+# 测试文件
+tests/
+test_*.py
+*_test.py
+
+# 文档 (可选，如需要可移除)
+docs/
+*.md
+demo.html
+
+# 配置文件 (运行时生成，需要挂载)
+# config.json  # 不忽略，需要复制到容器
+
+# 临时文件
+*.tmp
+*.bak
+*.cache
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Oracle Instant Client (已在 Dockerfile 中安装)
+instantclient*
+
+# 其他
+*.xlsx
+*.xls
+*.csv
+data/

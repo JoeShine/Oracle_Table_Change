@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  oracle-batch-updater:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: oracle-batch-updater:v2.6
+    container_name: oracle-batch-updater
+    
+    # 端口映射
+    ports:
+      - "6080:6080"  # noVNC Web 端口 (浏览器访问)
+      - "5900:5900"  # VNC 端口 (VNC 客户端访问)
+    
+    # 数据卷挂载
+    volumes:
+      - ./config.json:/app/config.json          # 配置文件持久化
+      - ./logs:/app/logs                         # 日志目录持久化
+      - ./data:/app/data                         # 数据目录持久化
+    
+    # 环境变量
+    environment:
+      - DISPLAY=:0
+      - TZ=Asia/Shanghai
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # 重启策略
+    restart: unless-stopped
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # 网络配置
+    networks:
+      - oracle-network
+    
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  oracle-network:
+    driver: bridge
+
+# 使用说明:
+# 1. 构建镜像: docker-compose build
+# 2. 启动服务: docker-compose up -d
+# 3. 浏览器访问: http://localhost:6080
+# 4. VNC客户端访问: vnc://localhost:5900
+# 5. 停止服务: docker-compose down
+# 6. 查看日志: docker-compose logs -f
