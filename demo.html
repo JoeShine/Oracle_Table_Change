@@ -1469,11 +1469,12 @@
             .section-marker { font-size: 10px; }
             .section-title { font-size: 13px; }
 
-            .theme-panel { width: min(300px, calc(100vw - 32px)); }
+            .theme-panel { width: min(300px, calc(100vw - 32px)); max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); }
             .theme-option { padding: 14px 16px; }
             .theme-swatch { width: 36px; height: 36px; }
             .theme-name { font-size: 14px; }
             .theme-desc { font-size: 12px; }
+            .theme-panel-title { padding: 14px 16px 10px; font-size: 12px; }
         }
 
         /* 超小屏幕适配 */
@@ -1484,6 +1485,13 @@
             .btn { padding: 8px 10px; font-size: 12px; }
             .data-table { font-size: 11px; }
             .data-table th, .data-table td { padding: 6px 8px; }
+            .theme-panel { width: calc(100vw - 24px); max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); }
+            .theme-option { padding: 12px 14px; gap: 10px; }
+            .theme-swatch { width: 30px; height: 30px; }
+            .theme-name { font-size: 13px; }
+            .theme-desc { font-size: 11px; }
+            .theme-panel-title { padding: 12px 14px 8px; font-size: 11px; }
+            .theme-btn { padding: 6px 10px; font-size: 12px; }
         }
         /* ============================================================
            主题切换器 UI 组件
@@ -1522,26 +1530,25 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: translate(-50%, -50%);
             width: min(320px, calc(100vw - 32px));
             max-height: calc(100vh - 64px);
+            max-height: calc(100dvh - 64px);
             background: var(--bg-soft);
             border: 1px solid var(--bg-line);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
             z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            overflow: hidden;
-            display: flex;
+            display: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
             flex-direction: column;
         }
 
         .theme-panel.open {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, -50%) scale(1);
+            display: flex;
         }
 
         .theme-panel-title {
@@ -1646,18 +1653,67 @@
             inset: 0;
             z-index: 999;
             display: none;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            background: rgba(0, 0, 0, 0.55);
         }
 
         .theme-overlay.active {
             display: block;
         }
+
+        /* 移动端覆盖层：使用更简单的背景 */
+        @supports not (backdrop-filter: blur(1px)) {
+            .theme-overlay {
+                background: rgba(0, 0, 0, 0.65);
+            }
+        }
+        @supports (backdrop-filter: blur(1px)) {
+            .theme-overlay {
+                background: rgba(0, 0, 0, 0.45);
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="theme-overlay" id="themeOverlay" onclick="closeThemePanel()"></div>
+    <!-- 主题面板：作为 body 直接子元素，避免受 overflow:hidden 父元素影响 -->
+    <div class="theme-panel" id="themePanel">
+        <div class="theme-panel-title">选择界面风格</div>
+        <div class="theme-option active" data-theme="terminal" onclick="setTheme('terminal')">
+            <div class="theme-swatch swatch-terminal"></div>
+            <div class="theme-info">
+                <div class="theme-name">深墨琥珀</div>
+                <div class="theme-desc">专业终端风格 · 琥珀金强调</div>
+            </div>
+            <div class="theme-check">✓</div>
+        </div>
+        <div class="theme-option" data-theme="idea" onclick="setTheme('idea')">
+            <div class="theme-swatch swatch-idea"></div>
+            <div class="theme-info">
+                <div class="theme-name">Idea 蓝色</div>
+                <div class="theme-desc">经典 IDE 风格 · 开发者首选</div>
+            </div>
+            <div class="theme-check">✓</div>
+        </div>
+        <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+            <div class="theme-swatch swatch-light"></div>
+            <div class="theme-info">
+                <div class="theme-name">清爽浅色</div>
+                <div class="theme-desc">简约现代 · 清晰易读</div>
+            </div>
+            <div class="theme-check">✓</div>
+        </div>
+        <div class="theme-panel-divider"></div>
+        <div class="theme-option dark-toggle" onclick="toggleDarkMode()">
+            <div class="theme-swatch swatch-dark"></div>
+            <div class="theme-info">
+                <div class="theme-name">深色模式</div>
+                <div class="theme-desc" id="darkModeDesc">当前：已开启</div>
+            </div>
+            <div class="theme-check" id="darkModeCheck">☾</div>
+        </div>
+    </div>
     <div class="app-container">
 
         <!-- ============== 头部：数据流签名元素 ============== -->
@@ -1688,42 +1744,6 @@
                             <span id="themeLabel">切换主题</span>
                             <span class="theme-arrow">▼</span>
                         </button>
-                        <div class="theme-panel" id="themePanel">
-                            <div class="theme-panel-title">选择界面风格</div>
-                            <div class="theme-option active" data-theme="terminal" onclick="setTheme('terminal')">
-                                <div class="theme-swatch swatch-terminal"></div>
-                                <div class="theme-info">
-                                    <div class="theme-name">深墨琥珀</div>
-                                    <div class="theme-desc">专业终端风格 · 琥珀金强调</div>
-                                </div>
-                                <div class="theme-check">✓</div>
-                            </div>
-                            <div class="theme-option" data-theme="idea" onclick="setTheme('idea')">
-                                <div class="theme-swatch swatch-idea"></div>
-                                <div class="theme-info">
-                                    <div class="theme-name">Idea 蓝色</div>
-                                    <div class="theme-desc">经典 IDE 风格 · 开发者首选</div>
-                                </div>
-                                <div class="theme-check">✓</div>
-                            </div>
-                            <div class="theme-option" data-theme="light" onclick="setTheme('light')">
-                                <div class="theme-swatch swatch-light"></div>
-                                <div class="theme-info">
-                                    <div class="theme-name">清爽浅色</div>
-                                    <div class="theme-desc">简约现代 · 清晰易读</div>
-                                </div>
-                                <div class="theme-check">✓</div>
-                            </div>
-                            <div class="theme-panel-divider"></div>
-                            <div class="theme-option dark-toggle" onclick="toggleDarkMode()">
-                                <div class="theme-swatch swatch-dark"></div>
-                                <div class="theme-info">
-                                    <div class="theme-name">深色模式</div>
-                                    <div class="theme-desc" id="darkModeDesc">当前：已开启</div>
-                                </div>
-                                <div class="theme-check" id="darkModeCheck">☾</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -2463,6 +2483,8 @@
                 panel.classList.add('open');
                 if (overlay) overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                // 移动端：防止触摸时页面缩放
+                document.body.style.touchAction = 'none';
             }
         }
 
@@ -2472,26 +2494,37 @@
             if (panel) panel.classList.remove('open');
             if (overlay) overlay.classList.remove('active');
             document.body.style.overflow = '';
+            document.body.style.touchAction = '';
         }
 
-        // 触摸事件支持（移动端兼容）
+        // 移动端触摸事件支持
         document.addEventListener('DOMContentLoaded', function() {
             const themeBtn = document.getElementById('themeBtn');
             const themePanel = document.getElementById('themePanel');
+            const themeOverlay = document.getElementById('themeOverlay');
             
             if (themeBtn) {
-                // 同时支持 click 和 touchstart
-                themeBtn.addEventListener('touchstart', function(e) {
+                // 使用 pointerdown 代替 touchstart，兼容性更好
+                themeBtn.addEventListener('pointerdown', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     toggleThemePanel();
-                }, { passive: false });
+                });
             }
             
-            // 防止面板内触摸事件冒泡导致关闭
+            // 防止面板内触摸事件冒泡
             if (themePanel) {
-                themePanel.addEventListener('touchstart', function(e) {
+                themePanel.addEventListener('pointerdown', function(e) {
                     e.stopPropagation();
-                }, { passive: true });
+                });
+            }
+
+            // 点击覆盖层关闭面板
+            if (themeOverlay) {
+                themeOverlay.addEventListener('pointerdown', function(e) {
+                    e.preventDefault();
+                    closeThemePanel();
+                });
             }
             
             // ESC 键关闭面板
