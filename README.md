@@ -1,12 +1,13 @@
 # DBForge（v2.9.1 移动端布局修复版）
 
-Database Forge · 数据库批量更新工具 - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
+Database Forge · 数据库批量更新工具 - 一款简单易用的数据库批量更新工具，支持 Oracle / MySQL / MS SQL Server，Excel 导入、自动备份、失败回滚、审计日志等功能。
 
 **当前版本：v2.9.1** | [更新日志](docs/) | [用户手册](docs/用户手册.md) | [CHM 帮助](docs/DBForge_UserManual.chm)
 
 ## 功能特性
 
 ### 核心功能
+- ✅ 多数据库支持（Oracle 11g/12c/19c、MySQL 5.7+/8.0+、MS SQL Server 2003/2008 R2/2012+）
 - ✅ 连接管理管理（支持多连接配置）
 - ✅ 多格式数据导入（.xlsx / .xls / .csv / .json / .jsonl）
 - ✅ 数据预览（前50行）
@@ -93,6 +94,8 @@ Database Forge · 数据库批量更新工具 - 一款简单易用的Oracle数�
 ### 环境要求
 - Windows 7及以上 / Windows Server 2008 R2及以上 / macOS / Linux / 麒麟V10
 - Oracle Instant Client 11g+（或使用已安装的Oracle客户端）
+- MySQL：pymysql（`pip install pymysql`）
+- MS SQL Server：pyodbc + ODBC Driver 17 for SQL Server（`pip install pyodbc`）
 - Python 3.7+（仅开发时需要）
 
 ### 安装方式

@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# v2.9.1 - DBForge PyInstaller spec
 
 
 block_cipher = None
@@ -46,6 +47,9 @@ a = Analysis(
         'cryptography.hazmat.primitives.kdf',
         'cryptography.hazmat.backends',
         'cryptography.hazmat.backends.openssl',
+        # v2.9.0+ 多数据库驱动
+        'pymysql',
+        'pyodbc',
         # Core src modules (must be available)
         'src.errors',
         'src.constants',
