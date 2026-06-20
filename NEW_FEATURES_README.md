@@ -41,7 +41,7 @@ scripts\create_portable.bat  # 创建便携版
 
 **使用便携版：**
 ```bash
-1. 解压 OracleBatchUpdater_Portable_v2.7.0.zip
+1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
 2. 双击 OracleBatchUpdater_Portable.bat
 ```
 

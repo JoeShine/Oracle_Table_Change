@@ -53,3 +53,8 @@ class SecurityError(OracleUpdaterError):
 class ImportError(OracleUpdaterError):
     """数据导入相关异常"""
     exit_code = 9
+
+
+class CancelledError(OracleUpdaterError):
+    """操作被取消异常 (P1-10)"""
+    exit_code = 10

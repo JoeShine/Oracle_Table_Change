@@ -1510,6 +1510,9 @@ class OracleBatchUpdaterGUI:
         self.progress_label = ttk.Label(content_frame, text="处理进度: 0/0 (0%)", font=("Microsoft YaHei", 11))
         self.progress_label.pack()
         
+        self.eta_label = ttk.Label(content_frame, text="", font=("Microsoft YaHei", 9), foreground="#6c757d")
+        self.eta_label.pack(pady=(5, 0))
+        
         self.current_op_label = ttk.Label(content_frame, text="正在连接数据库...", font=("Microsoft YaHei", 9), foreground="#6c757d")
         self.current_op_label.pack(pady=(10, 0))
 
@@ -1518,11 +1521,16 @@ class OracleBatchUpdaterGUI:
             self.progress_window.destroy()
             self.progress_window = None
 
-    def update_progress_gui(self, current, total, percentage, operation):
+    def update_progress_gui(self, current, total, percentage, operation, eta_seconds=0):
         if self.progress_window:
             self.progress_var.set(percentage)
             self.progress_label.config(text=f"处理进度: {current}/{total} ({percentage}%)")
             self.current_op_label.config(text=operation)
+            if eta_seconds > 0:
+                from src.progress import format_eta
+                self.eta_label.config(text=f"预计剩余时间: {format_eta(eta_seconds)}")
+            else:
+                self.eta_label.config(text="")
 
     def update_step_gui(self, step_index, status):
         if not self.progress_window or step_index >= len(self.step_labels):
@@ -1720,9 +1728,9 @@ Excel文件: {excel_path}
                 return
             self.add_log(f"临时表: {temp_schema}.{updater.temp_table_name}", "SUCCESS")
             
-            def progress_callback(current, total, percentage, operation):
+            def progress_callback(current, total, percentage, operation, eta_seconds=0):
                 adjusted_percentage = 30 + int(percentage * 0.2)
-                self.root.after(0, lambda: self.update_progress_gui(current, total, adjusted_percentage, operation))
+                self.root.after(0, lambda: self.update_progress_gui(current, total, adjusted_percentage, operation, eta_seconds))
             
             updater.set_progress_callback(progress_callback)
             
@@ -1744,9 +1752,9 @@ Excel文件: {excel_path}
             self.root.after(0, lambda: self.update_progress_gui(50, 100, 55, "正在执行数据更新..."))
             self.add_log("正在执行数据更新...")
             
-            def update_progress_callback(current, total, percentage, operation):
+            def update_progress_callback(current, total, percentage, operation, eta_seconds=0):
                 adjusted_percentage = 55 + int(percentage * 0.4)
-                self.root.after(0, lambda: self.update_progress_gui(current, total, adjusted_percentage, operation))
+                self.root.after(0, lambda: self.update_progress_gui(current, total, adjusted_percentage, operation, eta_seconds))
             
             updater.set_progress_callback(update_progress_callback)
             

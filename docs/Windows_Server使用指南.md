@@ -53,7 +53,7 @@ OracleBatchUpdater.exe
 
 解压即用，无需安装：
 ```
-1. 解压 OracleBatchUpdater_Portable_v2.7.0.zip
+1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
 2. 双击 OracleBatchUpdater_Portable.bat
 ```
 

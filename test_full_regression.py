@@ -380,7 +380,7 @@ class TestDemoHTML(unittest.TestCase):
         with open(demo_file, 'r') as f:
             content = f.read()
             # 检查版本号
-            self.assertIn('v2.7', content)
+            self.assertIn('v2.8.0', content)
             # 检查场景功能
             self.assertIn('配置场景', content)
             self.assertIn('临时表模式', content)

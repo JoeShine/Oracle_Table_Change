@@ -152,18 +152,18 @@ class TestCodeDocConsistency(unittest.TestCase):
     def test_10_version_consistency(self):
         """测试版本号一致性"""
         print("\n[测试] 版本号一致性...")
-        
+
         # 检查各文件中的版本号
         files_to_check = [
-            ('demo.html', 'v2.7'),
-            ('docs/用户手册.md', 'v2.7'),
-            ('docs/部署方案.md', 'v2.7'),
-            ('docs/Windows_Server使用指南.md', 'v2.7'),
-            ('Dockerfile', 'version="2.7"'),
-            ('README.md', 'v2.7'),
-            ('NEW_FEATURES_README.md', 'v2.7'),
+            ('demo.html', 'v2.8'),
+            ('docs/用户手册.md', 'v2.8'),
+            ('docs/部署方案.md', 'v2.8'),
+            ('docs/Windows_Server使用指南.md', 'v2.8'),
+            ('Dockerfile', 'version="2.8"'),
+            ('README.md', 'v2.8'),
+            ('NEW_FEATURES_README.md', 'v2.8'),
         ]
-        
+
         for file_name, version_pattern in files_to_check:
             file_path = os.path.join(self.project_dir, file_name)
             if os.path.exists(file_path):
@@ -172,7 +172,7 @@ class TestCodeDocConsistency(unittest.TestCase):
                 self.assertIn(version_pattern, content, f"{file_name}版本号不一致")
             else:
                 print(f"  ⚠ {file_name} 不存在，跳过检查")
-        
+
         print("  ✓ 版本号一致性正确")
     
     def test_11_portable_scripts_exist(self):

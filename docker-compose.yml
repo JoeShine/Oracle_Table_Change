@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: oracle-batch-updater:v2.7
+    image: oracle-batch-updater:v2.8.0
     container_name: oracle-batch-updater
     
     # 端口映射

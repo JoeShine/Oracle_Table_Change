@@ -5,7 +5,7 @@
 FROM ubuntu:22.04
 
 LABEL maintainer="Oracle Table Change Tool"
-LABEL version="2.7"
+LABEL version="2.8"
 LABEL description="Oracle数据批量修改工具 - Docker版本，支持Easy Connect浏览器访问"
 
 # 设置环境变量

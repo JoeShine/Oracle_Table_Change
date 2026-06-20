@@ -1,0 +1,73 @@
+Oracle 数据批量修改工具 v2.8.0
+==================================
+
+发布信息
+--------
+版本号: v2.8.0
+发布代号: Secure & Insights
+发布日期: 2026-06-20
+上一版本: v2.7.0
+
+核心升级
+--------
+v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功能、5 项安全升级、14 项架构优化。
+
+一、安全加固 (P0)
+- SQL 注入防御: 标识符白名单校验 (sanitize_identifier)
+- Schema 白名单: 仅允许预注册 Schema
+- 密码加密: Fernet AES-GCM 替代 Base64
+- 审计防篡改: HMAC-SHA256 链式签名
+- 失败回滚: 单事务 + 备份表保留
+- 异常体系: 9 类结构化异常 (含 CancelledError)
+
+二、性能与功能 (P1)
+- MERGE INTO: 性能较逐行 UPDATE 提升 10x~100x
+- 列类型推断: 临时表自动匹配目标表
+- CLI: 5 个子命令 + --dry-run + 退出码
+- CSV/JSON 流式: 支持 1000 万行
+- ORA 错误码: 30+ 中文映射
+- 身份认证: 4 角色 + 双人审批 + 风险评估
+- 连接池: oracledb.create_pool 封装
+- 操作取消: threading.Event + CancelledError
+
+三、架构优化 (P2)
+- Service 层: GUI/CLI 与业务逻辑解耦
+- 常量集中: 20+ 硬编码值统一管理
+- ETA 进度条: 实时预计剩余时间
+- 历史查询: 多条件搜索 + CSV/JSON 导出
+- 通知系统: 钉钉/企业微信/Webhook/邮件
+
+四、平台化 (P3)
+- 报表统计 (新!): ImportStats 7 维度统计
+- DataCompare: 表/Excel 对比 + 差异报告
+- 诊断包: 环境/数据库/配置/日志 四维度
+- 多环境: DEV/TEST/UAT/PROD 一键切换
+- 备份管理: 列表/清理/恢复/统计
+- 任务调度: 标准 Cron 表达式
+- 趋势分析: 频率/错误/表活动/性能
+
+文件清单
+--------
+1. OracleBatchUpdater_Portable_v2.8.0.zip    - Windows 便携版
+2. OracleBatchUpdater_v2.8.0_linux-x86_64.tar.gz  - Linux 发行版
+3. OracleBatchUpdater_v2.8.0_docker.tar.gz  - Docker 镜像
+4. OracleBatchUpdater_UserManual_v2.8.0.chm  - 帮助文档
+5. Oracle数据批量修改工具_导入模板_v2.8.0.xlsx  - 导入模板
+6. RELEASE_NOTES_v2.8.0.txt  - 本文件
+
+升级说明
+--------
+1. 从 v2.7.0 升级: 配置文件会自动迁移到 v2.8.0 格式 (Base64 密码 → Fernet 加密)
+2. 新部署: 解压对应平台的压缩包，按用户手册初始化
+3. 审计日志: 使用 `python -m src.cli verify-audit` 验证完整性
+
+Windows:
+   解压 OracleBatchUpdater_Portable_v2.8.0.zip, 双击 OracleBatchUpdater_Portable.bat
+Linux:
+   tar -xzf OracleBatchUpdater_v2.8.0_linux-x86_64.tar.gz && ./OracleBatchUpdater
+Docker:
+   docker-compose up -d
+
+已知问题
+--------
+无

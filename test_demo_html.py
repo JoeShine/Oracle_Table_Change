@@ -78,9 +78,9 @@ class TestDemoHTML(unittest.TestCase):
     def test_04_version_number(self):
         """测试版本号"""
         print("\n[测试] 版本号...")
-        self.assertIn('v2.7', self.content)
-        self.assertIn('v2.7.0', self.content)
-        print("  ✓ 版本号v2.7.0正确")
+        self.assertIn('v2.8.0', self.content)
+        self.assertIn('v2.8.0', self.content)
+        print("  ✓ 版本号v2.8.0正确")
     
     def test_05_scenario_feature(self):
         """测试场景功能（原模板）"""
