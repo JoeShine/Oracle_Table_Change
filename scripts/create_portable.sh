@@ -9,7 +9,7 @@ echo "========================================"
 echo ""
 
 # 设置版本号
-VERSION="2.7.0"
+VERSION="2.8.0"
 APP_NAME="OracleBatchUpdater"
 PORTABLE_DIR="${APP_NAME}_Portable_v${VERSION}"
 
@@ -50,31 +50,50 @@ REM 设置环境变量
 set PYTHONPATH=%APP_DIR%\src
 set PATH=%APP_DIR%;%PATH%
 
-REM 检查Python环境
+REM 方式1: 优先使用 PyInstaller 打包的 exe（无需 Python）
+if exist "%APP_DIR%\OracleBatchUpdater.exe" (
+    echo 正在启动 Oracle 数据批量修改工具 ^(可执行文件模式^)...
+    cd /d "%APP_DIR%"
+    start OracleBatchUpdater.exe
+    goto :end
+)
+
+REM 方式2: 使用嵌入式 Python（完整便携版，无需安装）
 if exist "%APP_DIR%\python\python.exe" (
     set PYTHON_EXE=%APP_DIR%\python\python.exe
-) else (
-    REM 使用系统Python
-    python --version >nul 2>&1
-    if errorlevel 1 (
-        echo 错误: 未找到Python环境
-        echo 请安装Python 3.8+ 或使用完整便携版
-        pause
-        exit /b 1
-    )
+    echo 正在启动 Oracle 数据批量修改工具 ^(嵌入式 Python 模式^)...
+    cd /d "%APP_DIR%"
+    %PYTHON_EXE% main.py
+    goto :end
+)
+
+REM 方式3: 使用系统 Python（开发/调试模式）
+python --version >nul 2>&1
+if not errorlevel 1 (
     set PYTHON_EXE=python
+    echo 正在启动 Oracle 数据批量修改工具 ^(系统 Python 模式^)...
+    cd /d "%APP_DIR%"
+    %PYTHON_EXE% main.py
+    goto :end
 )
 
-REM 检查Oracle客户端
-if exist "%~dp0OracleClient\instantclient_*" (
-    set PATH=%~dp0OracleClient;%PATH%
-)
+REM 全部失败
+echo ========================================
+echo   错误: 无法启动应用
+echo ========================================
+echo.
+echo 找不到以下任一启动方式:
+echo   1. App\OracleBatchUpdater.exe ^(推荐，无需 Python^)
+echo   2. App\python\python.exe ^(嵌入式 Python^)
+echo   3. 系统 Python ^(需要 Python 3.7+^)
+echo.
+echo 请确认便携版目录结构完整，或安装 Python 3.7+
+echo 下载地址: https://www.python.org/downloads/
+echo.
+pause
+exit /b 1
 
-REM 启动应用
-echo 正在启动 Oracle 数据批量修改工具...
-cd /d "%APP_DIR%"
-%PYTHON_EXE% main.py
-
+:end
 endlocal
 EOF
 
@@ -107,17 +126,17 @@ echo "创建使用说明..."
 cat > "${PORTABLE_DIR}/README_Portable.txt" << 'EOF'
 ========================================
 Oracle 数据批量修改工具 - 便携版
-版本: 2.7.0
+版本: 2.8.0
 ========================================
 
 【使用说明】
 
 1. 解压即用
-   - 无需安装，解压到任意目录即可运行
+   - 无需安装 Python，解压到任意目录即可运行
    - 可放在U盘、网络共享、本地文件夹
 
 2. 启动方式
-   - 双击 OracleBatchUpdater_Portable.bat 启动
+   - 双击 OracleBatchUpdater_Portable.bat 启动（推荐）
    - 或直接运行 App\OracleBatchUpdater.exe
 
 3. 数据存储
@@ -134,7 +153,8 @@ Oracle 数据批量修改工具 - 便携版
 5. 系统要求
    - Windows 7 及以上
    - Windows Server 2008 R2 及以上
-   - Python 3.8+（或使用完整便携版）
+   - 不需要安装 Python（便携版包含 .exe 可执行文件）
+   - 仅 Oracle Instant Client 需要单独配置
 
 6. 连接数据库
    - 使用 Easy Connect 方式

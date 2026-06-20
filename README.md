@@ -104,13 +104,17 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 OracleBatchUpdater.exe
 ```
 
-#### 方式二：便携版
+#### 方式二：便携版（无需安装 Python）
 
 ```bash
-# 解压即用
+# 解压即用 — 不需要安装 Python，便携版包含 .exe 可执行文件
 1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
 2. 双击 OracleBatchUpdater_Portable.bat
+3. 或直接运行 App\OracleBatchUpdater.exe
 ```
+
+> 便携版使用 PyInstaller 打包，Python 运行时已内嵌在 .exe 中，无需额外安装。
+> 仅需单独配置 Oracle Instant Client（如尚未安装）。
 
 #### 方式三：Docker（仅适用于 Windows 10+ / Server 2016+）
 

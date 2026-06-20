@@ -11,7 +11,7 @@ echo ========================================
 echo.
 
 REM 设置版本号
-set VERSION=2.7.0
+set VERSION=2.8.0
 set APP_NAME=OracleBatchUpdater
 set PORTABLE_DIR=%APP_NAME%_Portable_v%VERSION%
 
@@ -148,11 +148,11 @@ echo.
 echo 【使用说明】
 echo.
 echo 1. 解压即用
-echo    - 无需安装，解压到任意目录即可运行
+echo    - 无需安装 Python，解压到任意目录即可运行
 echo    - 可放在U盘、网络共享、本地文件夹
 echo.
 echo 2. 启动方式
-echo    - 双击 OracleBatchUpdater_Portable.bat 启动
+echo    - 双击 OracleBatchUpdater_Portable.bat 启动（推荐）
 echo    - 或直接运行 App\OracleBatchUpdater.exe
 echo.
 echo 3. 数据存储
@@ -169,7 +169,8 @@ echo.
 echo 5. 系统要求
 echo    - Windows 7 及以上
 echo    - Windows Server 2008 R2 及以上
-echo    - Python 3.8+（或使用完整便携版）
+echo    - 不需要安装 Python（便携版包含 .exe 可执行文件）
+echo    - 仅 Oracle Instant Client 需要单独配置
 echo.
 echo 6. 连接数据库
 echo    - 使用 Easy Connect 方式
