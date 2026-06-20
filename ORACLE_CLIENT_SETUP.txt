@@ -1,6 +1,6 @@
 Oracle Instant Client 配置说明
 
-为了让OracleBatchUpdater.exe能够连接Oracle数据库，需要配置Oracle客户端库。
+为了让DBForge.exe能够连接Oracle数据库，需要配置Oracle客户端库。
 
 方法一：使用Oracle Instant Client（推荐）
 
@@ -20,14 +20,14 @@ Oracle Instant Client 配置说明
      * 编辑PATH，添加: C:\oracle\instantclient_19_8
 
 4. 或者将Instant Client放在程序同目录下
-   将instantclient目录放在OracleBatchUpdater.exe同目录即可
+   将instantclient目录放在DBForge.exe同目录即可
 
 方法二：使用已安装的Oracle客户端
 
 如果系统已安装Oracle客户端（如PL/SQL Developer）：
 1. 找到Oracle客户端的bin目录
 2. 将路径添加到系统PATH环境变量
-3. 或将OracleBatchUpdater.exe放在Oracle客户端bin目录
+3. 或将DBForge.exe放在Oracle客户端bin目录
 
 验证配置
 

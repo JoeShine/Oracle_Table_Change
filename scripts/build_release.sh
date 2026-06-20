@@ -1,4 +1,5 @@
 #!/bin/bash
+# v2.9.1
 # DBForge - v2.8.0 发布包构建脚本 (Linux)
 # 在当前 Linux 环境中可构建的产物：
 #   - Linux x86_64 发行版 tar.gz

@@ -1,4 +1,5 @@
 #!/bin/bash
+# v2.9.1
 # DBForge - 便携版打包脚本
 # 适用于 Windows 7, Windows Server 2008 R2 及以上系统
 # 无需安装，解压即用

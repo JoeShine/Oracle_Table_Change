@@ -1,3 +1,4 @@
+# v2.9.1
 """Centralized constants configuration for DBForge.
 
 All hardcoded values used across the application are defined here

@@ -1,3 +1,4 @@
+# v2.9.1
 @echo off
 REM DBForge - 便携版打包脚本
 REM 适用于 Windows 7, Windows Server 2008 R2 及以上系统

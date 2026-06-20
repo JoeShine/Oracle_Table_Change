@@ -1,3 +1,4 @@
+# v2.9.1
 #!/usr/bin/env python3
 """
 DBForge - 代码与文档一致性检查

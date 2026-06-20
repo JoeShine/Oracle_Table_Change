@@ -1,3 +1,4 @@
+# v2.9.1
 #!/usr/bin/env python3
 """
 DBForge - 全面回归测试
@@ -18,7 +19,7 @@ from src.config_manager import ConfigManager
 from src.logger import LogManager
 from src.excel_handler import ExcelHandler
 from src.data_updater import DataUpdater
-from src.gui import OracleBatchUpdaterGUI, OSCompatibility
+from src.gui import DBForgeGUI, OSCompatibility
 
 
 class TestConfigManager(unittest.TestCase):
@@ -240,7 +241,7 @@ class TestGUIComponents(unittest.TestCase):
         print("\n[测试] GUI模块导入...")
         
         # 只测试导入，不启动GUI
-        self.assertTrue(hasattr(OracleBatchUpdaterGUI, '__init__'))
+        self.assertTrue(hasattr(DBForgeGUI, '__init__'))
         print("  ✓ GUI模块导入成功")
     
     def test_02_keyboard_navigation_methods(self):
@@ -248,7 +249,7 @@ class TestGUIComponents(unittest.TestCase):
         print("\n[测试] 键盘导航方法...")
         
         # 检查键盘绑定方法（公开方法，不含_前缀的私有方法）
-        methods = [m for m in dir(OracleBatchUpdaterGUI) if not m.startswith('_')]
+        methods = [m for m in dir(DBForgeGUI) if not m.startswith('_')]
         expected_methods = ['bind_shortcuts']
         for method in expected_methods:
             self.assertIn(method, methods)

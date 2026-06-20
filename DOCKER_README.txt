@@ -1,3 +1,4 @@
+# v2.9.1
 # DBForge (Database Forge) - Docker 部署指南
 版本: v2.9.0（多数据库支持版：Oracle / MySQL / SQL Server）
 
@@ -341,7 +342,7 @@ docker-compose up -d
 3. **MySQL 使用纯 Python 驱动 pymysql，无需系统客户端**
 4. **SQL Server 的 Microsoft ODBC Driver 17 for SQL Server 已内置在 Docker 镜像中**
 5. **生产环境建议配置 VNC 密码和 HTTPS**
-6. **数据库连接字符串格式：**
+6. **连接管理字符串格式：**
    - Oracle    `host:port/service_name`
    - MySQL     `host:port/database`
    - SQL Server `host[:port]/database`

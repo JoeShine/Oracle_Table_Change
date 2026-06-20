@@ -1,3 +1,4 @@
+# v2.9.1
 DBForge (Database Forge) - 项目结构说明
 版本: v2.9.0（多数据库支持版）
 
@@ -32,7 +33,7 @@ DBForge (Database Forge) - 项目结构说明
 │
 ├── release_v2.9.0/             # 构建产物目录（由 build_release.sh 生成）
 │
-├── config.json                  # 配置文件（运行时生成，存储多数据库连接信息）
+├── config.json                  # 配置文件（运行时生成，存储多连接管理信息）
 │
 ├── logs/                        # 日志目录（运行时生成）
 │   └── update_*.log            # 更新日志文件
@@ -91,7 +92,7 @@ DBForge (Database Forge) - 项目结构说明
    - 导出日志到文件
 
 4. db_connection.py （v2.9.0 多数据库核心）
-   - Oracle / MySQL / SQL Server 三数据库连接管理
+   - Oracle / MySQL / SQL Server 三连接管理管理
    - 执行 SQL 语句（方言自适应）
    - 获取表和列信息
    - 事务管理

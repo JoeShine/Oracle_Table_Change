@@ -1,3 +1,4 @@
+# v2.9.1
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, scrolledtext
 from pathlib import Path
@@ -418,7 +419,7 @@ class ThemeManager:
         return self.current_style, self.is_dark, self.theme
 
 
-class OracleBatchUpdaterGUI:
+class DBForgeGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("DBForge")
@@ -1306,7 +1307,7 @@ class OracleBatchUpdaterGUI:
     def test_connection(self):
         conn_name = self.connection_var.get()
         if not conn_name:
-            messagebox.showwarning("提示", "请先选择数据库连接")
+            messagebox.showwarning("提示", "请先选择连接管理")
             return
         conn_info = self.config.get_connection_by_name(conn_name)
         if not conn_info:
@@ -1317,7 +1318,7 @@ class OracleBatchUpdaterGUI:
         db_type = conn_info.get("db_type", DB_TYPE_ORACLE)
         database = conn_info.get("database", "")
 
-        self.add_log("正在测试数据库连接...")
+        self.add_log("正在测试连接管理...")
         self.update_status_bar(connected=False, conn_name=conn_name, operation="正在连接...")
 
         success, msg = self.db_connection.connect(
@@ -1353,7 +1354,7 @@ class OracleBatchUpdaterGUI:
 
     def open_add_connection_dialog(self):
         dialog = tk.Toplevel(self.root)
-        dialog.title("添加数据库连接")
+        dialog.title("添加连接管理")
         dialog.geometry("440x380")
         dialog.transient(self.root)
         dialog.grab_set()
@@ -2489,7 +2490,7 @@ def main():
 
     try:
         root = tk.Tk()
-        app = OracleBatchUpdaterGUI(root)
+        app = DBForgeGUI(root)
         root.mainloop()
     except SystemExit:
         raise

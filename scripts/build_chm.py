@@ -1,3 +1,4 @@
+# v2.9.1
 #!/usr/bin/env python3
 """
 CHM (Microsoft Compiled HTML Help) 文件生成器

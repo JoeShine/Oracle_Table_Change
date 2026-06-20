@@ -149,8 +149,8 @@ def check_chm_content(chm_path: Path) -> dict:
     - 图片文件
     """
     required_internal = [
-        "#SYSTEM", "OracleBatchUpdater_UserManual.hhc",
-        "OracleBatchUpdater_UserManual.hhk", "#IDXHDR", "#TOPICS",
+        "#SYSTEM", "DBForge_UserManual.hhc",
+        "DBForge_UserManual.hhk", "#IDXHDR", "#TOPICS",
         "#STRINGS", "#URLTBL", "#TOCIDX",
     ]
     required_html = [

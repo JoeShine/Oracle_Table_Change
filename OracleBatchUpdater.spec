@@ -95,7 +95,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='OracleBatchUpdater',
+    name='DBForge',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

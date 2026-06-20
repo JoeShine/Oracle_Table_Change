@@ -160,7 +160,7 @@ def test_gui_import():
     """测试GUI模块导入"""
     print("\n[测试6] GUI模块导入...")
     try:
-        from src.gui import OracleBatchUpdaterGUI
+        from src.gui import DBForgeGUI
         print("✓ GUI模块导入测试通过")
     except ImportError as e:
         if 'DISPLAY' in str(e) or 'no display' in str(e).lower():

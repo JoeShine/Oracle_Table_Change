@@ -2,7 +2,7 @@
 # 基于 Ubuntu 22.04，支持 VNC/noVNC 浏览器访问
 # 支持多数据库：Oracle / MySQL / SQL Server
 # 使用 Easy Connect 方式连接数据库，无需配置文件
-
+# v2.9.1
 FROM ubuntu:22.04
 
 LABEL maintainer="DBForge Tool"
@@ -132,7 +132,7 @@ echo "访问方式:"\n\
 echo "  - 浏览器: http://localhost:6080"\n\
 echo "  - VNC客户端: localhost:5900"\n\
 echo ""\n\
-echo "数据库连接管理（Easy Connect）:"\n\
+echo "连接管理管理（Easy Connect）:"\n\
 echo "  Oracle    格式: host:port/service_name   示例: 192.168.1.100:1521/ORCL"\n\
 echo "  MySQL     格式: host:port/database        示例: 192.168.1.100:3306/mydb"\n\
 echo "  SQL Server 格式: host[:port]/database     示例: 192.168.1.100:1433/MYDB"\n\

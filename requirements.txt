@@ -2,3 +2,6 @@ oracledb>=1.4.0
 openpyxl>=3.1.0
 cryptography>=41.0.0
 pyinstaller>=5.0.0
+# v2.9.0+ 多数据库支持
+pymysql>=1.1.0
+pyodbc>=5.0.0

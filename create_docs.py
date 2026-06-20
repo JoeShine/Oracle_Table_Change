@@ -1236,7 +1236,7 @@ def create_readme():
     """创建README文档"""
     content = '''# DBForge
 
-Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
+Database Forge · 数据库批量更新工具 - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
 
 ## 功能特性
 
