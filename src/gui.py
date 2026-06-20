@@ -178,6 +178,8 @@ class ThemeManager:
         "tab_bg": "#e8e8e8",
         "tab_selected": "#ffffff",
         "tab_border": "#d4d4d4",
+        "tab_active_bg": "#ffffff",
+        "tab_hover_bg": "#e8e8e8",
         "header_bg": "linear-gradient(135deg, #3d65a5 0%, #4a86e8 100%)",
         "header_fg": "#ffffff",
     }
@@ -212,6 +214,8 @@ class ThemeManager:
         "tab_bg": "#35383a",
         "tab_selected": "#2b2b2b",
         "tab_border": "#4e4e4e",
+        "tab_active_bg": "#3c3f41",
+        "tab_hover_bg": "#45494a",
         "header_bg": "linear-gradient(135deg, #1a1a1a 0%, #2b2b2b 100%)",
         "header_fg": "#dcdcdc",
     }
@@ -247,6 +251,8 @@ class ThemeManager:
         "tab_bg": "#F7F5F0",
         "tab_selected": "#EFEEE8",
         "tab_border": "#E0DDD4",
+        "tab_active_bg": "#EFEEE8",
+        "tab_hover_bg": "#E8E5DC",
         "header_bg": "linear-gradient(135deg, #0D1B2A 0%, #1B3A5A 100%)",
         "header_fg": "#ffffff",
     }
@@ -281,6 +287,8 @@ class ThemeManager:
         "tab_bg": "#152538",
         "tab_selected": "#0F1E2E",
         "tab_border": "#253D54",
+        "tab_active_bg": "#152538",
+        "tab_hover_bg": "#1A2F46",
         "header_bg": "linear-gradient(135deg, #0D1B2A 0%, #1B3A5A 100%)",
         "header_fg": "#E8ECF1",
     }
@@ -316,6 +324,8 @@ class ThemeManager:
         "tab_bg": "#FAFBFC",
         "tab_selected": "#FFFFFF",
         "tab_border": "#E8ECF0",
+        "tab_active_bg": "#FFFFFF",
+        "tab_hover_bg": "#F7FAFC",
         "header_bg": "linear-gradient(135deg, #0066CC 0%, #0088FF 100%)",
         "header_fg": "#ffffff",
     }
@@ -350,6 +360,8 @@ class ThemeManager:
         "tab_bg": "#22262E",
         "tab_selected": "#1A1D23",
         "tab_border": "#2D323C",
+        "tab_active_bg": "#22262E",
+        "tab_hover_bg": "#2A2F38",
         "header_bg": "linear-gradient(135deg, #1A1D23 0%, #2D323C 100%)",
         "header_fg": "#E8ECF0",
     }
@@ -452,40 +464,90 @@ class OracleBatchUpdaterGUI:
                        foreground=[('active', theme.get("button_secondary_fg", theme["fg"]))])
         self.style.configure("Card.TFrame", background=theme["card_bg"], borderwidth=1, relief="solid")
         self.style.configure("Status.TLabel", font=(font_family, 9))
-        self.style.configure("TNotebook", background=theme["bg"], borderwidth=0)
-        self.style.configure("TNotebook.Tab", padding=[20, 8], font=(font_family, 10))
 
     def bind_shortcuts(self):
         self.root.bind('<Control-s>', lambda e: self.save_config())
         self.root.bind('<Control-S>', lambda e: self.save_config())
-        # 键盘导航：左右键切换标签页
-        self.root.bind('<Left>', lambda e: self._switch_tab(-1))
-        self.root.bind('<Right>', lambda e: self._switch_tab(1))
-        # 键盘导航：上下键纵向滚动
-        self.root.bind('<Up>', lambda e: self._scroll_page(-1))
-        self.root.bind('<Down>', lambda e: self._scroll_page(1))
+        # 键盘导航：上下键切换标签页
+        self.root.bind('<Up>', lambda e: self._switch_tab(-1))
+        self.root.bind('<Down>', lambda e: self._switch_tab(1))
+        # 键盘导航：左右键横向/纵向滚动当前内容区
+        self.root.bind('<Left>', lambda e: self._scroll_page(-1))
+        self.root.bind('<Right>', lambda e: self._scroll_page(1))
 
     def _switch_tab(self, direction: int):
-        """切换标签页（direction: -1=左/前一个, 1=右/后一个）"""
+        """切换标签页（direction: -1=上一个, 1=下一个）"""
         try:
-            current = self.notebook.index(self.notebook.select())
-            total = self.notebook.index("end")
-            new_index = (current + direction) % total
-            self.notebook.select(new_index)
+            total = len(self.tab_frames)
+            if total == 0:
+                return
+            new_index = (self.current_tab_index + direction) % total
+            self.switch_tab(new_index)
         except Exception:
             pass
 
     def _scroll_page(self, direction: int):
-        """纵向滚动当前标签页内容（direction: -1=上, 1=下）"""
+        """滚动当前标签页内容（direction: -1=上/左, 1=下/右）"""
         try:
-            current_tab = self.notebook.select()
-            if not current_tab:
+            if not self.tab_frames:
                 return
+            current_tab = self.tab_frames[self.current_tab_index]
             # 查找当前标签页中的可滚动控件
             for widget in current_tab.winfo_children():
                 self._scroll_widget_recursive(widget, direction)
         except Exception:
             pass
+
+    def switch_tab(self, index: int):
+        """切换到指定标签页并更新导航按钮样式"""
+        if not self.tab_frames or index < 0 or index >= len(self.tab_frames):
+            return
+        self.current_tab_index = index
+        # 隐藏所有标签页
+        for tab in self.tab_frames:
+            tab.pack_forget()
+        # 显示当前标签页
+        self.tab_frames[index].pack(fill=tk.BOTH, expand=True)
+        self._update_sidebar_buttons()
+
+    def _on_nav_button_enter(self, button, index):
+        """导航按钮悬停效果"""
+        if index == self.current_tab_index:
+            return
+        _, _, theme = self.theme_manager.get_theme()
+        try:
+            button.configure(bg=theme.get("tab_hover_bg", theme["bg"]))
+        except Exception:
+            pass
+
+    def _on_nav_button_leave(self, button, index):
+        """导航按钮离开效果"""
+        if index == self.current_tab_index:
+            return
+        _, _, theme = self.theme_manager.get_theme()
+        try:
+            button.configure(bg=theme["bg"])
+        except Exception:
+            pass
+
+    def _update_sidebar_buttons(self):
+        """根据当前标签页更新导航按钮样式"""
+        if not hasattr(self, 'nav_buttons'):
+            return
+        _, _, theme = self.theme_manager.get_theme()
+        active_bg = theme.get("tab_active_bg", theme["bg"])
+        bg = theme["bg"]
+        fg = theme["fg"]
+        for idx, (btn, indicator) in enumerate(self.nav_buttons):
+            try:
+                if idx == self.current_tab_index:
+                    btn.configure(bg=active_bg, fg=fg, relief="flat")
+                    indicator.configure(bg="#ff8c00")
+                else:
+                    btn.configure(bg=bg, fg=fg, relief="flat")
+                    indicator.configure(bg=bg)
+            except Exception:
+                pass
 
     def _scroll_widget_recursive(self, widget, direction: int):
         """递归查找并滚动可滚动控件"""
@@ -515,6 +577,8 @@ class OracleBatchUpdaterGUI:
         self.root.configure(bg=theme["bg"])
         for widget in self.root.winfo_children():
             self.apply_theme_recursive(widget, theme)
+        # 重新应用导航栏按钮样式
+        self._update_sidebar_buttons()
 
     def apply_theme_recursive(self, widget, theme):
         try:
@@ -541,17 +605,73 @@ class OracleBatchUpdaterGUI:
             self.apply_theme_recursive(child, theme)
 
     def create_widgets(self):
+        _, _, theme = self.theme_manager.get_theme()
         self.main_frame = ttk.Frame(self.root, padding="15")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.create_header()
         
-        self.notebook = ttk.Notebook(self.main_frame)
-        self.notebook.pack(fill=tk.BOTH, expand=True, pady=10)
+        # 左侧导航栏 + 右侧内容区
+        self.content_container = tk.Frame(self.main_frame, bg=theme["bg"])
+        self.content_container.pack(fill=tk.BOTH, expand=True, pady=10)
         
-        self.create_config_tab()
-        self.create_log_tab()
-        self.create_connection_tab()
-        self.create_history_tab()
+        self.sidebar_frame = tk.Frame(self.content_container, width=200, bg=theme["bg"])
+        self.sidebar_frame.pack(side=tk.LEFT, fill=tk.Y)
+        self.sidebar_frame.pack_propagate(False)
+        
+        self.content_frame = tk.Frame(self.content_container, bg=theme["bg"])
+        self.content_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # 导航按钮配置
+        nav_items = [
+            "📋 当前配置",
+            "📜 操作日志",
+            "🔌 数据库连接",
+            "📊 历史记录",
+            "📈 报表统计",
+            "🔧 诊断工具",
+        ]
+        self.nav_buttons = []      # (button, indicator) 元组列表
+        self.nav_button_refs = []  # button 引用
+        for idx, text in enumerate(nav_items):
+            btn_container = tk.Frame(self.sidebar_frame, bg=theme["bg"])
+            btn_container.pack(fill=tk.X, pady=1)
+            
+            indicator = tk.Frame(btn_container, bg=theme["bg"], width=2)
+            indicator.pack(side=tk.LEFT, fill=tk.Y)
+            
+            btn = tk.Button(
+                btn_container,
+                text=text,
+                bg=theme["bg"],
+                fg=theme["fg"],
+                relief="flat",
+                anchor="w",
+                font=(self.os_info["font_family"], 10),
+                padx=10,
+                pady=8,
+                cursor="hand2",
+                command=lambda i=idx: self.switch_tab(i)
+            )
+            btn.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            
+            # 悬停效果
+            btn.bind("<Enter>", lambda e, b=btn, i=idx: self._on_nav_button_enter(b, i))
+            btn.bind("<Leave>", lambda e, b=btn, i=idx: self._on_nav_button_leave(b, i))
+            
+            self.nav_buttons.append((btn, indicator))
+            self.nav_button_refs.append(btn)
+        
+        # 标签页框架
+        self.tab_frames = [
+            self.create_config_tab(),
+            self.create_log_tab(),
+            self.create_connection_tab(),
+            self.create_history_tab(),
+            self.create_stats_tab(),
+            self.create_diagnosis_tab(),
+        ]
+        self.current_tab_index = 0
+        self.switch_tab(0)
         
         self.create_status_bar()
 
@@ -711,8 +831,7 @@ class OracleBatchUpdaterGUI:
             self.history_tree.update()
 
     def create_config_tab(self):
-        tab = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab, text="📋 当前配置")
+        tab = ttk.Frame(self.content_frame, padding="10")
         
         # ========== 场景选择区域 ==========
         template_panel = ttk.LabelFrame(tab, text="📝 配置场景", padding="15", style="Card.TFrame")
@@ -852,6 +971,8 @@ class OracleBatchUpdaterGUI:
         clear_btn = ttk.Button(btn_frame, text="🗑 清空", command=self.clear_form, style="Action.TButton")
         clear_btn.pack(side=tk.LEFT, padx=(10, 0))
 
+        return tab
+
     def add_update_column(self):
         new_row = ttk.Frame(self.update_columns_frame)
         new_row.pack(fill=tk.X, pady=2)
@@ -875,8 +996,7 @@ class OracleBatchUpdaterGUI:
         return columns
 
     def create_log_tab(self):
-        tab = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab, text="📜 操作日志")
+        tab = ttk.Frame(self.content_frame, padding="10")
         
         log_panel = ttk.LabelFrame(tab, text="操作日志", padding="12", style="Card.TFrame")
         log_panel.pack(fill=tk.BOTH, expand=True)
@@ -897,9 +1017,10 @@ class OracleBatchUpdaterGUI:
         clear_log_btn = ttk.Button(export_frame, text="🗑 清空日志", command=self.clear_logs, style="Action.TButton")
         clear_log_btn.pack(side=tk.RIGHT)
 
+        return tab
+
     def create_connection_tab(self):
-        tab = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab, text="🔌 数据库连接")
+        tab = ttk.Frame(self.content_frame, padding="10")
         
         panel = ttk.LabelFrame(tab, text="数据库连接配置", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
@@ -924,9 +1045,10 @@ class OracleBatchUpdaterGUI:
         self.connection_status_label.pack(anchor=tk.W)
         self.update_connection_list()
 
+        return tab
+
     def create_history_tab(self):
-        tab = ttk.Frame(self.notebook, padding="10")
-        self.notebook.add(tab, text="📊 历史记录")
+        tab = ttk.Frame(self.content_frame, padding="10")
         
         panel = ttk.LabelFrame(tab, text="历史导入记录", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
@@ -968,6 +1090,20 @@ class OracleBatchUpdaterGUI:
         history_scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
         self.history_tree.configure(yscrollcommand=history_scroll_y.set)
         self.history_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        return tab
+
+    def create_stats_tab(self):
+        tab = ttk.Frame(self.content_frame, padding="10")
+        placeholder = ttk.Label(tab, text="📈 报表统计功能即将上线", style="Header.TLabel")
+        placeholder.pack(expand=True)
+        return tab
+
+    def create_diagnosis_tab(self):
+        tab = ttk.Frame(self.content_frame, padding="10")
+        placeholder = ttk.Label(tab, text="🔧 诊断工具功能即将上线", style="Header.TLabel")
+        placeholder.pack(expand=True)
+        return tab
 
     def create_status_bar(self):
         self.status_bar = ttk.Frame(self.main_frame, padding="8")
@@ -1359,7 +1495,7 @@ class OracleBatchUpdaterGUI:
         
         if not self.is_connected:
             messagebox.showwarning("提示", "请先连接数据库")
-            self.notebook.select(2)
+            self.switch_tab(2)
             return
         
         target_table = self.target_table_var.get().strip()
@@ -1547,7 +1683,7 @@ class OracleBatchUpdaterGUI:
         """验证数据：Excel结构 + 数据库表/列，全部通过后才允许执行"""
         if not self.is_connected:
             messagebox.showwarning("提示", "请先连接数据库")
-            self.notebook.select(2)
+            self.switch_tab(2)
             return
         
         target_table = self.target_table_var.get().strip()
@@ -1616,7 +1752,7 @@ class OracleBatchUpdaterGUI:
     def confirm_update(self):
         if not self.is_connected:
             messagebox.showwarning("提示", "请先连接数据库")
-            self.notebook.select(2)
+            self.switch_tab(2)
             return
         
         target_table = self.target_table_var.get().strip()
@@ -1650,7 +1786,7 @@ Excel文件: {excel_path}
 
     def start_update(self):
         self.show_progress_window()
-        self.notebook.select(1)
+        self.switch_tab(1)
         threading.Thread(target=self._run_update, daemon=True).start()
 
     def _run_update(self):

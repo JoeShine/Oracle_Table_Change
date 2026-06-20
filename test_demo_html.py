@@ -115,15 +115,20 @@ class TestDemoHTML(unittest.TestCase):
         print("  ✓ 临时表模式选择功能正确")
     
     def test_07_tabs_structure(self):
-        """测试标签页结构"""
-        print("\n[测试] 标签页结构...")
+        """测试左侧导航栏结构"""
+        print("\n[测试] 左侧导航栏结构...")
         
-        # 检查6个标签页（v2.8.0 新增报表统计和诊断工具）
+        # 检查6个菜单项（v2.8.0 从顶部迁移到左侧纵向导航栏）
         tab_count = len(re.findall(r'onclick="switchTab\(\d\)"', self.content))
-        self.assertEqual(tab_count, 6, f"应有6个标签页，实际: {tab_count}")
+        self.assertEqual(tab_count, 6, f"应有6个菜单项，实际: {tab_count}")
         
-        # 检查标签页内容
+        # 检查左侧布局结构
+        self.assertIn('main-layout', self.content)
+        self.assertIn('sidebar', self.content)
+        self.assertIn('main-area', self.content)
         self.assertIn('tab-content', self.content)
+        
+        # 检查6个菜单文案
         self.assertIn('配置与预览', self.content)
         self.assertIn('操作日志', self.content)
         self.assertIn('数据库连接', self.content)
@@ -131,7 +136,12 @@ class TestDemoHTML(unittest.TestCase):
         self.assertIn('报表统计', self.content)
         self.assertIn('诊断工具', self.content)
         
-        print("  ✓ 6个标签页结构正确")
+        # 检查左侧导航样式（纵向、宽度、左侧指示条）
+        self.assertIn('flex-direction: column', self.content)
+        self.assertIn('width: 200px', self.content)
+        self.assertIn('border-right: 1px solid var(--bg-line)', self.content)
+        
+        print("  ✓ 左侧导航栏结构正确")
     
     def test_08_theme_system(self):
         """测试主题系统"""

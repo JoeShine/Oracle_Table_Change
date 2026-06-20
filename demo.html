@@ -362,20 +362,42 @@
         }
 
         /* ============================================================
-           标签页导航 · 数据库表选项卡风格
+           主布局 · 左侧边栏 + 右侧内容区
+           ============================================================ */
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: var(--bg);
+            border-right: 1px solid var(--bg-line);
+            flex-shrink: 0;
+            display: flex;
+        }
+
+        .main-area {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================================
+           标签页导航 · 左侧纵向边栏风格
            ============================================================ */
         .tabs {
             display: flex;
-            background: var(--bg);
-            border-bottom: 1px solid var(--bg-line);
-            position: relative;
-            padding: 0 12px;
+            flex-direction: column;
+            width: 100%;
         }
 
         .tab {
-            flex: 1;
+            width: 100%;
             padding: 14px 16px;
-            text-align: center;
+            text-align: left;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
@@ -387,7 +409,7 @@
             font-family: var(--font-sans);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 8px;
         }
 
@@ -406,6 +428,7 @@
         .tab.active {
             color: var(--text-primary);
             font-weight: 600;
+            background: rgba(232, 164, 76, 0.08);
         }
 
         .tab.active .tab-icon {
@@ -415,24 +438,12 @@
         .tab.active::after {
             content: '';
             position: absolute;
-            bottom: -1px;
-            left: 20%;
-            right: 20%;
-            height: 2px;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 2px;
             background: var(--amber-500);
-            border-radius: 2px 2px 0 0;
-        }
-
-        .tab.active::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            bottom: 10px;
-            left: 12px;
-            right: 12px;
-            background: rgba(232, 164, 76, 0.08);
-            border-radius: var(--radius-sm);
-            z-index: -1;
+            border-radius: 0;
         }
 
         .tab-content {
@@ -1643,11 +1654,13 @@
             .data-stream { display: none; }
             .header-actions { width: 100%; justify-content: flex-end; }
 
-            .tabs { padding: 0 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .tab { font-size: 12px; padding: 12px 8px; white-space: nowrap; flex-shrink: 0; flex: 1 1 auto; min-width: 80px; }
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--bg-line); }
+            .tabs { flex-direction: row; padding: 0 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .tab { flex: 1 1 auto; padding: 12px 8px; text-align: center; justify-content: center; font-size: 12px; white-space: nowrap; min-width: 80px; }
             .tab-icon { display: none; }
-            .tab.active::before { left: 4px; right: 4px; }
-            .tab.active::after { left: 10%; right: 10%; }
+            .tab.active { background: rgba(232, 164, 76, 0.08); }
+            .tab.active::after { top: auto; bottom: -1px; left: 10%; right: 10%; width: auto; height: 2px; border-radius: 2px 2px 0 0; }
 
             .status-bar { flex-wrap: wrap; gap: 4px; padding: 8px 10px; font-size: 11px; }
             .status-cell { border-right: none; padding: 3px 8px; }
@@ -1975,33 +1988,38 @@
             </div>
         </div>
 
-        <!-- ============== 标签页导航 ============== -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab(0)">
-                <span class="tab-icon">[01]</span>
-                <span>配置与预览</span>
+        <div class="main-layout">
+            <!-- ============== 标签页导航 ============== -->
+            <div class="sidebar">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab(0)">
+                        <span class="tab-icon">[01]</span>
+                        <span>配置与预览</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(1)">
+                        <span class="tab-icon">[02]</span>
+                        <span>操作日志</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(2)">
+                        <span class="tab-icon">[03]</span>
+                        <span>数据库连接</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(3)">
+                        <span class="tab-icon">[04]</span>
+                        <span>历史记录</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(4)">
+                        <span class="tab-icon">[05]</span>
+                        <span>报表统计</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(5)">
+                        <span class="tab-icon">[06]</span>
+                        <span>诊断工具</span>
+                    </div>
+                </div>
             </div>
-            <div class="tab" onclick="switchTab(1)">
-                <span class="tab-icon">[02]</span>
-                <span>操作日志</span>
-            </div>
-            <div class="tab" onclick="switchTab(2)">
-                <span class="tab-icon">[03]</span>
-                <span>数据库连接</span>
-            </div>
-            <div class="tab" onclick="switchTab(3)">
-                <span class="tab-icon">[04]</span>
-                <span>历史记录</span>
-            </div>
-            <div class="tab" onclick="switchTab(4)">
-                <span class="tab-icon">[05]</span>
-                <span>报表统计</span>
-            </div>
-            <div class="tab" onclick="switchTab(5)">
-                <span class="tab-icon">[06]</span>
-                <span>诊断工具</span>
-            </div>
-        </div>
+
+            <div class="main-area">
 
         <!-- ============== 页面 01：配置与预览 ============== -->
         <div class="tab-content active" id="tab-0">
@@ -2722,6 +2740,8 @@
                 <span class="status-value" id="sbOS" style="color: var(--accent-primary); font-size: 11px;"></span>
             </div>
         </div>
+            </div>
+        </div>
     </div>
 
     <!-- ============== 模态框：确认执行 ============== -->
@@ -3174,7 +3194,7 @@
         }
 
         // ================== 键盘导航 ==================
-        // 左右键切换标签页
+        // 上下键切换左侧标签页，左右键滚动内容区
         document.addEventListener('keydown', function(e) {
             const tabs = document.querySelectorAll('.tab');
             const activeTab = document.querySelector('.tab.active');
@@ -3182,18 +3202,18 @@
             let currentIdx = 0;
             tabs.forEach((t, i) => { if (t.classList.contains('active')) currentIdx = i; });
             
-            if (e.key === 'ArrowLeft') {
+            if (e.key === 'ArrowUp') {
                 let newIdx = (currentIdx - 1 + tabs.length) % tabs.length;
                 tabs[newIdx].click();
-            } else if (e.key === 'ArrowRight') {
+            } else if (e.key === 'ArrowDown') {
                 let newIdx = (currentIdx + 1) % tabs.length;
                 tabs[newIdx].click();
-            } else if (e.key === 'ArrowUp') {
+            } else if (e.key === 'ArrowLeft') {
                 const activeContent = document.querySelector('.tab-content.active');
-                if (activeContent) activeContent.scrollTop -= 100;
-            } else if (e.key === 'ArrowDown') {
+                if (activeContent) activeContent.scrollLeft -= 100;
+            } else if (e.key === 'ArrowRight') {
                 const activeContent = document.querySelector('.tab-content.active');
-                if (activeContent) activeContent.scrollTop += 100;
+                if (activeContent) activeContent.scrollLeft += 100;
             }
         });
 
