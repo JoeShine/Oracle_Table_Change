@@ -368,45 +368,33 @@ class TestRollback(unittest.TestCase):
         self.assertIn("无需回滚", msg)
     
     def test_rollback_restores_data(self):
-        """测试回滚恢复数据"""
+        """P0-4: 测试回滚不再 DELETE+INSERT，改为仅清理临时表并保留备份"""
         # 设置备份状态
         self.updater.backup_created = True
         self.updater.backup_table_name = "EMPLOYEE_BAK_20260620"
         self.updater.temp_table_name = "TEMP_UPDATE_12345"
         
         # Mock execute_sql 返回
-        # 第1次：DROP TABLE temp（清理临时表）
-        # 第2次：DELETE FROM target（清空目标表）
-        # 第3次：INSERT INTO target SELECT * FROM backup（恢复数据）
+        # P0-4: 新行为 — 仅清理临时表（1次 DROP TABLE），备份表保留
         self.mock_db.execute_sql.side_effect = [
             (True, None, None),  # 清理临时表
-            (True, None, None),  # 清空目标表
-            (True, None, None),  # 从备份表恢复
         ]
         
         success, msg = self.updater.rollback("APPS", "SYSTEM")
         
         # 验证
         self.assertTrue(success)
-        self.assertIn("回滚成功", msg)
+        self.assertIn("回滚完成", msg)
+        self.assertIn("已保留供审计", msg)
         
-        # 验证SQL调用
+        # 验证SQL调用 — 只有1次 DROP TABLE
         execute_calls = self.mock_db.execute_sql.call_args_list
-        self.assertEqual(len(execute_calls), 3)
+        self.assertEqual(len(execute_calls), 1)
         
         # 第1次：DROP TABLE temp
         drop_sql = execute_calls[0][0][0]
         self.assertIn("DROP TABLE", drop_sql)
         self.assertIn("TEMP_UPDATE_12345", drop_sql)
-        
-        # 第2次：DELETE
-        delete_sql = execute_calls[1][0][0]
-        self.assertIn("DELETE FROM APPS.EMPLOYEE", delete_sql)
-        
-        # 第3次：INSERT ... SELECT
-        restore_sql = execute_calls[2][0][0]
-        self.assertIn("INSERT INTO APPS.EMPLOYEE", restore_sql)
-        self.assertIn("SELECT * FROM APPS.EMPLOYEE_BAK_20260620", restore_sql)
 
 
 def run_core_logic_tests():

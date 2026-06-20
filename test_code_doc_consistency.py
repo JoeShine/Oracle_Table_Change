@@ -65,8 +65,8 @@ class TestCodeDocConsistency(unittest.TestCase):
             content = f.read()
         
         # 检查空字段处理注释和逻辑
+        self.assertIn('非空值才更新', content)
         self.assertIn('空字段不更新', content)
-        self.assertIn('保留目标表原值', content)
         self.assertIn('str(new_value).strip() != \'\'', content)
         
         print("  ✓ 代码包含空字段处理逻辑")

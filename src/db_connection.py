@@ -1,5 +1,7 @@
+import traceback
 import oracledb
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
+from src.security import sanitize_identifier, validate_schema
 
 
 class DBConnection:
@@ -21,19 +23,20 @@ class DBConnection:
         except oracledb.DatabaseError as e:
             error = str(e)
             if "ORA-12541" in error:
-                return False, f"连接失败: TNS无监听程序，请检查主机地址和端口"
+                return False, "连接失败: TNS无监听程序，请检查主机地址和端口"
             elif "ORA-12514" in error:
-                return False, f"连接失败: TNS监听程序无法识别服务名，请检查服务名"
+                return False, "连接失败: TNS监听程序无法识别服务名，请检查服务名"
             elif "ORA-01017" in error:
-                return False, f"连接失败: 用户名或密码无效"
+                return False, "连接失败: 用户名或密码无效"
             elif "ORA-12154" in error:
-                return False, f"连接失败: 无法解析服务名，请检查服务名配置"
+                return False, "连接失败: 无法解析服务名，请检查服务名配置"
             else:
                 return False, f"连接失败: {error}"
         except Exception as e:
             return False, f"连接失败: {str(e)}"
 
     def disconnect(self):
+        """断开数据库连接"""
         if self.connection:
             try:
                 self.connection.close()
@@ -42,6 +45,7 @@ class DBConnection:
             self.connection = None
 
     def is_connected(self) -> bool:
+        """检查数据库连接是否有效"""
         if self.connection:
             try:
                 self.connection.ping()
@@ -168,19 +172,27 @@ class DBConnection:
     def rollback(self):
         if self.connection:
             self.connection.rollback()
-    
+
     def get_key_values_from_table(self, table_name: str, key_column: str, schema: str = None) -> Tuple[bool, str, List[Any]]:
-        """从数据库表中获取指定列的所有值"""
+        """从数据库表中获取指定列的所有值（P0-1: 含安全校验）
+
+        P0-1 修复: 所有标识符在使用前均通过安全校验
+        """
         if not self.is_connected():
             return False, "未连接数据库", []
-        
+
         try:
+            # P0-1: 安全校验
+            table_name = sanitize_identifier(table_name, "get_key_values.table_name")
+            key_column = sanitize_identifier(key_column, "get_key_values.key_column")
+
             cursor = self.connection.cursor()
             if schema:
+                schema = validate_schema(schema, "get_key_values.schema")
                 sql = f"SELECT {key_column} FROM {schema}.{table_name}"
             else:
                 sql = f"SELECT {key_column} FROM {table_name}"
-            
+
             cursor.execute(sql)
             key_values = [row[0] for row in cursor.fetchall()]
             cursor.close()
