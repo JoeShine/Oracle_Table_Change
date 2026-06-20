@@ -23,14 +23,10 @@ class TestEmptyFieldHandling(unittest.TestCase):
     def test_empty_string_not_updated(self):
         """测试空字符串字段不更新"""
         # 准备测试数据
-        temp_key_values = {"1001"}
-        matched_key_values = set()
-        
-        # 模拟数据库查询返回：key=1001, NAME="张三", AGE=None, DEPT=""
-        # 注意：AGE和DEPT都是空值
+        # 模拟数据库查询返回：key=1001, old值≠新值
+        # 行结构: key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
         mock_result = [
-            ("1001", "张三", None, "", "张三", None, "")
-            # key, old_name, old_age, old_dept, new_name, new_age, new_dept
+            ("1001", "张老三", 25, "销售部", "张三", None, "", "张三", None, "")
         ]
         
         self.mock_db.execute_sql.side_effect = [
@@ -66,9 +62,10 @@ class TestEmptyFieldHandling(unittest.TestCase):
         
     def test_none_value_not_updated(self):
         """测试None值字段不更新"""
-        # 准备测试数据：所有字段都是None
+        # 准备测试数据：所有新值字段都是None
+        # 行结构: key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
         mock_result = [
-            ("1002", None, None, None, None, None, None)
+            ("1002", "老李", 40, "技术部", None, None, None, None, None, None)
         ]
         
         self.mock_db.execute_sql.side_effect = [
@@ -103,8 +100,9 @@ class TestEmptyFieldHandling(unittest.TestCase):
     def test_mixed_empty_and_non_empty_fields(self):
         """测试混合空字段和非空字段"""
         # 准备测试数据：NAME非空，AGE和DEPT为空
+        # 行结构: key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
         mock_result = [
-            ("1003", "李四", 25, "技术部", "李四", None, "")
+            ("1003", "李老三", 25, "技术部", "李四", None, "", "李四", None, "")
         ]
         
         self.mock_db.execute_sql.side_effect = [
@@ -152,13 +150,14 @@ class TestUnmatchedRecords(unittest.TestCase):
         """测试未匹配记录被正确检测"""
         # 临时表中有3个key: 1001, 1002, 9999
         # 目标表中只有1001和1002，9999不存在
+        # 行结构: key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
         
         self.mock_db.execute_sql.side_effect = [
             (True, [("1001",), ("1002",), ("9999",)], None),  # 临时表keys
             (True, [
-                ("1001", "张三", 28, "技术部", "张三", 28, "技术部"),
-                ("1002", "李四", 32, "市场部", "李四", 32, "市场部")
-            ], None),  # 匹配的记录
+                ("1001", "张老三", 25, "销售部", "张三", 28, "技术部", "张三", 28, "技术部"),
+                ("1002", "李老四", 30, "人事部", "李四", 32, "市场部", "李四", 32, "市场部")
+            ], None),  # 匹配的记录（旧值≠新值）
         ]
         
         mock_cursor = MagicMock()
@@ -248,8 +247,9 @@ class TestDifferentSchemaSupport(unittest.TestCase):
         self.mock_db.execute_sql.side_effect = [
             (True, [("1001",)], None),  # 第1次：获取临时表keys
             (True, [
-                ("1001", "张三", 28, "技术部", "张三", 28, "技术部")
-            ], None),  # 第2次：查询匹配记录
+                # key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
+                ("1001", "张老三", 25, "销售部", "张三", 28, "技术部", "张三", 28, "技术部")
+            ], None),  # 第2次：查询匹配记录（10列）
         ]
         
         mock_cursor = MagicMock()
@@ -277,6 +277,9 @@ class TestDifferentSchemaSupport(unittest.TestCase):
         query_sql = execute_sql_calls[1][0][0]
         self.assertIn("APPS.EMPLOYEE", query_sql)
         self.assertIn("SYSTEM.", query_sql)
+        # 验证SQL使用了AS别名格式
+        for col in ["NAME", "AGE", "DEPT"]:
+            self.assertIn(f"AS OLD_{col}", query_sql, f"缺少 AS OLD_{col} 别名")
         
         # 验证cursor.execute的UPDATE语句使用目标表Schema
         cursor_execute_calls = mock_cursor.execute.call_args_list
@@ -296,7 +299,12 @@ class TestBackupAndTempTableCreation(unittest.TestCase):
         
     def test_backup_table_creation(self):
         """测试备份表创建"""
-        self.mock_db.execute_sql.return_value = (True, None, None)
+        # 第一次调用：CREATE TABLE
+        # 第二次调用：COUNT检查
+        self.mock_db.execute_sql.side_effect = [
+            (True, None, None),        # CREATE TABLE
+            (True, [("5",)], None),    # COUNT检查返回5条记录
+        ]
         
         # 执行备份
         success, backup_name = self.updater.backup_table("APPS", "EMPLOYEE")
@@ -311,6 +319,11 @@ class TestBackupAndTempTableCreation(unittest.TestCase):
         create_sql = execute_calls[0][0][0]
         self.assertIn("CREATE TABLE APPS.EMPLOYEE_BAK_", create_sql)
         self.assertIn("AS SELECT * FROM APPS.EMPLOYEE", create_sql)
+        
+        # 验证COUNT检查SQL
+        count_sql = execute_calls[1][0][0]
+        self.assertIn("SELECT COUNT(*)", count_sql)
+        self.assertIn("EMPLOYEE_BAK_", count_sql)
         
     def test_temp_table_creation_with_schema(self):
         """测试临时表创建使用指定Schema"""
@@ -339,6 +352,63 @@ class TestBackupAndTempTableCreation(unittest.TestCase):
         self.assertIn("DEPT VARCHAR2(4000)", create_sql)
 
 
+class TestRollback(unittest.TestCase):
+    """测试回滚功能"""
+    
+    def setUp(self):
+        self.mock_db = MagicMock()
+        self.mock_log = MagicMock()
+        self.updater = DataUpdater(self.mock_db, self.mock_log)
+    
+    def test_rollback_without_backup(self):
+        """测试无备份表时回滚"""
+        self.updater.backup_created = False
+        success, msg = self.updater.rollback("APPS", "SYSTEM")
+        self.assertTrue(success)
+        self.assertIn("无需回滚", msg)
+    
+    def test_rollback_restores_data(self):
+        """测试回滚恢复数据"""
+        # 设置备份状态
+        self.updater.backup_created = True
+        self.updater.backup_table_name = "EMPLOYEE_BAK_20260620"
+        self.updater.temp_table_name = "TEMP_UPDATE_12345"
+        
+        # Mock execute_sql 返回
+        # 第1次：DROP TABLE temp（清理临时表）
+        # 第2次：DELETE FROM target（清空目标表）
+        # 第3次：INSERT INTO target SELECT * FROM backup（恢复数据）
+        self.mock_db.execute_sql.side_effect = [
+            (True, None, None),  # 清理临时表
+            (True, None, None),  # 清空目标表
+            (True, None, None),  # 从备份表恢复
+        ]
+        
+        success, msg = self.updater.rollback("APPS", "SYSTEM")
+        
+        # 验证
+        self.assertTrue(success)
+        self.assertIn("回滚成功", msg)
+        
+        # 验证SQL调用
+        execute_calls = self.mock_db.execute_sql.call_args_list
+        self.assertEqual(len(execute_calls), 3)
+        
+        # 第1次：DROP TABLE temp
+        drop_sql = execute_calls[0][0][0]
+        self.assertIn("DROP TABLE", drop_sql)
+        self.assertIn("TEMP_UPDATE_12345", drop_sql)
+        
+        # 第2次：DELETE
+        delete_sql = execute_calls[1][0][0]
+        self.assertIn("DELETE FROM APPS.EMPLOYEE", delete_sql)
+        
+        # 第3次：INSERT ... SELECT
+        restore_sql = execute_calls[2][0][0]
+        self.assertIn("INSERT INTO APPS.EMPLOYEE", restore_sql)
+        self.assertIn("SELECT * FROM APPS.EMPLOYEE_BAK_20260620", restore_sql)
+
+
 def run_core_logic_tests():
     """运行核心业务逻辑测试"""
     print("\n" + "=" * 60)
@@ -355,7 +425,8 @@ def run_core_logic_tests():
         TestEmptyFieldHandling,
         TestUnmatchedRecords,
         TestDifferentSchemaSupport,
-        TestBackupAndTempTableCreation
+        TestBackupAndTempTableCreation,
+        TestRollback
     ]
     
     for test_class in test_classes:

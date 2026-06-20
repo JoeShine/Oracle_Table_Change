@@ -117,6 +117,31 @@ class OSCompatibility:
             "python_version": platform.python_version(),
             "architecture": platform.architecture()[0]
         }
+    
+    @staticmethod
+    def get_app_version() -> str:
+        """从 VERSION 文件动态获取应用版本号"""
+        try:
+            # 优先从应用目录下的 VERSION 文件读取
+            version_file = Path(__file__).parent.parent / "VERSION"
+            if version_file.exists():
+                return version_file.read_text(encoding='utf-8').strip()
+        except Exception:
+            pass
+        
+        # 备选：从环境变量读取
+        env_version = os.environ.get("APP_VERSION", "")
+        if env_version:
+            return env_version
+        
+        # 兜底：尝试从包元数据读取
+        try:
+            from importlib.metadata import version
+            return version("Oracle_Table_Change")
+        except Exception:
+            pass
+        
+        return "unknown"
 
 
 class ThemeManager:
@@ -556,8 +581,8 @@ class OracleBatchUpdaterGUI:
 
         # 三个主题风格按钮
         themes = [
-            ("idea", "Idea💡"),
             ("terminal", "深墨🖥"),
+            ("idea", "Idea💡"),
             ("clean", "清爽✨"),
         ]
         for i, (style_key, style_label_text) in enumerate(themes):
@@ -724,18 +749,24 @@ class OracleBatchUpdaterGUI:
         row0.pack(fill=tk.X, pady=6)
         ttk.Label(row0, text="目标表模式:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
         self.schema_var = tk.StringVar(value="APPS")
-        schema_combo = ttk.Combobox(row0, textvariable=self.schema_var, 
-                                     values=["APPS", "SYS", "SYSTEM"], state="readonly", font=("Microsoft YaHei", 10))
-        schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.schema_combo = ttk.Combobox(row0, textvariable=self.schema_var, 
+                                     values=self.config.get_schema_values(), font=("Microsoft YaHei", 10))
+        self.schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        schema_config_btn = ttk.Button(row0, text="⚙", width=3, 
+                                       command=lambda: self.configure_schema_values("target"), style="Action.TButton")
+        schema_config_btn.pack(side=tk.LEFT, padx=(3, 0))
         
         row0b = ttk.Frame(config_panel)
         row0b.pack(fill=tk.X, pady=6)
         ttk.Label(row0b, text="临时表模式:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
         self.temp_schema_var = tk.StringVar(value="APPS")
-        temp_schema_combo = ttk.Combobox(row0b, textvariable=self.temp_schema_var, 
-                                     values=["APPS", "SYS", "SYSTEM"], state="readonly", font=("Microsoft YaHei", 10))
-        temp_schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.temp_schema_combo = ttk.Combobox(row0b, textvariable=self.temp_schema_var, 
+                                     values=self.config.get_schema_values(), font=("Microsoft YaHei", 10))
+        self.temp_schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         ttk.Label(row0b, text="(临时表创建位置)", font=("Microsoft YaHei", 8), foreground="#6c757d").pack(side=tk.LEFT, padx=(5, 0))
+        schema_config_btn2 = ttk.Button(row0b, text="⚙", width=3,
+                                        command=lambda: self.configure_schema_values("temp"), style="Action.TButton")
+        schema_config_btn2.pack(side=tk.LEFT, padx=(3, 0))
         
         row1 = ttk.Frame(config_panel)
         row1.pack(fill=tk.X, pady=6)
@@ -814,8 +845,10 @@ class OracleBatchUpdaterGUI:
         
         btn_frame = ttk.Frame(tab)
         btn_frame.pack(fill=tk.X)
-        self.start_btn = ttk.Button(btn_frame, text="✅ 确认", style="Primary.TButton", command=self.confirm_update)
-        self.start_btn.pack(side=tk.LEFT)
+        self.validate_btn = ttk.Button(btn_frame, text="🔍 验证数据", style="Action.TButton", command=self.validate_data)
+        self.validate_btn.pack(side=tk.LEFT)
+        self.execute_btn = ttk.Button(btn_frame, text="✅ 执行", style="Primary.TButton", command=self.confirm_update, state=tk.DISABLED)
+        self.execute_btn.pack(side=tk.LEFT, padx=(10, 0))
         clear_btn = ttk.Button(btn_frame, text="🗑 清空", command=self.clear_form, style="Action.TButton")
         clear_btn.pack(side=tk.LEFT, padx=(10, 0))
 
@@ -975,15 +1008,13 @@ class OracleBatchUpdaterGUI:
         self.operation_status_label = ttk.Label(self.status_bar, text="状态: 就绪", style="Status.TLabel")
         self.operation_status_label.pack(side=tk.LEFT)
         
-        # 操作系统信息（右侧）
-        ttk.Separator(self.status_bar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=15)
-        
-        # 显示操作系统名称，服务器版特殊标记
-        os_display = self.os_info["os_name"]
+        # 操作系统版本（右下角，动态从操作系统获取）
+        os_version = self.os_info["os_name"]
         if self.os_info["is_server"]:
-            os_display += " [服务器版]"
-        self.os_label = ttk.Label(self.status_bar, text=f"系统: {os_display}", style="Status.TLabel")
-        self.os_label.pack(side=tk.RIGHT)
+            os_version += " [服务器版]"
+        self.version_label = ttk.Label(self.status_bar, text=f"{os_version}", style="Status.TLabel",
+                                       font=("Microsoft YaHei", 9))
+        self.version_label.pack(side=tk.RIGHT, padx=(0, 15))
 
     def update_status_bar(self, connected=False, db_name="-", db_user="-", operation="就绪", conn_name="-"):
         if connected:
@@ -1504,6 +1535,76 @@ class OracleBatchUpdaterGUI:
         elif status == "done":
             step_num.configure(bg="#28a745", fg="white")
 
+    def validate_data(self):
+        """验证数据：Excel结构 + 数据库表/列，全部通过后才允许执行"""
+        if not self.is_connected:
+            messagebox.showwarning("提示", "请先连接数据库")
+            self.notebook.select(2)
+            return
+        
+        target_table = self.target_table_var.get().strip()
+        key_column = self.key_column_var.get().strip()
+        update_columns = self.get_update_columns()
+        excel_path = self.excel_path_var.get().strip()
+        schema = self.schema_var.get()
+        temp_schema = self.temp_schema_var.get()
+        
+        if not all([target_table, key_column, excel_path]):
+            messagebox.showwarning("提示", "请填写所有必填字段")
+            return
+        
+        if not update_columns:
+            messagebox.showwarning("提示", "请至少添加一个待修改列")
+            return
+        
+        # 禁用验证按钮，防止重复点击
+        self.validate_btn.config(state=tk.DISABLED, text="⏳ 验证中...")
+        self.root.update()
+        
+        validation_errors = []
+        
+        try:
+            # 1. 验证Excel文件
+            self.update_status_bar(connected=True, operation="正在验证Excel...")
+            valid, msg, _ = ExcelHandler.validate_multi_column_structure(excel_path, update_columns)
+            if not valid:
+                validation_errors.append(f"Excel验证失败: {msg}")
+            else:
+                self.add_log(f"Excel验证通过: {msg}", "SUCCESS")
+            
+            # 2. 验证数据库表/列
+            if not validation_errors:
+                self.update_status_bar(connected=True, operation="正在验证数据库表/列...")
+                updater = DataUpdater(self.db_connection, self.log_manager)
+                valid, msg = updater.validate_table_and_columns_multi(schema, target_table, key_column, update_columns)
+                if not valid:
+                    validation_errors.append(f"数据库验证失败: {msg}")
+                else:
+                    self.add_log("数据库表和列验证通过", "SUCCESS")
+            
+            # 3. 验证临时表Schema
+            if not validation_errors and temp_schema != schema:
+                self.add_log(f"目标表模式: {schema}, 临时表模式: {temp_schema}", "INFO")
+        
+        except Exception as e:
+            validation_errors.append(f"验证过程异常: {str(e)}")
+        
+        # 恢复按钮状态
+        if validation_errors:
+            self.validate_btn.config(state=tk.NORMAL, text="🔍 验证数据")
+            self.execute_btn.config(state=tk.DISABLED)
+            self.update_status_bar(connected=True, operation="验证失败")
+            
+            error_msg = "\n".join(validation_errors)
+            self.add_log(error_msg, "ERROR")
+            messagebox.showerror("验证失败", f"数据验证未通过，请修正后重试：\n\n{error_msg}")
+        else:
+            self.validate_btn.config(state=tk.DISABLED, text="✅ 验证通过")
+            self.execute_btn.config(state=tk.NORMAL)
+            self.update_status_bar(connected=True, operation="验证通过，可以执行")
+            self.add_log("所有验证通过，可以执行更新操作", "SUCCESS")
+            messagebox.showinfo("验证通过", "数据验证全部通过！\n\n请点击\"执行\"按钮开始更新数据库。")
+
     def confirm_update(self):
         if not self.is_connected:
             messagebox.showwarning("提示", "请先连接数据库")
@@ -1548,7 +1649,7 @@ Excel文件: {excel_path}
         try:
             self.save_config()
             self.log_manager.clear_failed_records()
-            self.root.after(0, lambda: self.start_btn.config(state=tk.DISABLED))
+            self.root.after(0, lambda: self.execute_btn.config(state=tk.DISABLED))
             self.root.after(0, lambda: self.update_status_bar(connected=True, operation="正在验证..."))
             
             self.add_log("开始数据更新操作", "HEADING")
@@ -1571,7 +1672,7 @@ Excel文件: {excel_path}
             if not valid:
                 self.add_log(msg, "ERROR")
                 self.root.after(0, lambda: messagebox.showerror("验证失败", msg))
-                self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="验证失败"))
                 return
@@ -1585,7 +1686,7 @@ Excel文件: {excel_path}
             if not valid:
                 self.add_log(msg, "ERROR")
                 self.root.after(0, lambda: messagebox.showerror("验证失败", msg))
-                self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="验证失败"))
                 return
@@ -1598,7 +1699,7 @@ Excel文件: {excel_path}
             if not success:
                 self.add_log(f"备份失败: {msg}", "ERROR")
                 self.root.after(0, lambda: messagebox.showerror("备份失败", msg))
-                self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="备份失败"))
                 return
@@ -1613,7 +1714,7 @@ Excel文件: {excel_path}
                 self.add_log(f"创建临时表失败: {msg}", "ERROR")
                 updater.cleanup_on_failure(temp_schema)
                 self.root.after(0, lambda: messagebox.showerror("创建临时表失败", msg))
-                self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="创建临时表失败"))
                 return
@@ -1632,7 +1733,7 @@ Excel文件: {excel_path}
                 self.add_log(f"导入失败: {error}", "ERROR")
                 updater.cleanup_on_failure(temp_schema)
                 self.root.after(0, lambda: messagebox.showerror("导入失败", error))
-                self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+                self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="导入失败"))
                 return
@@ -1698,13 +1799,13 @@ Excel文件: {excel_path}
                 self.root.after(0, lambda: messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {actual_fail_count}\n未匹配: {unmatched_count}"))
             
             self.root.after(0, lambda: self.refresh_history())
-            self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+            self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
             self.root.after(0, lambda: self.close_progress_window())
             
         except Exception as e:
             self.add_log(f"执行出错: {str(e)}", "ERROR")
             self.root.after(0, lambda: messagebox.showerror("错误", str(e)))
-            self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
+            self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
             self.root.after(0, lambda: self.close_progress_window())
             self.root.after(0, lambda: self.update_status_bar(connected=True, operation="执行出错"))
 
@@ -1797,6 +1898,53 @@ Excel文件: {excel_path}
         
         ttk.Button(btn_frame, text="确定", command=dialog.destroy, style="Action.TButton").pack(side=tk.LEFT, padx=5)
 
+    def configure_schema_values(self, schema_type="target"):
+        """配置模式下拉选项"""
+        import tkinter.simpledialog as simpledialog
+        
+        current_values = self.config.get_schema_values()
+        current_str = ", ".join(current_values)
+        
+        dialog = tk.Toplevel(self.root)
+        dialog.title("配置模式选项")
+        dialog.geometry("450x280")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="配置模式下拉选项", font=("Microsoft YaHei", 12, "bold")).pack(pady=(15, 5))
+        ttk.Label(dialog, text="用逗号分隔，例如: APPS, SYS, SYSTEM, HR, SCOTT", 
+                  font=("Microsoft YaHei", 9), foreground="#6c757d").pack(pady=(0, 10))
+        
+        ttk.Label(dialog, text="模式选项:", font=("Microsoft YaHei", 10)).pack(anchor=tk.W, padx=20)
+        entry = ttk.Entry(dialog, font=("Microsoft YaHei", 10), width=50)
+        entry.insert(0, current_str)
+        entry.pack(padx=20, pady=(5, 15), fill=tk.X)
+        entry.select_range(0, tk.END)
+        entry.focus_set()
+        
+        def save_values():
+            new_str = entry.get().strip()
+            if not new_str:
+                messagebox.showwarning("提示", "模式选项不能为空", parent=dialog)
+                return
+            new_values = [v.strip() for v in new_str.split(",") if v.strip()]
+            self.config.set_schema_values(new_values)
+            self.refresh_schema_combos()
+            dialog.destroy()
+            messagebox.showinfo("成功", f"模式选项已更新为 {len(new_values)} 个")
+        
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=(0, 10))
+        ttk.Button(btn_frame, text="💾 保存", command=save_values, style="Primary.TButton").pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="取消", command=dialog.destroy, style="Action.TButton").pack(side=tk.LEFT, padx=5)
+    
+    def refresh_schema_combos(self):
+        """刷新模式下拉框选项"""
+        values = self.config.get_schema_values()
+        self.schema_combo['values'] = values
+        self.temp_schema_combo['values'] = values
+
     def clear_form(self):
         self.schema_var.set("APPS")
         self.temp_schema_var.set("APPS")
@@ -1810,6 +1958,10 @@ Excel文件: {excel_path}
         self.update_column_widgets = [self.first_update_entry]
         
         self.excel_path_var.set("")
+        
+        # 重置验证状态
+        self.validate_btn.config(state=tk.NORMAL, text="🔍 验证数据")
+        self.execute_btn.config(state=tk.DISABLED)
         
         for item in self.preview_tree.get_children():
             self.preview_tree.delete(item)

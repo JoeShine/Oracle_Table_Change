@@ -67,7 +67,7 @@ scripts\create_portable.bat  # 创建便携版
 
 ### 临时表Schema独立
 - 临时表和目标表支持 **不同的Schema**
-- 界面新增"临时表模式"选择
+- 界面新增"临时表模式"输入框（支持手工填写，可点击⚙配置选项）
 - 场景保存时保存临时表Schema配置
 
 ---
@@ -190,7 +190,7 @@ host:port/service_name
 
 ---
 
-## 3. 三套主题风格系统 (🎨 主题切换)
+## 9. 三套主题风格系统 (🎨 主题切换)
 
 ### 功能说明
 系统提供三套主题风格，每套均支持浅色/深色模式，共六种视觉方案。**默认风格为深墨琥珀（terminal）**，与 demo.html 原型一致。
@@ -213,8 +213,8 @@ host:port/service_name
 - tab_bg / tab_selected / tab_border
 - header_bg（linear-gradient）/ header_fg
 
-### 主题按钮（与代码 `gui.py` 第 393-397 行一致）
-- 风格按钮：`Idea💡` / `深墨🖥` / `清爽✨`
+### 主题按钮（与代码 `gui.py` 一致）
+- 风格按钮：`深墨🖥` / `Idea💡` / `清爽✨`
 - 深浅色按钮：`🌙 深色模式`（当前浅色时） / `☀️ 浅色模式`（当前深色时）
 
 ### 使用步骤
@@ -244,13 +244,16 @@ host:port/service_name
 ## 界面更新
 
 ### 按钮位置
-两个新按钮位于"浏览"和"预览"按钮的右侧：
+操作按钮位于配置区域下方：
 - [📁 浏览] [👁 预览] **[🔍 重复性校验]** **[✅ 一致性校验]**
+- [🔍 验证数据] **[✅ 执行]**（初始禁用，验证通过后启用）
 
 ### 状态栏更新
 校验过程中会在状态栏显示当前操作状态：
 - "正在检查重复值..."
 - "正在检查一致性..."
+- "正在验证数据..."
+- 右下角显示操作系统版本（如 Linux 6.8.0）
 
 ---
 
@@ -271,8 +274,9 @@ host:port/service_name
 ### 修改的文件
 1. `src/excel_handler.py` - 添加了Excel数据读取相关函数
 2. `src/db_connection.py` - 添加了数据库查询功能
-3. `src/gui.py` - 添加了新按钮和校验逻辑，新增三套主题系统
-4. `src/config_manager.py` - 配置持久化增加 theme_style / theme_dark 字段
+3. `src/gui.py` - 添加了新按钮和校验逻辑，新增三套主题系统，新增数据验证和Schema配置
+4. `src/config_manager.py` - 配置持久化增加 theme_style / theme_dark 字段，新增 schema_values 配置
+5. `src/data_updater.py` - SQL生成修复（AS别名），回滚逻辑修复
 
 ### 新增函数
 - `ExcelHandler.get_key_values_from_excel()` - 获取Excel中唯一标识值
@@ -282,6 +286,9 @@ host:port/service_name
 - `OracleBatchUpdaterGUI.show_duplicate_dialog()` - 显示重复值对话框
 - `OracleBatchUpdaterGUI.check_consistency()` - 一致性校验主逻辑
 - `OracleBatchUpdaterGUI.show_consistency_dialog()` - 显示一致性问题对话框
+- `OracleBatchUpdaterGUI.validate_data()` - 数据验证（Excel+DB表/列）
+- `OracleBatchUpdaterGUI.configure_schema_values()` - 配置Schema下拉选项
+- `OracleBatchUpdaterGUI.refresh_schema_combos()` - 刷新Schema下拉列表
 - `OracleBatchUpdaterGUI.switch_theme_style()` - 主题风格切换
 - `OracleBatchUpdaterGUI.toggle_theme()` - 深浅色切换
 - `OracleBatchUpdaterGUI._save_theme_config()` - 主题配置持久化
@@ -300,7 +307,8 @@ host:port/service_name
    - 点击"👁 预览"查看数据
    - 点击"🔍 重复性校验"检查重复
    - 点击"✅ 一致性校验"检查数据存在性
-   - 确认无误后点击"✅ 确认"执行更新
+   - 点击"🔍 验证数据"验证Excel和数据库
+   - 验证通过后点击"✅ 执行"执行更新
 
 2. **注意事项**：
    - 一致性校验需要先连接数据库

@@ -157,8 +157,11 @@ class TestCodeDocConsistency(unittest.TestCase):
         files_to_check = [
             ('demo.html', 'v2.7'),
             ('docs/用户手册.md', 'v2.7'),
+            ('docs/部署方案.md', 'v2.7'),
+            ('docs/Windows_Server使用指南.md', 'v2.7'),
             ('Dockerfile', 'version="2.7"'),
-            ('NEW_FEATURES_README.md', 'v2.7')
+            ('README.md', 'v2.7'),
+            ('NEW_FEATURES_README.md', 'v2.7'),
         ]
         
         for file_name, version_pattern in files_to_check:
@@ -167,6 +170,8 @@ class TestCodeDocConsistency(unittest.TestCase):
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 self.assertIn(version_pattern, content, f"{file_name}版本号不一致")
+            else:
+                print(f"  ⚠ {file_name} 不存在，跳过检查")
         
         print("  ✓ 版本号一致性正确")
     

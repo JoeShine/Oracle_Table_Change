@@ -153,6 +153,22 @@ class TestOSCompatibility(unittest.TestCase):
         self.assertIn('font_family', os_info)
         self.assertIn('os_name', os_info)
         print(f"  ✓ OS信息: {os_info['os_name']}")
+    
+    def test_04_app_version(self):
+        """测试应用版本号动态获取"""
+        print("\n[测试] 应用版本号...")
+        
+        from src.gui import OSCompatibility
+        
+        version = OSCompatibility.get_app_version()
+        
+        self.assertIsInstance(version, str)
+        self.assertTrue(len(version) > 0)
+        self.assertNotEqual(version, "unknown", "版本号不应为 unknown")
+        
+        # 验证版本号格式：x.y.z
+        self.assertRegex(version, r'^\d+\.\d+\.\d+$', f"版本号格式错误: {version}")
+        print(f"  ✓ 动态获取版本号: v{version}")
 
 
 class TestExcelHandler(unittest.TestCase):
@@ -177,11 +193,26 @@ class TestLogger(unittest.TestCase):
         """测试日志方法"""
         print("\n[测试] 日志方法...")
         
+        # 验证日志方法存在且可调用
+        self.assertTrue(hasattr(self.logger, 'info'))
+        self.assertTrue(hasattr(self.logger, 'success'))
+        self.assertTrue(hasattr(self.logger, 'warning'))
+        self.assertTrue(hasattr(self.logger, 'error'))
+        
+        # 调用方法并验证不抛出异常
         self.logger.info("测试信息")
         self.logger.success("测试成功")
         self.logger.warning("测试警告")
         self.logger.error("测试错误")
-        print("  ✓ 所有日志方法正常")
+        
+        # 验证日志文件被创建
+        self.assertTrue(self.logger.log_file.exists(), "日志文件应被创建")
+        log_content = self.logger.log_file.read_text(encoding='utf-8')
+        self.assertIn("测试信息", log_content)
+        self.assertIn("SUCCESS - 测试成功", log_content)
+        self.assertIn("WARNING - 测试警告", log_content)
+        self.assertIn("ERROR - 测试错误", log_content)
+        print(f"  ✓ 日志文件已创建并包含正确内容")
 
 
 class TestDataUpdater(unittest.TestCase):
@@ -216,12 +247,9 @@ class TestGUIComponents(unittest.TestCase):
         """测试键盘导航方法"""
         print("\n[测试] 键盘导航方法...")
         
-        # 检查方法存在
-        import inspect
+        # 检查键盘绑定方法（公开方法，不含_前缀的私有方法）
         methods = [m for m in dir(OracleBatchUpdaterGUI) if not m.startswith('_')]
-        
-        # 实际方法名是 _switch_tab
-        expected_methods = ['bind_shortcuts']  # 键盘绑定方法
+        expected_methods = ['bind_shortcuts']
         for method in expected_methods:
             self.assertIn(method, methods)
         print("  ✓ 键盘绑定方法存在")

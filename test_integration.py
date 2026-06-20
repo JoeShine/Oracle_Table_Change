@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 from datetime import datetime
+import shutil
 import tempfile
 import os
 import pandas as pd
@@ -44,10 +45,8 @@ class TestCompleteUserWorkflow(unittest.TestCase):
         
     def tearDown(self):
         """清理测试环境"""
-        if os.path.exists(self.excel_file):
-            os.remove(self.excel_file)
         if os.path.exists(self.temp_dir):
-            os.rmdir(self.temp_dir)
+            shutil.rmtree(self.temp_dir)
     
     def test_complete_workflow_scenario_to_update(self):
         """测试完整流程：场景选择 → 文件选择 → 预览 → 更新"""
@@ -123,10 +122,11 @@ class TestCompleteUserWorkflow(unittest.TestCase):
         self.mock_db.execute_sql.side_effect = [
             (True, [("1001",), ("1002",), ("1003",)], None),  # 获取keys
             (True, [
-                ("1001", "张三", 28, "技术部", "张三", 28, "技术部"),
-                ("1002", "李四", 32, "市场部", "李四", 32, "市场部"),
-                ("1003", "王五", 25, "技术部", "王五", 25, "技术部")
-            ], None),  # 查询匹配记录
+                # key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
+                ("1001", "张老三", 25, "销售部", "张三", 28, "技术部", "张三", 28, "技术部"),
+                ("1002", "李老四", 30, "人事部", "李四", 32, "市场部", "李四", 32, "市场部"),
+                ("1003", "王老五", 22, "财务部", "王五", 25, "技术部", "王五", 25, "技术部"),
+            ], None),  # 查询匹配记录（旧值≠新值=当前值，验证正确读取新值）
         ]
         
         mock_cursor = MagicMock()
@@ -207,8 +207,9 @@ class TestCompleteUserWorkflow(unittest.TestCase):
             self.mock_db.execute_sql.side_effect = [
                 (True, [("2001",), ("2002",)], None),  # 获取keys
                 (True, [
-                    ("2001", "赵六", None, "", "赵六", None, ""),
-                    ("2002", None, 35, "财务部", None, 35, "财务部")
+                    # key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
+                    ("2001", "赵老六", 30, "销售部", "赵六", None, "", "赵六", None, ""),
+                    ("2002", "钱老七", 40, "人事部", None, 35, "财务部", None, 35, "财务部"),
                 ], None),
             ]
             
@@ -304,9 +305,10 @@ class TestCompleteUserWorkflow(unittest.TestCase):
             self.mock_db.execute_sql.side_effect = [
                 (True, [("3001",), ("3002",), ("9999",)], None),  # 获取keys
                 (True, [
-                    ("3001", "孙七", 40, "销售部", "孙七", 40, "销售部"),
-                    ("3002", "周八", 45, "人事部", "周八", 45, "人事部")
-                ], None),  # 只有2条匹配
+                    # key, old_NAME, old_AGE, old_DEPT, cur_NAME, cur_AGE, cur_DEPT, new_NAME, new_AGE, new_DEPT
+                    ("3001", "孙老七", 38, "后勤部", "孙七", 40, "销售部", "孙七", 40, "销售部"),
+                    ("3002", "周老八", 42, "行政部", "周八", 45, "人事部", "周八", 45, "人事部"),
+                ], None),  # 只有2条匹配，9999不存在
             ]
             
             mock_cursor = MagicMock()

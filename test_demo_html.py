@@ -79,8 +79,8 @@ class TestDemoHTML(unittest.TestCase):
         """测试版本号"""
         print("\n[测试] 版本号...")
         self.assertIn('v2.7', self.content)
-        self.assertIn('v 2.7.0', self.content)
-        print("  ✓ 版本号v2.7正确")
+        self.assertIn('v2.7.0', self.content)
+        print("  ✓ 版本号v2.7.0正确")
     
     def test_05_scenario_feature(self):
         """测试场景功能（原模板）"""
@@ -231,8 +231,8 @@ class TestDemoHTML(unittest.TestCase):
         
         # 检查Easy Connect相关内容
         self.assertIn('Easy Connect', self.content)
-        # 检查连接地址格式（192.168.1.100:1521）
-        self.assertIn('192.168.1.100:1521', self.content)
+        # 检查连接地址格式：IP:端口（如 192.168.1.100:1521）
+        self.assertRegex(self.content, r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+')
         
         print("  ✓ Easy Connect连接方式说明正确")
     

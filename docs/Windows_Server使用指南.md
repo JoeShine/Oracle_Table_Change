@@ -157,7 +157,8 @@ python main.py
 3. 选择目标表
 4. 选择Excel文件
 5. 配置更新列
-6. 执行批量更新
+6. 点击 **"验证数据"** 检查Excel和数据库
+7. 验证通过后点击 **"执行"** 开始批量更新
 
 ---
 
@@ -198,9 +199,8 @@ host:port/service_name
 | 项目 | 要求 |
 |-----|------|
 | 操作系统 | Windows Server 2008 R2 SP1 或更高 |
-| .NET Framework | 3.5+（某些Oracle客户端需要） |
 | Oracle客户端 | 11g或更高版本 |
-| Python | 3.8+（源码运行需要） |
+| Python | 3.7+（源码运行需要） |
 
 ### Oracle客户端兼容性
 

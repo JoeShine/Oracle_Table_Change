@@ -45,7 +45,8 @@ class ConfigManager:
                 "theme_dark": False
             },
             "connections": [],
-            "templates": []  # 配置场景列表
+            "templates": [],  # 配置场景列表
+            "schema_values": ["APPS", "SYS", "SYSTEM"]  # 模式下拉选项
         }
 
     def save_config(self):
@@ -76,25 +77,27 @@ class ConfigManager:
         self.save_config()
 
     def get_connections(self):
-        connections = self.config.get("connections", [])
-        # 解码密码后返回
+        """获取所有数据库连接配置"""
+        import copy
+        connections = copy.deepcopy(self.config.get("connections", []))
         for conn in connections:
             if "password" in conn:
                 conn["password"] = self._decode_password(conn["password"])
         return connections
 
     def add_connection(self, conn_info):
-        connections = self.get_connections()
         # 编码密码后存储
         conn_info = conn_info.copy()
         conn_info["password"] = self._encode_password(conn_info["password"])
+        
+        # 直接操作原始配置（密码均为编码状态），避免重复解码/编码
+        connections = self.config.get("connections", [])
         for i, conn in enumerate(connections):
             if conn["name"] == conn_info["name"]:
                 connections[i] = conn_info
                 break
         else:
             connections.append(conn_info)
-        self.config["connections"] = connections
         self.save_config()
 
     def delete_connection(self, name):
@@ -179,3 +182,13 @@ class ConfigManager:
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         return self.add_template(template)
+
+    def get_schema_values(self):
+        """获取模式下拉选项列表"""
+        return self.config.get("schema_values", ["APPS", "SYS", "SYSTEM"])
+    
+    def set_schema_values(self, values):
+        """设置模式下拉选项列表"""
+        self.config["schema_values"] = list(values)
+        self.save_config()
+        return True

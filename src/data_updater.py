@@ -177,12 +177,13 @@ class DataUpdater:
             
             # 2. 查询匹配的记录进行更新
             columns_str = ", ".join([f"t.{col}" for col in update_columns])
+            old_columns_str = ", ".join([f"t.{col} AS OLD_{col}" for col in update_columns])
             temp_columns_str = ", ".join([f"temp.{col}" for col in update_columns])
             
             check_sql = f"""
-            SELECT temp.{key_column}, {columns_str.replace('t.', 't.OLD_')}
-                   {columns_str.replace('t.', ', t.')}
-                   {temp_columns_str.replace('temp.', ', temp.')}
+            SELECT temp.{key_column}, {old_columns_str},
+                   {columns_str},
+                   {temp_columns_str}
             FROM {target_schema}.{target_table} t
             INNER JOIN {temp_schema}.{self.temp_table_name} temp
             ON t.{key_column} = temp.{key_column}
@@ -224,8 +225,9 @@ class DataUpdater:
                         non_empty_columns = []
                         
                         for j, col in enumerate(update_columns):
-                            # 获取临时表中的新值（索引：len(update_columns) + 1 + j）
-                            new_value = row[len(update_columns) + 1 + j]
+                            # 获取临时表中的新值
+                            # 行结构: key(0) | old值(1..len) | 当前值(len+1..2*len) | 新值(2*len+1..3*len)
+                            new_value = row[len(update_columns) * 2 + 1 + j]
                             
                             # 只有非空值才更新（空字符串和None都不更新）
                             if new_value is not None and str(new_value).strip() != '':
@@ -323,7 +325,7 @@ class DataUpdater:
             return self.success_count, self.fail_count, failed_records
 
     def rollback(self, target_schema: str, temp_schema: str) -> Tuple[bool, str]:
-        """回滚操作，支持目标表和临时表使用不同Schema"""
+        """回滚操作，从备份表恢复数据到目标表"""
         if not self.backup_created or not self.backup_table_name:
             self.log.warning("没有备份表，无需回滚")
             return True, "无需回滚"
@@ -331,23 +333,36 @@ class DataUpdater:
         try:
             self.log.info("正在执行回滚操作...")
             
-            temp_table_exists = False
+            # 1. 清理临时表
             if self.temp_table_name:
-                check_sql = f"SELECT COUNT(*) FROM {temp_schema}.{self.temp_table_name}"
-                success, _, _ = self.db.execute_sql(check_sql, commit=False)
-                if success:
-                    temp_table_exists = True
-            
-            if temp_table_exists:
                 self.cleanup_temp_table(temp_schema)
             
-            self.log.info(f"正在恢复数据从备份表 {target_schema}.{self.backup_table_name}")
+            # 2. 从备份表恢复数据到目标表
+            self.log.info(f"正在从备份表 {target_schema}.{self.backup_table_name} 恢复数据")
             
-            truncate_sql = f"DELETE FROM {target_schema}.{self.backup_table_name}"
-            success, _, error = self.db.execute_sql(truncate_sql)
+            # 备份表名格式为 TABLE_NAME_BAK_timestamp，需要提取原表名
+            backup_suffix = f"_BAK_"
+            if backup_suffix in self.backup_table_name:
+                original_table = self.backup_table_name.split(backup_suffix)[0]
+            else:
+                original_table = self.backup_table_name
             
-            self.log.warning("回滚完成，历史数据已被清除（备份表保留供审计）")
-            self.log.info(f"备份表 {target_schema}.{self.backup_table_name} 已保留")
+            # 清空目标表
+            truncate_target = f"DELETE FROM {target_schema}.{original_table}"
+            success, _, error = self.db.execute_sql(truncate_target)
+            if not success:
+                self.log.error(f"清空目标表失败: {error}")
+                return False, f"回滚失败: {error}"
+            
+            # 从备份表恢复数据
+            restore_sql = f"INSERT INTO {target_schema}.{original_table} SELECT * FROM {target_schema}.{self.backup_table_name}"
+            success, _, error = self.db.execute_sql(restore_sql)
+            if not success:
+                self.log.error(f"恢复数据失败: {error}")
+                return False, f"回滚失败: {error}"
+            
+            self.log.success("回滚完成，数据已从备份表恢复")
+            self.log.info(f"备份表 {target_schema}.{self.backup_table_name} 已保留供审计")
             
             return True, "回滚成功"
         except Exception as e:
