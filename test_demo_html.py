@@ -118,9 +118,9 @@ class TestDemoHTML(unittest.TestCase):
         """测试标签页结构"""
         print("\n[测试] 标签页结构...")
         
-        # 检查4个标签页（使用onclick="switchTab"来识别）
+        # 检查6个标签页（v2.8.0 新增报表统计和诊断工具）
         tab_count = len(re.findall(r'onclick="switchTab\(\d\)"', self.content))
-        self.assertEqual(tab_count, 4, f"应有4个标签页，实际: {tab_count}")
+        self.assertEqual(tab_count, 6, f"应有6个标签页，实际: {tab_count}")
         
         # 检查标签页内容
         self.assertIn('tab-content', self.content)
@@ -128,8 +128,10 @@ class TestDemoHTML(unittest.TestCase):
         self.assertIn('操作日志', self.content)
         self.assertIn('数据库连接', self.content)
         self.assertIn('历史记录', self.content)
+        self.assertIn('报表统计', self.content)
+        self.assertIn('诊断工具', self.content)
         
-        print("  ✓ 4个标签页结构正确")
+        print("  ✓ 6个标签页结构正确")
     
     def test_08_theme_system(self):
         """测试主题系统"""
