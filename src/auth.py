@@ -60,18 +60,19 @@ class RiskLevel:
         Returns:
             Tuple[risk_level, reason]
         """
-        # 检查是否生产环境
+        # 检查是否生产环境（生产环境判定优先级最高）
         conn_upper = connection_name.upper()
         if is_production or any(kw in conn_upper for kw in cls.PROD_KEYWORDS):
             if row_count > 1000:
                 return (cls.HIGH, "生产环境大批量更新（>1000 行）")
             return (cls.MEDIUM, "生产环境更新")
 
-        if row_count > 10000:
-            return (cls.MEDIUM, "大批量更新（>10000 行）")
-
+        # 非生产环境：先判定超大风险（>100000），再判定中风险（>1000）
         if row_count > 100000:
             return (cls.HIGH, "超大批量更新（>100000 行）")
+
+        if row_count > 10000:
+            return (cls.MEDIUM, "大批量更新（>10000 行）")
 
         return (cls.LOW, "常规更新")
 

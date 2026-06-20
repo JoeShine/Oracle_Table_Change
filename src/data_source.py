@@ -222,6 +222,10 @@ class CsvDataSource(DataSource):
         return count
 
     def get_preview(self, max_rows: int = 50) -> Tuple[List[str], List[Dict[str, Any]]]:
+        # 确保列名已填充（read_rows 使用 fieldnames 时会依赖 _columns）
+        if not self._columns:
+            self.get_columns()
+
         if self._preview_cache is not None:
             return (self._columns, self._preview_cache[:max_rows])
 
@@ -348,6 +352,10 @@ class JsonDataSource(DataSource):
         return count
 
     def get_preview(self, max_rows: int = 50) -> Tuple[List[str], List[Dict[str, Any]]]:
+        # 确保列名已填充
+        if not self._columns:
+            self.get_columns()
+
         if self._preview_cache is not None:
             return (self._columns, self._preview_cache[:max_rows])
 

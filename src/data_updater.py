@@ -415,6 +415,9 @@ class DataUpdater:
             all_problem_records = failed_records + unmatched_records
             return self.success_count, self.fail_count, all_problem_records
 
+        except CancelledError:
+            # P1-10: 取消异常需要向上传播，不能吞掉
+            raise
         except Exception as e:
             self.log.error(f"更新过程出错: {str(e)}")
             self.log.error(f"Traceback: {traceback.format_exc()}")
