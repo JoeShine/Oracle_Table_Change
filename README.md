@@ -350,6 +350,17 @@ A: 这是 Windows 安全机制，对下载文件附加了 Zone.Identifier 标记
 **Q: CHM 在网络共享文件夹中打不开？**
 A: Windows 默认阻止从网络路径打开 CHM，请先复制到本地磁盘（C:\ 或 D:\）。
 
+**Q: exe 文件双击后弹出警告，确认后无法打开？**
+A: 这是 Windows 安全机制（SmartScreen 或下载标记）。解决方法：
+1. 右键 exe → 属性 → 勾选「解除锁定」→ 确定
+2. 或将 exe 放在不含中文/特殊字符的短路径中（如 `C:\Tools\OracleBatchUpdater.exe`）
+3. 如弹出"Windows 保护了你的电脑"，点击「更多信息」→「仍要运行」
+
+**Q: 弹出 "启动失败 - 缺少依赖" 错误？**
+A: 确保以下文件与 exe 在同一目录或 `src/` 子目录中：
+- `src/` 目录（包含所有 .py 模块）
+- 如仍失败，请安装 Python 3.7+ 后运行 `pip install -r requirements.txt` 再执行 `python main.py`
+
 ## 许可证
 
 本项目仅供学习和研究使用。

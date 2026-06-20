@@ -2240,9 +2240,39 @@ Excel文件: {excel_path}
 
 
 def main():
-    root = tk.Tk()
-    app = OracleBatchUpdaterGUI(root)
-    root.mainloop()
+    """GUI 主入口，带错误处理。
+
+    如果 GUI 初始化失败，弹出友好错误对话框而非静默退出。
+    """
+    import tkinter as tk
+    from tkinter import messagebox
+    import traceback
+
+    try:
+        root = tk.Tk()
+        app = OracleBatchUpdaterGUI(root)
+        root.mainloop()
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        tb = traceback.format_exc()
+        try:
+            messagebox.showerror(
+                "Oracle 批量更新工具 - 启动失败",
+                f"程序启动时发生错误:\n\n"
+                f"{type(e).__name__}: {str(e)}\n\n"
+                f"请检查:\n"
+                f"  1. Python 版本 >= 3.7\n"
+                f"  2. 依赖已安装: pip install -r requirements.txt\n"
+                f"  3. config.json 配置文件未损坏\n"
+                f"  4. Oracle Instant Client 已正确安装\n\n"
+                f"详细错误:\n{'─' * 50}\n{tb[-500:]}"
+            )
+        except Exception:
+            print(f"FATAL: {tb}", file=__import__('sys').stderr)
+        raise
 
 
 if __name__ == "__main__":
