@@ -1,8 +1,8 @@
-# DBForge（v2.9.0 多数据库支持版）
+# DBForge（v2.9.1 移动端布局修复版）
 
 Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
 
-**当前版本：v2.8.0** | [更新日志](docs/) | [用户手册](docs/用户手册.md) | [CHM 帮助](docs/DBForge_UserManual.chm)
+**当前版本：v2.9.1** | [更新日志](docs/) | [用户手册](docs/用户手册.md) | [CHM 帮助](docs/DBForge_UserManual.chm)
 
 ## 功能特性
 

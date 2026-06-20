@@ -456,12 +456,25 @@ class TestResponsiveAndEdgeCases(unittest.TestCase):
         )
         self.assertIsNotNone(m, "780px 断点下必须有 .sidebar 的适配规则")
 
-    def test_02_tabs_horizontal_in_small_viewport(self):
-        """小屏下 tabs 容器必须允许横向滚动"""
-        self.assertIn(
-            "overflow-x", self.content,
-            "小屏适配必须包含 overflow-x 横向滚动机制"
+    def test_02_tabs_vertical_in_mobile_viewport(self):
+        """小屏下 tabs 保持纵向排列（非横向），且 main-area 支持横向滚动"""
+        # 提取 780px media query 块
+        mq = re.search(
+            r"@media\s*\(max-width:\s*780px\)\s*\{(.*?)\n        \}",
+            self.content, re.DOTALL,
         )
+        self.assertIsNotNone(mq, "必须有 780px 断点 media query")
+        mq_block = mq.group(1)
+        # v2.9.1: 移动端保持左侧纵向导航，提取 .tabs 规则确认不是 row
+        tabs_rule = re.search(r"\.tabs\s*\{([^}]*)\}", mq_block)
+        if tabs_rule:
+            self.assertNotIn(
+                "flex-direction: row", tabs_rule.group(1),
+                "移动端 .tabs 不应改为横向排列，必须保持纵向"
+            )
+        # main-area 需要支持横向滚动（表格等宽内容）
+        self.assertIn("overflow-x", self.content,
+                      "main-area 必须支持 overflow-x 横向滚动")
 
     def test_03_no_horizontal_active_bottom_bar(self):
         """根级别 .tab.active::after 不应使用 bottom 定位（旧水平布局遗留）"""
