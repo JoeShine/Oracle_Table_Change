@@ -94,7 +94,28 @@
 
 <h3>Q: 最大支持多少条数据？</h3>
 <div class="tip-box">
-    <strong>A:</strong> 单次最多支持 10 万行数据。超过此限制，建议分批次执行。
+    <strong>A:</strong> 单次最多支持 10 万行数据。超过此限制，建议分批次执行。v2.8.0 起 CSV/JSON 格式支持流式读取，可达千万行。
+</div>
+
+<h2>5.6 帮助手册问题</h2>
+
+<h3>Q: 打开 CHM 帮助手册显示空白或"已取消导航"？</h3>
+<div class="warning-box">
+    <strong>A:</strong> 这是 Windows 安全机制导致的。当 CHM 文件从互联网下载或从网络传输时，Windows 会附加 Zone.Identifier 标记阻止内容显示。<br><br>
+    <strong>解决方法（推荐）：</strong><br>
+    1. 从 ZIP 包解压：解压旁边的 <code>OracleBatchUpdater_UserManual.zip</code>，ZIP 格式不保留安全标记，解压后自动解除锁定<br>
+    2. 运行修复脚本：双击 <code>chm_unblock.bat</code>（Windows 7）或右键 <code>chm_unblock.ps1</code> → "使用 PowerShell 运行"（Windows 10/11）<br>
+    3. 手动解除：右键 .chm 文件 → 属性 → 勾选「解除锁定」→ 确定
+</div>
+
+<h3>Q: CHM 文件在共享文件夹中打不开？</h3>
+<div class="tip-box">
+    <strong>A:</strong> Windows 默认阻止从网络驱动器打开 CHM 文件。请将 CHM 文件复制到本地磁盘（如 C:\ 或 D:\），然后解除锁定。如果必须在网络共享上使用，需要管理员修改注册表 <code>HKLM\SOFTWARE\Microsoft\HTMLHelp\1.x\ItssRestrictions\MaxAllowedZone</code> 值为 1（不推荐）。
+</div>
+
+<h3>Q: CHM 文件路径包含 # 号无法打开？</h3>
+<div class="tip-box">
+    <strong>A:</strong> CHM 格式不支持路径中包含 <code>#</code> 字符。请将文件移动到不含 # 字符的路径。
 </div>
 
 <div class="footer">

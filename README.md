@@ -341,6 +341,15 @@ A: 使用 `ImportStats` 类，详见 [报表统计](#报表统计-v280-新增) �
 **Q: 如何集成到 CI/CD 流水线？**
 A: 使用 `python -m src.cli update` 命令行模式，退出码可被 CI 捕获。
 
+**Q: CHM 帮助手册打开后显示空白？**
+A: 这是 Windows 安全机制，对下载文件附加了 Zone.Identifier 标记。解决方法：
+1. 从 ZIP 包解压（推荐）— `OracleBatchUpdater_UserManual.zip` 解压后自动解除锁定
+2. 运行修复脚本 — `chm_unblock.bat`（Win7）或 `chm_unblock.ps1`（Win10/11）
+3. 手动解除 — 右键 .chm → 属性 → 勾选「解除锁定」→ 确定
+
+**Q: CHM 在网络共享文件夹中打不开？**
+A: Windows 默认阻止从网络路径打开 CHM，请先复制到本地磁盘（C:\ 或 D:\）。
+
 ## 许可证
 
 本项目仅供学习和研究使用。

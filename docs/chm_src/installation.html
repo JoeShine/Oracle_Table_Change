@@ -136,6 +136,56 @@ http://localhost:6080</code></pre>
     <p>Oracle 数据批量修改工具 v2.8.0 &copy; 2026</p>
 </div>
 
+<h2>2.4 帮助手册安全设置（重要）</h2>
+
+<div class="warning-box">
+    <strong>Windows 安全警告：</strong>从互联网下载或从 GitHub 下载的 CHM 帮助手册，
+    Windows 会自动附加安全标记（Zone.Identifier），导致打开后显示空白页或"已取消导航"。
+    这是 Windows 的正常安全机制，需要手动解除锁定。
+</div>
+
+<h3>方法一：使用 ZIP 包（推荐）</h3>
+<p>直接解压 <code>OracleBatchUpdater_UserManual.zip</code>，ZIP 格式不保留 Windows 安全标记，解压后即可正常打开。</p>
+
+<h3>方法二：运行修复脚本</h3>
+<table>
+    <tr><th>操作系统</th><th>脚本</th><th>使用方法</th></tr>
+    <tr><td>Windows 7</td><td><code>chm_unblock.bat</code></td><td>双击运行</td></tr>
+    <tr><td>Windows 10 / 11</td><td><code>chm_unblock.ps1</code></td><td>右键 → "使用 PowerShell 运行"</td></tr>
+</table>
+
+<h3>方法三：手动解除锁定</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>右键文件</h3>
+        <p>右键点击 <code>OracleBatchUpdater_UserManual.chm</code> → 属性</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>解除锁定</h3>
+        <p>在"常规"选项卡底部，找到安全提示，勾选「解除锁定」复选框</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <h3>确认</h3>
+        <p>点击确定，然后正常打开 CHM 文件</p>
+    </div>
+</div>
+
+<div class="tip-box">
+    <strong>提示：</strong>如果 CHM 文件在共享文件夹（网络驱动器）上，请先复制到本地磁盘（C:\ 或 D:\）再操作。
+    CHM 格式不支持从网络路径打开。
+</div>
+
+<div class="footer">
+    <p>Oracle 数据批量修改工具 v2.8.0 &copy; 2026</p>
+</div>
+
 </div>
 </body>
 </html>
