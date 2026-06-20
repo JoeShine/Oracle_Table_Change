@@ -346,7 +346,7 @@ class TestBackupAndTempTableCreation(unittest.TestCase):
         execute_calls = self.mock_db.execute_sql.call_args_list
         create_sql = execute_calls[0][0][0]
         self.assertIn("CREATE TABLE SYSTEM.TEMP_UPDATE_", create_sql)
-        self.assertIn("EMP_ID VARCHAR2(4000)", create_sql)
+        self.assertIn("EMP_ID VARCHAR2(500)", create_sql)
         self.assertIn("NAME VARCHAR2(4000)", create_sql)
         self.assertIn("AGE VARCHAR2(4000)", create_sql)
         self.assertIn("DEPT VARCHAR2(4000)", create_sql)

@@ -11,7 +11,7 @@ echo ========================================
 echo.
 
 REM 设置版本号
-set VERSION=2.8.0
+set VERSION=2.9.0
 set APP_NAME=DBForge
 set PORTABLE_DIR=%APP_NAME%_Portable_v%VERSION%
 
@@ -142,7 +142,7 @@ echo 创建使用说明...
 (
 echo ========================================
 echo DBForge - 便携版
-echo 版本: 2.7.0
+echo 版本: 2.9.0（多数据库支持版）
 echo ========================================
 echo.
 echo 【使用说明】
@@ -161,22 +161,35 @@ echo    - logs: 运行日志
 echo    - backups: 数据备份
 echo    - config: 配置文件
 echo.
-echo 4. Oracle客户端
-echo    - 如需使用Oracle客户端，请将instantclient目录
-echo      放到 OracleClient 目录中
-echo    - 或使用已安装的Oracle客户端
+echo 4. 多数据库支持（v2.9.0）
+echo    DBForge 支持以下三种主流关系型数据库：
+echo.
+echo    [1] Oracle       11g/12c/19c/21c       - 驱动: oracledb
+echo        - 如需使用 Oracle 客户端，请将 instantclient 目录
+echo          放到 OracleClient 目录中
+echo        - 或使用已安装的 Oracle Instant Client
+echo.
+echo    [2] MySQL        5.7+/8.0+/MariaDB 10.x - 驱动: pymysql
+echo        - 纯 Python 驱动，无需额外系统依赖
+echo        - 端口默认 3306
+echo.
+echo    [3] SQL Server   2008 R2/2012+/2019/2022 - 驱动: pyodbc
+echo        - 需要系统已安装 Microsoft ODBC Driver 17 for SQL Server
+echo        - 端口默认 1433
+echo.
+echo    数据库类型可在「连接管理」页选择，SQL 方言自动适配。
 echo.
 echo 5. 系统要求
 echo    - Windows 7 及以上
 echo    - Windows Server 2008 R2 及以上
 echo    - 不需要安装 Python（便携版包含 .exe 可执行文件）
-echo    - 仅 Oracle Instant Client 需要单独配置
+echo    - 仅 Oracle Instant Client 与 SQL Server ODBC Driver 需要单独配置
 echo.
 echo 6. 连接数据库
-echo    - 使用 Easy Connect 方式
-echo    - 格式: host:port/service_name
-echo    - 示例: 192.168.1.100:1521/ORCL
-echo    - 无需配置文件
+echo    - Oracle    格式: host:port/service_name  示例: 192.168.1.100:1521/ORCL
+echo    - MySQL     格式: host:port/database       示例: 192.168.1.100:3306/mydb
+echo    - SQL Server 格式: host[:port]/database    示例: 192.168.1.100:1433/MYDB
+echo    - 无需配置 tnsnames.ora 等文件
 echo.
 echo ========================================
 ) > "%PORTABLE_DIR%\README_Portable.txt"

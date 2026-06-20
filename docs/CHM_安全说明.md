@@ -57,6 +57,57 @@ CHM 格式依赖 Windows 的 HTML Help 引擎，**安卓版掌阅 APP 不支持�
 
 ---
 
+## 多数据库驱动安装提示（v2.8.0 起支持 MySQL / SQL Server）
+
+当在连接管理中选择 **MySQL** 或 **SQL Server** 时，需要在运行 DBForge 的 Windows 机器上安装对应驱动。
+
+### 1. MySQL 驱动（pymysql）
+
+**安装方式：**
+```bash
+pip install pymysql
+```
+
+**验证：**
+```bash
+python -c "import pymysql; print(pymysql.__version__)"
+```
+
+**常见问题：**
+- 若提示找不到模块：请先切换到打包所用的 Python 环境或通过 `pip list` 检查是否已安装。
+- 字符集建议：数据库使用 `utf8mb4`，`my.ini` / `my.cnf` 中显式设置 `character-set-server=utf8mb4`。
+
+---
+
+### 2. SQL Server 驱动（ODBC Driver 17 for SQL Server + pyodbc）
+
+**步骤一：安装 ODBC Driver 17 for SQL Server（Windows）**
+
+1. 访问 Microsoft 官方下载页面：`https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server`
+2. 下载 **ODBC Driver 17 for SQL Server**（推荐 17.x 版本，兼容 SQL Server 2003 / 2008 R2 / 2012+）。
+3. 以管理员身份运行 `msodbcsql.msi` 安装程序，按提示完成安装。
+4. 验证是否安装成功：`控制面板 → 管理工具 → ODBC 数据源(64 位) → 驱动程序` 中看到 **ODBC Driver 17 for SQL Server**。
+
+**步骤二：安装 Python pyodbc 包**
+```bash
+pip install pyodbc
+```
+
+**验证：**
+```bash
+python -c "import pyodbc; print([d for d in pyodbc.drivers() if 'ODBC Driver 17' in d])"
+```
+
+**常见问题：**
+- 安装 ODBC 驱动时提示"缺少 Windows Installer 4.5"：请先升级 Windows Installer（针对 Windows 7 / Server 2008 环境）。
+- 连接错误 `[Microsoft][ODBC Driver 17 for SQL Server]Client unable to establish connection`：
+  1. 检查 SQL Server 是否启用 TCP/IP（`SQL Server 配置管理器 → SQL Server 网络配置 → TCP/IP`）。
+  2. 检查防火墙 1433 端口是否开放。
+  3. 确认 SQL Server Browser 服务是否已启动。
+- 中文乱码：数据库排序规则推荐使用 `Chinese_PRC_CI_AS`。
+
+---
+
 生成时间: 2026-06-20 10:45:00
 CHM 版本: v2.8.0
 EPUB 版本: v2.8.0

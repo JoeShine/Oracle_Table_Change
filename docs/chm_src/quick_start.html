@@ -29,6 +29,19 @@
 
 <h3>第一步：配置连接管理</h3>
 <div class="step">
+    <div class="step-num">0</div>
+    <div class="step-content">
+        <h3>选择数据库类型 <span style="color:#4A90D9;">[v2.9.0+]</span></h3>
+        <p>在添加连接前，先从「<strong>数据库类型</strong>」下拉框选择目标数据库：</p>
+        <table>
+            <tr><th>数据库</th><th>驱动/库</th><th>默认端口</th><th>标识符包裹</th></tr>
+            <tr><td>Oracle</td><td>oracledb (python-oracledb)</td><td>1521</td><td>"双引号"</td></tr>
+            <tr><td>MySQL</td><td>PyMySQL</td><td>3306</td><td>`反引号`</td></tr>
+            <tr><td>MS SQL Server</td><td>pyodbc + ODBC Driver 17</td><td>1433</td><td>[方括号]</td></tr>
+        </table>
+    </div>
+</div>
+<div class="step">
     <div class="step-num">1</div>
     <div class="step-content">
         <p>点击左侧导航栏的「<strong>连接管理</strong>」</p>
@@ -43,14 +56,15 @@
 <div class="step">
     <div class="step-num">3</div>
     <div class="step-content">
-        <h3>填写连接信息（Easy Connect 方式）</h3>
+        <h3>填写连接信息</h3>
         <table>
             <tr><th>字段</th><th>说明</th><th>示例</th></tr>
+            <tr><td>数据库类型</td><td><span style="color:#4A90D9;">[v2.9.0+]</span> Oracle / MySQL / MS SQL Server</td><td>Oracle</td></tr>
             <tr><td>连接名称</td><td>给连接起个名字</td><td>开发环境</td></tr>
             <tr><td>主机地址</td><td>数据库服务器 IP 地址</td><td>192.168.1.100</td></tr>
-            <tr><td>端口</td><td>Oracle 监听端口</td><td>1521</td></tr>
-            <tr><td>服务名</td><td>Oracle 服务名</td><td>ORCL</td></tr>
-            <tr><td>用户名</td><td>数据库账号</td><td>scott</td></tr>
+            <tr><td>端口</td><td>数据库监听端口</td><td>1521 / 3306 / 1433</td></tr>
+            <tr><td>服务名/数据库名</td><td>Oracle 服务名 / MySQL 数据库名 / SQL Server 数据库名</td><td>ORCL / mydb / master</td></tr>
+            <tr><td>用户名</td><td>数据库账号</td><td>scott / root / sa</td></tr>
             <tr><td>密码</td><td>数据库密码</td><td>********</td></tr>
         </table>
     </div>
@@ -69,9 +83,19 @@
 </div>
 
 <div class="tip-box">
-    <strong>Easy Connect 连接字符串格式：</strong>
+    <strong>Easy Connect 连接字符串格式（Oracle）：</strong>
     <pre><code>host:port/service_name
 示例：192.168.1.100:1521/ORCL</code></pre>
+</div>
+<div class="tip-box">
+    <strong>[v2.9.0+] MySQL 连接示例：</strong>
+    <pre><code>host:port/database
+示例：192.168.1.100:3306/employee_db</code></pre>
+</div>
+<div class="tip-box">
+    <strong>[v2.9.0+] MS SQL Server 连接示例：</strong>
+    <pre><code>host:port/database
+示例：192.168.1.100:1433/HRDB</code></pre>
 </div>
 
 <h3>第二步：准备 Excel 数据</h3>
@@ -173,7 +197,7 @@
 </div>
 
 <div class="footer">
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 </div>

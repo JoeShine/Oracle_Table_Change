@@ -150,18 +150,18 @@ class TestCodeDocConsistency(unittest.TestCase):
         print("  ✓ Dockerfile包含Easy Connect说明")
     
     def test_10_version_consistency(self):
-        """测试版本号一致性"""
+        """测试版本号一致性（v2.9.0 多数据库支持版本）"""
         print("\n[测试] 版本号一致性...")
 
         # 检查各文件中的版本号
         files_to_check = [
-            ('demo.html', 'v2.8'),
-            ('docs/用户手册.md', 'v2.8'),
-            ('docs/部署方案.md', 'v2.8'),
-            ('docs/Windows_Server使用指南.md', 'v2.8'),
-            ('Dockerfile', 'version="2.8"'),
-            ('README.md', 'v2.8'),
-            ('NEW_FEATURES_README.md', 'v2.8'),
+            ('demo.html', 'v2.9'),
+            ('docs/用户手册.md', 'v2.9'),
+            ('docs/部署方案.md', 'v2.9'),
+            ('docs/Windows_Server使用指南.md', 'v2.9'),
+            ('Dockerfile', 'version="2.9'),
+            ('README.md', 'v2.9'),
+            ('NEW_FEATURES_README.md', 'v2.9'),
         ]
 
         for file_name, version_pattern in files_to_check:

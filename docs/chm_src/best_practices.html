@@ -60,6 +60,54 @@
     <tr><td>避免高峰期</td><td>选择数据库负载较低时段执行批量更新</td></tr>
 </table>
 
+<h2>6.2.1 MySQL 批量更新建议 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<div class="tip-box">
+    <strong>数据库层面：</strong>
+    <ul>
+        <li>将 <code>innodb_buffer_pool_size</code> 设置为物理内存的 50%~70%，提高缓冲命中率</li>
+        <li>批量更新前临时设置 <code>SET autocommit=0; SET unique_checks=0; SET foreign_key_checks=0;</code> 以加快执行，更新完成后恢复</li>
+        <li>使用 <code>SET SESSION innodb_flush_log_at_trx_commit = 2;</code>（非高可用场景）可显著提升批量写入速度</li>
+        <li>确保唯一标识列建有索引（PRIMARY KEY 或 UNIQUE），避免全表扫描</li>
+    </ul>
+</div>
+<div class="tip-box">
+    <strong>应用层面：</strong>
+    <ul>
+        <li>单批次建议控制在 <strong>1000~5000 行</strong>，避免长事务导致锁等待</li>
+        <li>超过 1 万行时自动分批，批次间留出 1~2 秒间隙供其他事务执行</li>
+        <li>批量更新的目标表不要有过多二级索引，索引数量会线性放大写入成本</li>
+        <li>如果 MySQL 开启了 binlog（主从复制），大批量更新会导致复制延迟，建议拆分成更小的批次</li>
+        <li>更新前可执行 <code>ANALYZE TABLE your_table;</code> 更新统计信息，帮助优化器选择合适执行计划</li>
+    </ul>
+</div>
+<div class="warning-box">
+    <strong>MySQL 锁机制：</strong> InnoDB 采用行级锁，但当更新走全表扫描或范围扫描时会退化为间隙锁 + next-key lock，可能阻塞其他写入。务必确保唯一标识列走了索引。
+</div>
+
+<h2>6.2.2 SQL Server 批量更新建议 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<div class="tip-box">
+    <strong>数据库层面：</strong>
+    <ul>
+        <li>将数据库恢复模式临时设置为 <code>BULK_LOGGED</code> 或 <code>SIMPLE</code>（注意事务日志备份策略），以减少日志写入量</li>
+        <li>确保 <code>tempdb</code> 有足够空间（建议物理内存的 20%~30%），批量操作会大量使用临时表</li>
+        <li>为唯一标识列建立 <strong>聚集索引</strong> 或非聚集唯一索引，避免表扫描</li>
+        <li>使用 <code>SET TRANSACTION ISOLATION LEVEL READ COMMITTED;</code> 或开启 <code>READ_COMMITTED_SNAPSHOT</code>，减少读取阻塞</li>
+    </ul>
+</div>
+<div class="tip-box">
+    <strong>应用层面：</strong>
+    <ul>
+        <li>单批次建议控制在 <strong>1000~5000 行</strong>，避免单次事务过大导致日志膨胀</li>
+        <li>超过 1 万行时自动分批，每次更新后提交事务，释放锁资源</li>
+        <li>批量更新期间关闭不必要的触发器（Trigger），或在更新前 <code>DISABLE TRIGGER</code>，更新后恢复</li>
+        <li>更新前检查是否存在大量外键约束关联到目标表，级联检查会显著减慢批量更新</li>
+        <li>在生产环境执行前先在测试库执行并查看 <code>SET STATISTICS IO ON; SET STATISTICS TIME ON;</code> 输出，分析 I/O 成本</li>
+    </ul>
+</div>
+<div class="warning-box">
+    <strong>SQL Server 锁机制：</strong> 默认使用行锁，但当一次更新超过一定阈值（通常约 5000 行）时，SQL Server 会升级为表锁（Lock Escalation），导致全表阻塞。通过分批更新可避免锁升级。
+</div>
+
 <h2>6.3 Excel 数据建议</h2>
 <table>
     <tr><th>建议</th><th>说明</th></tr>
@@ -146,11 +194,12 @@
     <tr><td>v2.6</td><td>2026-06-19</td><td>新增配置场景功能</td></tr>
     <tr><td>v2.7.0</td><td>2026-06-19</td><td>新增 Docker 部署支持</td></tr>
     <tr><td>v2.8.0</td><td>2026-06-20</td><td>P0/P1/P2/P3 全部改进：安全强化、CLI、CSV/JSON、统计分析、平台化功能</td></tr>
+    <tr><td>v2.9.0</td><td>2026-06-20</td><td><span style="color:#4A90D9;">多数据库支持：新增 MySQL / MS SQL Server，驱动管理、SQL 方言适配、标识符包裹三要素自动切换</span></td></tr>
 </table>
 
 <div class="footer">
     <p>感谢使用本工具！希望能帮助您高效完成 DBForge工作。</p>
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 </div>

@@ -1,39 +1,43 @@
-DBForge - 快速开始指南
+DBForge (Database Forge) - 快速开始指南
+版本: v2.9.0（多数据库支持版）
 
 ═══════════════════════════════════════════════════════════════
 
-快速部署步骤（Windows系统）
+快速部署步骤（Windows 系统）
 
 ═══════════════════════════════════════════════════════════════
 
-方法一：使用打包后的exe（推荐用于最终部署）
+方法一：使用打包后的 exe（推荐用于最终部署）
 
-1. 在Windows系统上运行 package.bat
+1. 在 Windows 系统上运行 package.bat
    或手动执行：
    pyinstaller DBForge.spec --clean
 
-2. 找到生成的exe文件：
+2. 找到生成的 exe 文件：
    dist\DBForge.exe
 
-3. 配置Oracle客户端（如果尚未配置）：
-   - 下载Oracle Instant Client
-   - 按照ORACLE_CLIENT_SETUP.txt说明配置
+3. 数据库客户端配置（按需）：
+   - Oracle: 下载 Oracle Instant Client，按照 ORACLE_CLIENT_SETUP.txt 说明配置
+             （仅在使用 thick 模式时需要；oracledb thin 模式无需此步骤）
+   - MySQL : 无需额外系统依赖（pymysql 纯 Python 驱动）
+   - SQL Server: 安装 Microsoft ODBC Driver 17 for SQL Server
 
 4. 运行程序：
    双击 DBForge.exe
 
 ───────────────────────────────────────────────────────────────
 
-方法二：使用Python源码（适合开发和测试）
+方法二：使用 Python 源码（适合开发和测试）
 
-1. 确保已安装Python 3.8+
+1. 确保已安装 Python 3.8+
 
 2. 安装依赖：
    运行 install.bat
    或手动执行：
    pip install -r requirements.txt
+   pip install pymysql pyodbc          # 多数据库驱动（MySQL + SQL Server）
 
-3. 配置Oracle客户端（同上）
+3. 数据库客户端配置（同上，按需）
 
 4. 运行程序：
    python main.py
@@ -45,13 +49,17 @@ DBForge - 快速开始指南
 ═══════════════════════════════════════════════════════════════
 
 第一步：配置连接管理
-   1. 点击"添加连接"
-   2. 填写Oracle连接信息
-   3. 点击"测试连接"验证
-   4. 保存连接
+   1. 点击 "添加连接"
+   2. 选择数据库类型（Oracle / MySQL / SQL Server）
+   3. 填写连接信息：主机地址、端口、服务名/数据库名、用户名、密码
+      - Oracle    : host:port/service_name   e.g. 192.168.1.100:1521/ORCL
+      - MySQL     : host:port/database        e.g. 192.168.1.100:3306/mydb
+      - SQL Server: host[:port]/database      e.g. 192.168.1.100:1433/MYDB
+   4. 点击 "测试连接" 验证
+   5. 保存连接
 
-第二步：准备Excel文件
-   Excel格式要求：
+第二步：准备 Excel 文件
+   Excel 格式要求：
    ┌──────────┬─────────────────────┐
    │ 唯一标识  │ 待修改数据            │
    ├──────────┼─────────────────────┤
@@ -64,8 +72,9 @@ DBForge - 快速开始指南
    2. 输入目标表名（如：USER_INFO）
    3. 输入唯一标识列名（如：USER_ID）
    4. 输入待修改列名（如：EMAIL）
-   5. 选择Excel文件
-   6. 点击"开始更新"
+   5. 选择 Excel 文件
+   6. 点击 "开始更新"
+      注意：SQL 方言会随数据库类型自动切换
 
 第四步：查看结果
    - 查看日志了解更新情况
@@ -78,11 +87,13 @@ DBForge - 快速开始指南
 
 ═══════════════════════════════════════════════════════════════
 
+✓ 多数据库支持：Oracle / MySQL / MS SQL Server
 ✓ 多连接管理管理
-✓ 自动数据备份（APPS模式下，带时间戳）
+✓ 自动数据备份（对应 Schema/Database 下，带时间戳）
 ✓ 临时表自动管理
+✓ 自动 SQL 方言适配
 ✓ 实时运行日志
-✓ Excel导入导出
+✓ Excel 导入导出
 ✓ 失败记录详细报告
 ✓ 配置自动保存
 ✓ 批量数据更新
@@ -91,14 +102,17 @@ DBForge - 快速开始指南
 
 常见问题
 
-Q: 程序启动报错"找不到Oracle客户端库"
-A: 请按照ORACLE_CLIENT_SETUP.txt配置Oracle Instant Client
+Q: 程序启动报错 "找不到 Oracle 客户端库"？
+A: 如仅使用 MySQL/SQL Server，可忽略此提示；如需使用 Oracle，请按 ORACLE_CLIENT_SETUP.txt 配置 Oracle Instant Client
+
+Q: 程序启动报错 "找不到 pyodbc 或 ODBC Driver 17"？
+A: 如仅使用 Oracle/MySQL，可忽略此提示；如需使用 SQL Server，请安装 Microsoft ODBC Driver 17 for SQL Server
 
 Q: 连接测试失败
-A: 检查主机地址、端口、服务名、用户名、密码是否正确
+A: 检查主机地址、端口、服务名/数据库名、用户名、密码是否正确
 
 Q: 更新失败怎么办
-A: 查看日志了解失败原因，备份表已保存在APPS模式中
+A: 查看日志了解失败原因，备份表已保存在对应 Schema/Database 中
 
 ═══════════════════════════════════════════════════════════════
 

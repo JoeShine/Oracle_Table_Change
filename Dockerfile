@@ -1,12 +1,13 @@
-# DBForge Docker 镜像
+# DBForge (Database Forge) Docker 镜像
 # 基于 Ubuntu 22.04，支持 VNC/noVNC 浏览器访问
+# 支持多数据库：Oracle / MySQL / SQL Server
 # 使用 Easy Connect 方式连接数据库，无需配置文件
 
 FROM ubuntu:22.04
 
 LABEL maintainer="DBForge Tool"
-LABEL version="2.8"
-LABEL description="DBForge - Docker版本，支持Easy Connect浏览器访问"
+LABEL version="2.9"
+LABEL description="DBForge (Database Forge) - 多数据库支持：Oracle / MySQL / SQL Server"
 
 # 设置环境变量
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,8 +15,12 @@ ENV DISPLAY=:0
 ENV HOME=/root
 ENV NO_VNC_PORT=6080
 ENV VNC_PORT=5900
+ENV ACCEPT_EULA=Y
 
-# 安装基础依赖
+# 安装基础依赖 + 多数据库系统依赖
+#   - Oracle    : libaio1 / libaio-dev（Instant Client 需要）
+#   - MySQL     : 由 pymysql 纯 Python 驱动，无需系统依赖
+#   - SQL Server: unixodbc / unixodbc-dev + Microsoft ODBC Driver 17 for SQL Server
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -29,23 +34,41 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
+    gnupg \
+    apt-transport-https \
+    ca-certificates \
     libaio1 \
     libaio-dev \
+    unixodbc \
+    unixodbc-dev \
     fonts-noto-cjk \
     fonts-wqy-microhei \
     fonts-wqy-zenhei \
     && rm -rf /var/lib/apt/lists/*
 
+# ------------------------------------------------------------------
+# 安装 Microsoft ODBC Driver 17 for SQL Server（Ubuntu 22.04）
+# 参考：https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server
+# ------------------------------------------------------------------
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+    && curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+    && apt-get install -y mssql-tools \
+    && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc \
+    && rm -rf /var/lib/apt/lists/*
+
 # 创建 Oracle Instant Client 目录（仅用于库文件）
 RUN mkdir -p /opt/oracle/instantclient_21_15
 
-# 设置 Oracle 环境变量（仅库路径，无需TNS_ADMIN）
+# 设置 Oracle 环境变量（仅库路径，无需 TNS_ADMIN）
 ENV ORACLE_HOME=/opt/oracle
-ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_21_15:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_21_15:/opt/mssql-tools/bin:$LD_LIBRARY_PATH
 
-# 安装 Python 依赖
+# 安装 Python 依赖（多数据库支持：oracledb + pymysql + pyodbc）
 COPY requirements.txt /app/requirements.txt
-RUN pip3 install --no-cache-dir -r /app/requirements.txt --break-system-packages
+RUN pip3 install --no-cache-dir -r /app/requirements.txt --break-system-packages \
+    && pip3 install --no-cache-dir pymysql pyodbc --break-system-packages
 
 # 复制应用代码
 COPY . /app/
@@ -57,21 +80,38 @@ WORKDIR /app
 RUN echo '#!/bin/bash\n\
 set -e\n\
 echo "========================================"\n\
-echo "DBForge"\n\
+echo "DBForge (Database Forge)"\n\
 echo "========================================"\n\
 echo ""\n\
-echo "连接方式: Easy Connect (无需配置文件)"\n\
-echo "连接字符串格式: host:port/service_name"\n\
-echo "示例: oracle-server:1521/ORCL"\n\
+echo "支持数据库：Oracle / MySQL / SQL Server（v2.9.0）"\n\
+echo ""\n\
+echo "连接方式: Easy Connect（无需配置文件）"\n\
+echo ""\n\
+echo "连接字符串格式："\n\
+echo "  Oracle    : host:port/service_name        示例: oracle-server:1521/ORCL"\n\
+echo "  MySQL     : host:port/database            示例: mysql-server:3306/mydb"\n\
+echo "  SQL Server: host[:port]/database          示例: sqlserver:1433/MYDB"\n\
 echo ""\n\
 \n\
 # 检查 Oracle Instant Client\n\
 if [ -d "/opt/oracle/instantclient_21_15" ] && [ "$(ls -A /opt/oracle/instantclient_21_15/*.so* 2>/dev/null)" ]; then\n\
     echo "Oracle Instant Client 已安装."\n\
 else\n\
-    echo "警告: Oracle Instant Client 未安装"\n\
-    echo "请挂载 instantclient_21_15 目录到 /opt/oracle/instantclient_21_15"\n\
+    echo "警告: Oracle Instant Client 未安装（如仅使用 MySQL/SQL Server 可忽略）"\n\
+    echo "如需使用 Oracle，请挂载 instantclient_21_15 目录到 /opt/oracle/instantclient_21_15"\n\
 fi\n\
+echo ""\n\
+\n\
+# 检查 Microsoft ODBC Driver 17 for SQL Server\n\
+if [ -f "/opt/microsoft/msodbcsql17/etc/odbcinst.ini" ] || odbcinst -q -d 2>/dev/null | grep -qi "ODBC Driver 17"; then\n\
+    echo "Microsoft ODBC Driver 17 for SQL Server 已安装."\n\
+else\n\
+    echo "警告: Microsoft ODBC Driver 17 for SQL Server 未安装（如仅使用 Oracle/MySQL 可忽略）"\n\
+fi\n\
+echo ""\n\
+\n\
+# 检查 MySQL 驱动\n\
+echo "MySQL 驱动: pymysql（纯 Python 实现，已随应用安装）"\n\
 echo ""\n\
 \n\
 # 启动 VNC Server\n\
@@ -92,9 +132,10 @@ echo "访问方式:"\n\
 echo "  - 浏览器: http://localhost:6080"\n\
 echo "  - VNC客户端: localhost:5900"\n\
 echo ""\n\
-echo "连接管理 (Easy Connect):"\n\
-echo "  格式: host:port/service_name"\n\
-echo "  示例: 192.168.1.100:1521/ORCL"\n\
+echo "数据库连接管理（Easy Connect）:"\n\
+echo "  Oracle    格式: host:port/service_name   示例: 192.168.1.100:1521/ORCL"\n\
+echo "  MySQL     格式: host:port/database        示例: 192.168.1.100:3306/mydb"\n\
+echo "  SQL Server 格式: host[:port]/database     示例: 192.168.1.100:1433/MYDB"\n\
 echo "========================================"\n\
 echo ""\n\
 \n\
@@ -113,6 +154,9 @@ RUN mkdir -p /app/logs /app/data /app/backups
 # 暴露端口
 # 6080: noVNC Web 端口 (浏览器访问)
 # 5900: VNC 端口 (VNC 客户端访问)
+# 1521: Oracle 监听（可选，用于本地代理）
+# 3306: MySQL 端口（可选）
+# 1433: SQL Server 端口（可选）
 EXPOSE 6080 5900
 
 # 健康检查

@@ -9,6 +9,8 @@ from datetime import datetime
 
 from cryptography.fernet import Fernet, InvalidToken
 
+from src.constants import DB_TYPE_ORACLE
+
 
 # ---------------------------------------------------------------------------
 # P0-2: 密码加密 — 使用 Fernet (AES-128-CBC + HMAC-SHA256) 替代 Base64
@@ -165,6 +167,8 @@ class ConfigManager:
         import copy
         connections = copy.deepcopy(self.config.get("connections", []))
         for conn in connections:
+            if "db_type" not in conn:
+                conn["db_type"] = DB_TYPE_ORACLE
             if "password" in conn:
                 conn["password"] = self._decode_password(conn["password"])
         return connections
@@ -173,6 +177,10 @@ class ConfigManager:
         """添加或更新连接配置，密码使用 Fernet 加密"""
         conn_info = conn_info.copy()
         conn_info["password"] = self._encode_password(conn_info["password"])
+
+        # v2.9.0+: 自动补齐缺失的 db_type 字段（默认为 oracle，保持向后兼容）
+        if "db_type" not in conn_info:
+            conn_info["db_type"] = DB_TYPE_ORACLE
 
         connections = self.config.get("connections", [])
         for i, conn in enumerate(connections):
@@ -215,6 +223,8 @@ class ConfigManager:
 
     def get_connection_by_name(self, name):
         for conn in self.get_connections():
+            if "db_type" not in conn:
+                conn["db_type"] = DB_TYPE_ORACLE
             if conn["name"] == name:
                 return conn
         return None

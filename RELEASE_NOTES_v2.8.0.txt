@@ -1,18 +1,32 @@
-DBForge v2.8.0
-==================================
+DBForge v2.9.0（多数据库支持版）
+=============================================
 
 发布信息
 --------
-版本号: v2.8.0
-发布代号: Secure & Insights
+版本号: v2.9.0
+发布代号: Multi-DB（Oracle / MySQL / SQL Server）
 发布日期: 2026-06-20
-上一版本: v2.7.0
+上一版本: v2.8.0
 
 核心升级
 --------
-v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功能、5 项安全升级、14 项架构优化。
+v2.9.0 在保留 v2.8.0 全部功能（安全加固、性能优化、架构优化、平台化）的基础上，
+新增多数据库支持能力，使 DBForge 成为一套面向 Oracle / MySQL / SQL Server 的通用批量更新工具。
 
-一、安全加固 (P0)
+一、多数据库支持（v2.9.0 核心新增）
+- 新增支持 Oracle       11g / 12c / 19c / 21c     - 驱动: oracledb（保持原有能力）
+- 新增支持 MySQL        5.7+ / 8.0+ / MariaDB 10.x - 驱动: pymysql
+- 新增支持 MS SQL Server 2008 R2 / 2012+ / 2016 / 2019 / 2022 - 驱动: pyodbc + Microsoft ODBC Driver 17 for SQL Server
+- 自动 SQL 方言适配：根据选定数据库类型自动切换 DDL / DML 语法
+  * Oracle    : NUMBER/VARCHAR2/DATE, MERGE INTO, 序列, 临时表 GLOBAL TEMPORARY
+  * MySQL     : INT/VARCHAR/DATETIME, INSERT ... ON DUPLICATE KEY UPDATE, 反引号标识符
+  * SQL Server: INT/VARCHAR/DATETIME2, MERGE, 方括号标识符, #temp 临时表
+- 统一的 DB-API 2.0 抽象层：同一套业务逻辑（数据对比/备份/更新/日志）兼容三种数据库
+- 连接管理页支持数据库类型选择下拉（Oracle / MySQL / SQL Server）
+- 批量更新页 SQL 方言自动切换（根据连接类型）
+- 原型 demo 多数据库交互测试（三种数据库同一套 Excel 输入）
+
+二、安全加固（来自 v2.8.0）
 - SQL 注入防御: 标识符白名单校验 (sanitize_identifier)
 - Schema 白名单: 仅允许预注册 Schema
 - 密码加密: Fernet AES-GCM 替代 Base64
@@ -20,25 +34,25 @@ v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功�
 - 失败回滚: 单事务 + 备份表保留
 - 异常体系: 9 类结构化异常 (含 CancelledError)
 
-二、性能与功能 (P1)
-- MERGE INTO: 性能较逐行 UPDATE 提升 10x~100x
-- 列类型推断: 临时表自动匹配目标表
+三、性能与功能（来自 v2.8.0）
+- MERGE INTO: 性能较逐行 UPDATE 提升 10x~100x（Oracle），MySQL/SQL Server 对应方言
+- 列类型推断: 临时表自动匹配目标表类型
 - CLI: 5 个子命令 + --dry-run + 退出码
 - CSV/JSON 流式: 支持 1000 万行
-- ORA 错误码: 30+ 中文映射
+- 数据库错误码: Oracle ORA / MySQL Errno / SQL Server 代码 → 中文映射
 - 身份认证: 4 角色 + 双人审批 + 风险评估
-- 连接池: oracledb.create_pool 封装
+- 连接池: oracledb.create_pool / pymysql 原生池 / pyodbc 连接复用
 - 操作取消: threading.Event + CancelledError
 
-三、架构优化 (P2)
+四、架构优化（来自 v2.8.0）
 - Service 层: GUI/CLI 与业务逻辑解耦
 - 常量集中: 20+ 硬编码值统一管理
 - ETA 进度条: 实时预计剩余时间
 - 历史查询: 多条件搜索 + CSV/JSON 导出
 - 通知系统: 钉钉/企业微信/Webhook/邮件
 
-四、平台化 (P3)
-- 统计分析 (新!): ImportStats 7 维度统计
+五、平台化（来自 v2.8.0）
+- 统计分析: ImportStats 7 维度统计
 - DataCompare: 表/Excel 对比 + 差异报告
 - 诊断包: 环境/数据库/配置/日志 四维度
 - 多环境: DEV/TEST/UAT/PROD 一键切换
@@ -48,26 +62,33 @@ v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功�
 
 文件清单
 --------
-1. DBForge_Portable_v2.8.0.zip    - Windows 便携版
-2. DBForge_v2.8.0_linux-x86_64.tar.gz  - Linux 发行版
-3. DBForge_v2.8.0_docker.tar.gz  - Docker 镜像
-4. DBForge_UserManual_v2.8.0.chm  - 帮助文档
-5. DBForge_导入模板_v2.8.0.xlsx  - 导入模板
-6. RELEASE_NOTES_v2.8.0.txt  - 本文件
+1. DBForge_Portable_v2.9.0.zip              - Windows 便携版（含多数据库支持）
+2. DBForge_v2.9.0_linux-x86_64.tar.gz       - Linux 发行版（含多数据库支持）
+3. DBForge_v2.9.0_docker.tar.gz             - Docker 镜像（含 Microsoft ODBC Driver 17）
+4. DBForge_UserManual_v2.9.0.chm            - 帮助文档（含多数据库章节）
+5. DBForge_导入模板_v2.9.0.xlsx             - 导入模板
+6. RELEASE_NOTES_v2.9.0.txt                 - 本文件
 
 升级说明
 --------
-1. 从 v2.7.0 升级: 配置文件会自动迁移到 v2.8.0 格式 (Base64 密码 → Fernet 加密)
+1. 从 v2.8.0 升级: 配置文件会自动迁移到 v2.9.0 格式（保留原有 Oracle 连接配置）
+   新增 MySQL/SQL Server 连接配置项，需在「连接管理」页手动添加
 2. 新部署: 解压对应平台的压缩包，按用户手册初始化
 3. 审计日志: 使用 `python -m src.cli verify-audit` 验证完整性
 
 Windows:
-   解压 DBForge_Portable_v2.8.0.zip, 双击 DBForge_Portable.bat
+   解压 DBForge_Portable_v2.9.0.zip，双击 DBForge_Portable.bat
+   - 如需 SQL Server，需先安装 Microsoft ODBC Driver 17 for SQL Server
+
 Linux:
-   tar -xzf DBForge_v2.8.0_linux-x86_64.tar.gz && ./DBForge
+   tar -xzf DBForge_v2.9.0_linux-x86_64.tar.gz && ./DBForge
+   - 如需 SQL Server，需安装 unixodbc / unixodbc-dev + msodbcsql17
+   - 如需 MySQL，直接使用（pymysql 纯 Python 驱动，无额外系统依赖）
+
 Docker:
-   docker-compose up -d
+   docker-compose up -d（镜像已预安装 pymysql、pyodbc、Microsoft ODBC Driver 17）
 
 已知问题
 --------
-无
+- SQL Server 在 Linux 容器中需保证 Microsoft ODBC Driver 17 安装成功（需联网拉取 Microsoft apt 仓库）
+- MySQL 8.0 的 caching_sha2_password 认证需 pymysql 0.9.3+，如使用旧版本请升级

@@ -1,20 +1,21 @@
 ═══════════════════════════════════════════════════════════════════════════
-DBForge - 项目总结
+DBForge (Database Forge) - 项目总结
+版本: v2.9.0（多数据库支持版）
 ═══════════════════════════════════════════════════════════════════════════
 
 项目信息
 ───────────────────────────────────────────────────────────────────────────
-项目名称：DBForge
-项目类型：C/S架构桌面应用程序
-目标平台：Windows 7/8/10, Windows Server 2008/2012/2016
+项目名称：DBForge (Database Forge)
+项目类型：C/S 架构桌面应用程序
+目标平台：Windows 7/8/10/11, Windows Server 2008 R2/2012/2016/2019/2022
 编程语言：Python 3.8+
-GUI框架：tkinter
-数据库驱动：oracledb
+GUI 框架：tkinter
+数据库驱动：oracledb (Oracle) / pymysql (MySQL) / pyodbc (SQL Server)
 打包工具：PyInstaller
 
 项目位置
 ───────────────────────────────────────────────────────────────────────────
-主目录：/workspace/oracle_updater
+主目录：/workspace/Oracle_Table_Change
 源码目录：src/
 配置文件：config.json
 日志目录：logs/
@@ -22,80 +23,101 @@ GUI框架：tkinter
 
 核心功能
 ───────────────────────────────────────────────────────────────────────────
+✓ 多数据库支持（Oracle 11g+/MySQL 5.7+/SQL Server 2008 R2+）
+✓ 自动 SQL 方言适配
 ✓ 多连接管理管理
-✓ Excel数据导入（验证、预览、去重）
-✓ 自动数据备份（APPS模式，带时间戳）
+✓ Excel 数据导入（验证、预览、去重）
+✓ 自动数据备份（对应 Schema/Database 下，带时间戳）
 ✓ 临时表自动管理
 ✓ 批量数据更新
 ✓ 实时运行日志
 ✓ 失败记录详细报告
-✓ Excel导出功能
+✓ Excel 导出功能
 ✓ 配置自动保存
 ✓ 三套主题风格切换（默认深墨琥珀 / Idea 蓝色 / 清爽浅色，含 30 配色键）+ 深浅色模式 + 持久化 theme_style/theme_dark + set_dark_mode 启动恢复
 
 技术架构
 ───────────────────────────────────────────────────────────────────────────
-┌─────────────────────────────────────────┐
-│           GUI层 (tkinter)               │
-├─────────────────────────────────────────┤
-│  连接管理  │ 数据更新  │ Excel处理 │ 日志 │
-├─────────────────────────────────────────┤
-│        数据访问层 (oracledb)             │
-├─────────────────────────────────────────┤
-│           Oracle数据库                   │
-└─────────────────────────────────────────┘
+┌───────────────────────────────────────────────┐
+│              GUI 层 (tkinter)                  │
+├───────────────────────────────────────────────┤
+│  连接管理（支持多数据库类型选择）               │
+│  数据更新  │  Excel 处理  │  日志              │
+├───────────────────────────────────────────────┤
+│        数据访问层（统一 DB-API 2.0 抽象）       │
+│  oracledb (Oracle) | pymysql (MySQL) | pyodbc  │
+├───────────────────────────────────────────────┤
+│  Oracle 11g+ / MySQL 5.7+ / SQL Server 2008 R2+│
+└───────────────────────────────────────────────┘
 
 模块说明
 ───────────────────────────────────────────────────────────────────────────
-1. config_manager.py  - 配置管理（连接、配置保存）
+1. config_manager.py  - 配置管理（连接、配置保存、多数据库类型持久化）
 2. logger.py          - 日志管理（记录、导出）
-3. db_connection.py   - 连接管理（连接、查询、执行）
-4. excel_handler.py    - Excel处理（读取、验证、导出）
-5. data_updater.py     - 数据更新（备份、更新、清理）
+3. db_connection.py    - 连接管理（Oracle/MySQL/SQL Server 三种数据库的连接、查询、执行）
+4. excel_handler.py    - Excel 处理（读取、验证、导出）
+5. data_updater.py     - 数据更新（备份、方言自适应更新、清理）
 6. gui.py             - 图形界面（所有用户交互）
 
 文件清单
 ───────────────────────────────────────────────────────────────────────────
 主要文件：
   main.py                      - 程序入口
-  requirements.txt            - Python依赖
-  DBForge.spec     - PyInstaller配置
+  requirements.txt             - Python 依赖（含 oracledb）
+  DBForge.spec                 - PyInstaller 配置
 
 源代码：
   src/__init__.py
   src/config_manager.py
   src/logger.py
-  src/db_connection.py
+  src/db_connection.py          - 支持多数据库（Oracle / MySQL / SQL Server）
   src/excel_handler.py
-  src/data_updater.py
+  src/data_updater.py           - 含 SQL 方言适配逻辑
   src/gui.py
 
 脚本文件：
-  install.bat     - 安装依赖
-  build.bat       - 打包脚本
-  package.bat     - 完整打包
-  verify.bat      - 验证脚本
-  test_all.py     - 综合测试
+  scripts/build_release.sh       - 发布包构建（含多数据库依赖说明）
+  scripts/build_chm.py           - CHM 文档构建（多数据库章节）
+  scripts/create_portable.bat    - Windows 便携版
+  scripts/create_portable.sh     - Linux 便携版打包
+  scripts/install_oracle_client.sh - Oracle Instant Client 安装（可选）
+  install.bat                    - 安装依赖
+  build.bat                      - 打包脚本
+  package.bat                    - 完整打包
+  verify.bat                     - 验证脚本
+  test_all.py                    - 综合测试
 
 文档文件：
-  SPEC.md                    - 技术规格说明
-  README.txt                 - 使用说明
-  QUICKSTART.txt            - 快速开始
-  PROJECT_STRUCTURE.txt     - 项目结构
-  FEATURES_AND_GUIDE.txt    - 功能与指南
-  ORACLE_CLIENT_SETUP.txt   - Oracle客户端配置
+  SPEC.md                       - 技术规格说明
+  README.txt                    - 使用说明（含多数据库支持说明）
+  QUICKSTART.txt                - 快速开始（v2.9.0 多数据库版）
+  PROJECT_STRUCTURE.txt         - 项目结构（v2.9.0 多数据库版）
+  FEATURES_AND_GUIDE.txt        - 功能与指南（含多数据库章节）
+  PROJECT_SUMMARY.txt           - 本文件
+  ORACLE_CLIENT_SETUP.txt       - Oracle 客户端配置（可选）
+  DOCKER_README.txt             - Docker 部署指南（含 MySQL/SQL Server）
+  RELEASE_NOTES_v2.8.0.txt      - 发布说明（已升级为 v2.9.0 内容）
+
+Docker：
+  Dockerfile                    - 含 Microsoft ODBC Driver 17 for SQL Server / pymysql / pyodbc
+  docker-compose.yml
 
 使用方式
 ───────────────────────────────────────────────────────────────────────────
-方式1：运行Python源码
+方式 1：运行 Python 源码
   $ pip install -r requirements.txt
+  $ pip install pymysql pyodbc            # 多数据库额外依赖
   $ python main.py
 
-方式2：打包为exe
+方式 2：打包为 exe
   Windows: 运行 package.bat
   或: pyinstaller DBForge.spec --clean
 
-方式3：验证安装
+方式 3：Docker 部署
+  $ docker-compose up -d
+  浏览器访问 http://localhost:6080
+
+方式 4：验证安装
   Windows: 运行 verify.bat
   或: python test_all.py
 
@@ -105,19 +127,20 @@ GUI框架：tkinter
 ✓ 模块导入测试通过
 ✓ 配置管理测试通过
 ✓ 日志管理测试通过
-✓ Excel处理测试通过
+✓ Excel 处理测试通过
 ✓ 连接管理测试通过
 ✓ 数据更新器测试通过
-✓ GUI模块测试通过
+✓ GUI 模块测试通过
 ✓ 综合测试通过
 
 性能特性
 ───────────────────────────────────────────────────────────────────────────
-- 批量插入：每100条提交一次
+- 批量插入：每 100 条提交一次
 - 错误处理：逐行验证，详细记录失败
-- 日志缓冲：减少IO操作
+- 日志缓冲：减少 IO 操作
 - 进度反馈：实时显示更新进度
 - 自动清理：操作后自动清理临时表
+- 多数据库 SQL 方言缓存：减少重复翻译开销
 
 安全特性
 ───────────────────────────────────────────────────────────────────────────
@@ -125,49 +148,54 @@ GUI框架：tkinter
 - 数据备份：更新前自动备份
 - 详细日志：记录所有关键操作
 - 错误追踪：记录失败原因
+- 密码加密存储（可选 Fernet AES-GCM）
 
 兼容性
 ───────────────────────────────────────────────────────────────────────────
 ✓ Windows 7 (x86/x64)
 ✓ Windows 8/8.1
-✓ Windows 10
+✓ Windows 10/11
 ✓ Windows Server 2008 R2
 ✓ Windows Server 2012/2012 R2
-✓ Windows Server 2016
+✓ Windows Server 2016/2019/2022
 
-✓ Oracle 11g
-✓ Oracle 12c
-✓ Oracle 19c
-✓ Oracle 21c
+✓ Oracle 11g / 12c / 19c / 21c
+✓ MySQL 5.7+ / 8.0+ / MariaDB 10.x
+✓ Microsoft SQL Server 2008 R2 / 2012+ / 2016 / 2019 / 2022
 
 ✓ Excel 2007+ (.xlsx)
 ✓ Excel 97-2003 (.xls)
 
 部署说明
 ───────────────────────────────────────────────────────────────────────────
-1. 打包exe后，将dist目录下的所有文件复制到目标电脑
-2. 配置Oracle Instant Client（如果未安装Oracle客户端）
-3. 直接运行DBForge.exe
-4. 无需安装Python环境
+1. 打包 exe 后，将 dist 目录下的所有文件复制到目标电脑
+2. 数据库客户端配置（按需）：
+   - Oracle: 配置 Oracle Instant Client（oracledb thick 模式）或使用 thin 模式
+   - MySQL : 无需系统客户端，pymysql 纯 Python 驱动
+   - SQL Server: 安装 Microsoft ODBC Driver 17 for SQL Server
+3. 直接运行 DBForge.exe
+4. 无需安装 Python 环境
 
 下一步
 ───────────────────────────────────────────────────────────────────────────
-1. 在Windows环境中运行 package.bat 打包
+1. 在 Windows 环境中运行 package.bat 打包
 2. 将打包后的文件部署到目标电脑
-3. 配置Oracle客户端
+3. 按需求配置 Oracle Instant Client / MySQL / SQL Server 客户端
 4. 运行程序并测试
 
 技术亮点
 ───────────────────────────────────────────────────────────────────────────
-✓ 纯Python实现，跨平台兼容性好
-✓ 使用tkinter，无需额外GUI库
-✓ 使用oracledb，新一代Oracle驱动
-✓ PyInstaller打包，生成独立exe
+✓ 纯 Python 实现，跨平台兼容性好
+✓ 使用 tkinter，无需额外 GUI 库
+✓ 多数据库驱动：oracledb（Oracle）、pymysql（MySQL）、pyodbc（SQL Server）
+✓ 统一的 DB-API 2.0 抽象层，同一套业务逻辑兼容三种数据库
+✓ 自动 SQL 方言适配，无需用户手动改写 SQL
+✓ PyInstaller 打包，生成独立 exe
 ✓ 模块化设计，易于维护和扩展
 ✓ 详细的日志和错误处理
 ✓ 备份机制保障数据安全
 
 ═══════════════════════════════════════════════════════════════════════════
-项目完成时间：2026-05-20
-开发团队：Oracle Batch Updater Development Team
+项目完成时间：2026-06-20
+开发团队：Database Forge Development Team（多数据库版本）
 ═══════════════════════════════════════════════════════════════════════════

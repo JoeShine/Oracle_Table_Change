@@ -2,7 +2,6 @@ import threading
 import traceback
 from datetime import datetime
 from typing import Tuple, List, Dict, Any, Callable, Optional
-import oracledb
 from src.db_connection import DBConnection
 from src.logger import LogManager
 from src.security import sanitize_identifier, sanitize_identifier_list, validate_schema
@@ -49,6 +48,20 @@ class DataUpdater:
         self.cancel_event.set()
         self.log.warning("收到取消请求，正在中止当前操作...")
 
+    def _get_db_type(self) -> str:
+        """获取当前连接的数据库类型，默认返回 oracle
+
+        对非字符串的 db_type（如 MagicMock 测试替身）回退到 oracle，
+        保持 v2.9.0 之前的默认行为。
+        """
+        try:
+            dt = getattr(self.db, "db_type", None)
+            if isinstance(dt, str) and dt in ("oracle", "mysql", "mssql"):
+                return dt
+            return "oracle"
+        except Exception:
+            return "oracle"
+
     # ------------------------------------------------------------------
     # P1-2: 列类型推断辅助函数
     # ------------------------------------------------------------------
@@ -94,10 +107,26 @@ class DataUpdater:
         self.backup_table_name = backup_name
         self.log.info(f"正在备份表 {schema}.{table_name} 到 {schema}.{backup_name}")
         try:
-            create_sql = f"CREATE TABLE {schema}.{backup_name} AS SELECT * FROM {schema}.{table_name}"
+            db_type = self._get_db_type()
+            if db_type == "oracle":
+                create_sql = f"CREATE TABLE {schema}.{backup_name} AS SELECT * FROM {schema}.{table_name}"
+            elif db_type == "mysql":
+                create_sql = f"CREATE TABLE `{schema}`.`{backup_name}` AS SELECT * FROM `{schema}`.`{table_name}`"
+            elif db_type == "mssql":
+                create_sql = f"SELECT * INTO [{schema}].[{backup_name}] FROM [{schema}].[{table_name}]"
+            else:
+                create_sql = f"CREATE TABLE {schema}.{backup_name} AS SELECT * FROM {schema}.{table_name}"
+
             success, _, error = self.db.execute_sql(create_sql)
             if success:
-                check_sql = f"SELECT COUNT(*) FROM {schema}.{backup_name}"
+                if db_type == "oracle":
+                    check_sql = f"SELECT COUNT(*) FROM user_tables WHERE table_name = '{backup_name.upper()}'"
+                elif db_type == "mysql":
+                    check_sql = f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{backup_name}'"
+                elif db_type == "mssql":
+                    check_sql = f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{backup_name}'"
+                else:
+                    check_sql = f"SELECT COUNT(*) FROM user_tables WHERE table_name = '{backup_name.upper()}'"
                 success, result, error = self.db.execute_sql(check_sql, commit=False)
                 if success and result:
                     count = result[0][0]
@@ -146,16 +175,62 @@ class DataUpdater:
 
             # 构建列定义：key_column 和 update_columns 均从类型映射推断
             all_columns = [key_column] + update_columns
+            db_type = self._get_db_type()
+
+            if db_type == "oracle":
+                def qc(c):
+                    return c
+                pk_type = "VARCHAR2(500)"
+                default_type = "VARCHAR2(4000)"
+            elif db_type == "mysql":
+                def qc(c):
+                    return f"`{c}`"
+                pk_type = "VARCHAR(500)"
+                default_type = "TEXT"
+            elif db_type == "mssql":
+                def qc(c):
+                    return f"[{c}]"
+                pk_type = "NVARCHAR(500)"
+                default_type = "NVARCHAR(MAX)"
+            else:
+                def qc(c):
+                    return c
+                pk_type = "VARCHAR(500)"
+                default_type = "VARCHAR(4000)"
+
             column_defs = []
             for col in all_columns:
-                col_type = type_map.get(col.upper(), "VARCHAR2(4000)")
-                column_defs.append(f"{col} {col_type}")
+                col_type = type_map.get(col.upper(), default_type)
+                column_defs.append(f"{qc(col)} {col_type}")
 
-            create_sql = f"""
-            CREATE TABLE {temp_schema}.{temp_name} (
-                {', '.join(column_defs)}
-            )
-            """
+            # 确保主键列类型（第一个列）使用专用 pk_type（仅当目标表没有映射时）
+            if column_defs and all_columns[0].upper() not in type_map:
+                column_defs[0] = f"{qc(all_columns[0])} {pk_type}"
+
+            if db_type == "oracle":
+                create_sql = f"""
+                CREATE TABLE {temp_schema}.{temp_name} (
+                    {', '.join(column_defs)}
+                )
+                """
+            elif db_type == "mysql":
+                create_sql = f"""
+                CREATE TABLE `{temp_schema}`.`{temp_name}` (
+                    {', '.join(column_defs)}
+                )
+                """
+            elif db_type == "mssql":
+                create_sql = f"""
+                CREATE TABLE [{temp_schema}].[{temp_name}] (
+                    {', '.join(column_defs)}
+                )
+                """
+            else:
+                create_sql = f"""
+                CREATE TABLE {temp_schema}.{temp_name} (
+                    {', '.join(column_defs)}
+                )
+                """
             success, _, error = self.db.execute_sql(create_sql)
             if not success:
                 self.log.error(f"创建临时表失败: {error}")
@@ -185,8 +260,19 @@ class DataUpdater:
         imported_count = 0
         try:
             all_columns = [key_column] + update_columns
-            placeholders = [f":{i+1}" for i in range(len(all_columns))]
-            insert_sql = f"INSERT INTO {temp_schema}.{self.temp_table_name} ({', '.join(all_columns)}) VALUES ({', '.join(placeholders)})"
+            db_type = self._get_db_type()
+            if db_type == "oracle":
+                placeholders = ", ".join([f":{i + 1}" for i in range(len(all_columns))])
+                insert_sql = f"INSERT INTO {temp_schema}.{self.temp_table_name} ({', '.join(all_columns)}) VALUES ({placeholders})"
+            elif db_type == "mysql":
+                placeholders = ", ".join(["%s"] * len(all_columns))
+                insert_sql = f"INSERT INTO `{temp_schema}`.`{self.temp_table_name}` ({', '.join(all_columns)}) VALUES ({placeholders})"
+            elif db_type == "mssql":
+                placeholders = ", ".join(["?"] * len(all_columns))
+                insert_sql = f"INSERT INTO [{temp_schema}].[{self.temp_table_name}] ({', '.join(all_columns)}) VALUES ({placeholders})"
+            else:
+                placeholders = ", ".join(["?"] * len(all_columns))
+                insert_sql = f"INSERT INTO {temp_schema}.{self.temp_table_name} ({', '.join(all_columns)}) VALUES ({placeholders})"
 
             batch_size = 100
             total = len(data_rows)
@@ -254,8 +340,30 @@ class DataUpdater:
         unmatched_records = []
 
         try:
+            db_type = self._get_db_type()
+            if db_type == "oracle":
+                def q(obj, sch=None):
+                    return f"{sch}.{obj}" if sch else obj
+                def qc(c):
+                    return c
+            elif db_type == "mysql":
+                def q(obj, sch=None):
+                    return f"`{sch}`.`{obj}`" if sch else f"`{obj}`"
+                def qc(c):
+                    return f"`{c}`"
+            elif db_type == "mssql":
+                def q(obj, sch=None):
+                    return f"[{sch}].[{obj}]" if sch else f"[{obj}]"
+                def qc(c):
+                    return f"[{c}]"
+            else:
+                def q(obj, sch=None):
+                    return f"{sch}.{obj}" if sch else obj
+                def qc(c):
+                    return c
+
             # 1. 获取临时表中所有key_value（用于检测未匹配记录）
-            temp_keys_sql = f"SELECT {key_column} FROM {temp_schema}.{self.temp_table_name}"
+            temp_keys_sql = f"SELECT {qc(key_column)} FROM {q(self.temp_table_name, temp_schema)}"
             success, temp_keys_result, error = self.db.execute_sql(temp_keys_sql, commit=False)
             if not success:
                 self.log.error(f"获取临时表key_value失败: {error}")
@@ -270,17 +378,17 @@ class DataUpdater:
             self.log.info(f"临时表中共有 {len(temp_key_values)} 个key_value")
 
             # 2. 查询匹配的记录进行更新
-            columns_str = ", ".join([f"t.{col}" for col in update_columns])
-            old_columns_str = ", ".join([f"t.{col} AS OLD_{col}" for col in update_columns])
-            temp_columns_str = ", ".join([f"temp.{col}" for col in update_columns])
+            columns_str = ", ".join([f"t.{qc(col)}" for col in update_columns])
+            old_columns_str = ", ".join([f"t.{qc(col)} AS OLD_{col}" for col in update_columns])
+            temp_columns_str = ", ".join([f"temp.{qc(col)}" for col in update_columns])
 
             check_sql = f"""
-            SELECT temp.{key_column}, {old_columns_str},
+            SELECT temp.{qc(key_column)}, {old_columns_str},
                    {columns_str},
                    {temp_columns_str}
-            FROM {target_schema}.{target_table} t
-            INNER JOIN {temp_schema}.{self.temp_table_name} temp
-            ON t.{key_column} = temp.{key_column}
+            FROM {q(target_table, target_schema)} t
+            INNER JOIN {q(self.temp_table_name, temp_schema)} temp
+            ON t.{qc(key_column)} = temp.{qc(key_column)}
             """
 
             success, result, error = self.db.execute_sql(check_sql, commit=False)
@@ -325,14 +433,42 @@ class DataUpdater:
                             params[col] = new_value
 
                     if non_empty_columns:
-                        set_clause = ", ".join([f"{col} = :{col}" for col in non_empty_columns])
-                        update_sql = f"""
-                        UPDATE {target_schema}.{target_table}
-                        SET {set_clause}
-                        WHERE {key_column} = :key_value
-                        """
-
-                        cursor.execute(update_sql, params)
+                        # 占位符：Oracle 使用 :name，MySQL 使用 %s，SQLServer 使用 ?
+                        if db_type == "oracle":
+                            set_clause = ", ".join([f"{qc(col)} = :{col}" for col in non_empty_columns])
+                            update_sql = f"""
+                            UPDATE {q(target_table, target_schema)}
+                            SET {set_clause}
+                            WHERE {qc(key_column)} = :key_value
+                            """
+                            cursor.execute(update_sql, params)
+                        elif db_type == "mysql":
+                            set_clause = ", ".join([f"{qc(col)} = %s" for col in non_empty_columns])
+                            update_sql = f"""
+                            UPDATE {q(target_table, target_schema)}
+                            SET {set_clause}
+                            WHERE {qc(key_column)} = %s
+                            """
+                            row_values = [params[col] for col in non_empty_columns] + [params["key_value"]]
+                            cursor.execute(update_sql, row_values)
+                        elif db_type == "mssql":
+                            set_clause = ", ".join([f"{qc(col)} = ?" for col in non_empty_columns])
+                            update_sql = f"""
+                            UPDATE {q(target_table, target_schema)}
+                            SET {set_clause}
+                            WHERE {qc(key_column)} = ?
+                            """
+                            row_values = [params[col] for col in non_empty_columns] + [params["key_value"]]
+                            cursor.execute(update_sql, row_values)
+                        else:
+                            set_clause = ", ".join([f"{qc(col)} = ?" for col in non_empty_columns])
+                            update_sql = f"""
+                            UPDATE {q(target_table, target_schema)}
+                            SET {set_clause}
+                            WHERE {qc(key_column)} = ?
+                            """
+                            row_values = [params[col] for col in non_empty_columns] + [params["key_value"]]
+                            cursor.execute(update_sql, row_values)
 
                         if cursor.rowcount > 0:
                             self.success_count += 1
@@ -352,7 +488,7 @@ class DataUpdater:
                         self.success_count += 1
                         self.log.info(f"key_value={old_key}: 所有字段为空，跳过更新")
 
-                except oracledb.DatabaseError as e:
+                except Exception as e:
                     self.fail_count += 1
                     error_msg = str(e)
                     if "ORA-01722" in error_msg:
@@ -361,15 +497,6 @@ class DataUpdater:
                         reason = "无法设置为NULL（列可能不允许NULL）"
                     else:
                         reason = error_msg
-                    failed_records.append({
-                        "key_value": str(old_key),
-                        "reason": reason,
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    })
-                    self.log.add_failed_record(str(old_key), "", reason)
-                except Exception as e:
-                    self.fail_count += 1
-                    reason = str(e)
                     failed_records.append({
                         "key_value": str(old_key),
                         "reason": reason,
@@ -453,8 +580,30 @@ class DataUpdater:
         unmatched_records = []
 
         try:
+            db_type = self._get_db_type()
+            if db_type == "oracle":
+                def q(obj, sch=None):
+                    return f"{sch}.{obj}" if sch else obj
+                def qc(c):
+                    return c
+            elif db_type == "mysql":
+                def q(obj, sch=None):
+                    return f"`{sch}`.`{obj}`" if sch else f"`{obj}`"
+                def qc(c):
+                    return f"`{c}`"
+            elif db_type == "mssql":
+                def q(obj, sch=None):
+                    return f"[{sch}].[{obj}]" if sch else f"[{obj}]"
+                def qc(c):
+                    return f"[{c}]"
+            else:
+                def q(obj, sch=None):
+                    return f"{sch}.{obj}" if sch else obj
+                def qc(c):
+                    return c
+
             # 1. 获取临时表中所有 key_value
-            temp_keys_sql = f"SELECT {key_column} FROM {temp_schema}.{self.temp_table_name}"
+            temp_keys_sql = f"SELECT {qc(key_column)} FROM {q(self.temp_table_name, temp_schema)}"
             success, temp_keys_result, error = self.db.execute_sql(temp_keys_sql, commit=False)
             temp_key_values = set()
             if success and temp_keys_result:
@@ -464,26 +613,46 @@ class DataUpdater:
 
             self.log.info(f"临时表中共有 {len(temp_key_values)} 个 key_value")
 
-            # 2. 构建 MERGE INTO 语句
+            # 2. 构建更新语句
             # SET 子句: 空字段保留原值
             set_clauses = []
             for col in update_columns:
                 set_clauses.append(
-                    f"t.{col} = CASE WHEN s.{col} IS NOT NULL AND TRIM(s.{col}) != '' "
-                    f"THEN s.{col} ELSE t.{col} END"
+                    f"t.{qc(col)} = CASE WHEN s.{qc(col)} IS NOT NULL AND TRIM(s.{qc(col)}) != '' "
+                    f"THEN s.{qc(col)} ELSE t.{qc(col)} END"
                 )
 
-            merge_sql = f"""
-            MERGE INTO {target_schema}.{target_table} t
-            USING {temp_schema}.{self.temp_table_name} s
-            ON (t.{key_column} = s.{key_column})
-            WHEN MATCHED THEN UPDATE SET
-                {', '.join(set_clauses)}
-            """
+            if db_type == "oracle" or db_type == "mssql":
+                merge_sql = f"""
+                MERGE INTO {q(target_table, target_schema)} t
+                USING {q(self.temp_table_name, temp_schema)} s
+                ON (t.{qc(key_column)} = s.{qc(key_column)})
+                WHEN MATCHED THEN UPDATE SET
+                    {', '.join(set_clauses)}
+                """
+            elif db_type == "mysql":
+                # MySQL 使用 INSERT ... ON DUPLICATE KEY UPDATE
+                all_cols = [key_column] + update_columns
+                placeholders_cols = ", ".join([f"s.{qc(col)}" for col in all_cols])
+                on_dup_clause = ", ".join(set_clauses)
+                # 用 UPDATE + JOIN 更符合 MySQL 习惯
+                merge_sql = f"""
+                UPDATE {q(target_table, target_schema)} t
+                INNER JOIN {q(self.temp_table_name, temp_schema)} s
+                ON t.{qc(key_column)} = s.{qc(key_column)}
+                SET {', '.join(set_clauses)}
+                """
+            else:
+                merge_sql = f"""
+                UPDATE {q(target_table, target_schema)} t
+                INNER JOIN {q(self.temp_table_name, temp_schema)} s
+                ON t.{qc(key_column)} = s.{qc(key_column)}
+                SET {', '.join(set_clauses)}
+                """
 
-            self.log.info(f"MERGE SQL: {merge_sql[:200]}...")
+            self.log.info(f"MERGE/UPDATE SQL: {merge_sql[:200]}...")
 
-            # 3. 执行 MERGE
+            # 3. 执行
             cursor = self.db.connection.cursor()
             cursor.execute(merge_sql)
             merged_count = cursor.rowcount
@@ -491,12 +660,12 @@ class DataUpdater:
             cursor.close()
 
             self.success_count = merged_count if merged_count else 0
-            self.log.success(f"MERGE 完成，更新 {self.success_count} 条记录")
+            self.log.success(f"批量更新完成，共 {self.success_count} 条记录")
 
             # 4. 检测未匹配记录
             if self.success_count < len(temp_key_values):
                 # 找出未匹配的 key_value
-                target_vals_sql = f"SELECT {key_column} FROM {target_schema}.{target_table}"
+                target_vals_sql = f"SELECT {qc(key_column)} FROM {q(target_table, target_schema)}"
                 _, target_vals_result, _ = self.db.execute_sql(target_vals_sql, commit=False)
                 target_key_values = set()
                 if target_vals_result:
@@ -571,7 +740,15 @@ class DataUpdater:
 
         try:
             self.log.info(f"正在清理临时表 {temp_schema}.{self.temp_table_name}")
-            drop_sql = f"DROP TABLE {temp_schema}.{self.temp_table_name}"
+            db_type = self._get_db_type()
+            if db_type == "oracle":
+                drop_sql = f"DROP TABLE {temp_schema}.{self.temp_table_name}"
+            elif db_type == "mysql":
+                drop_sql = f"DROP TABLE `{temp_schema}`.`{self.temp_table_name}`"
+            elif db_type == "mssql":
+                drop_sql = f"DROP TABLE [{temp_schema}].[{self.temp_table_name}]"
+            else:
+                drop_sql = f"DROP TABLE {temp_schema}.{self.temp_table_name}"
             success, _, error = self.db.execute_sql(drop_sql)
             if success:
                 self.log.success("临时表已清理")

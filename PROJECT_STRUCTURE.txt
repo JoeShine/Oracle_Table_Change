@@ -1,82 +1,119 @@
-DBForge - 项目结构说明
+DBForge (Database Forge) - 项目结构说明
+版本: v2.9.0（多数据库支持版）
 
 项目根目录
 │
-├── main.py                      # 程序入口文件
-├── requirements.txt             # Python依赖列表
-├── DBForge.spec       # PyInstaller打包配置
+├── main.py                      # 程序入口文件（多数据库支持检测）
+├── requirements.txt             # Python 依赖列表（含 oracledb）
+├── DBForge.spec                 # PyInstaller 打包配置
 │
 ├── src/                         # 源代码目录
 │   ├── __init__.py             # 包初始化文件
-│   ├── config_manager.py       # 配置管理模块
+│   ├── config_manager.py       # 配置管理模块（多数据库类型保存）
 │   ├── logger.py               # 日志管理模块
-│   ├── db_connection.py        # 连接管理模块
-│   ├── excel_handler.py        # Excel处理模块
-│   ├── data_updater.py          # 数据更新逻辑模块
-│   └── gui.py                  # GUI界面模块
+│   ├── db_connection.py        # 连接管理模块（Oracle / MySQL / SQL Server）
+│   ├── excel_handler.py        # Excel 处理模块
+│   ├── data_updater.py         # 数据更新逻辑模块（SQL 方言自适应）
+│   └── gui.py                  # GUI 界面模块（含数据库类型选择下拉）
 │
-├── config.json                  # 配置文件（运行时生成）
+├── scripts/                     # 构建与脚本目录（v2.9.0 多数据库版）
+│   ├── build_release.sh        # Linux 发布包构建
+│   ├── build_chm.py            # CHM 文档构建（含多数据库章节）
+│   ├── create_portable.bat     # Windows 便携版打包
+│   ├── create_portable.sh      # Linux 便携版打包
+│   ├── install_oracle_client.sh # Oracle Instant Client 安装（可选）
+│   └── chm_unblock.ps1/.bat    # Windows CHM 安全解除
+│
+├── docs/                        # 文档目录
+│   ├── chm_src/                # CHM 源文件（HTML/CSS/images）
+│   ├── images/                 # 文档截图
+│   ├── DBForge_UserManual.chm  # CHM 帮助手册（v2.9.0）
+│   └── DBForge_UserManual.epub # EPUB 帮助手册（v2.9.0）
+│
+├── release_v2.9.0/             # 构建产物目录（由 build_release.sh 生成）
+│
+├── config.json                  # 配置文件（运行时生成，存储多数据库连接信息）
 │
 ├── logs/                        # 日志目录（运行时生成）
 │   └── update_*.log            # 更新日志文件
 │
 ├── backups/                      # 备份目录（运行时生成）
-│   └── *_BAK_*                 # 数据库备份表
+│   └── *_BAK_*                 # 数据库备份表记录
 │
 ├── dist/                        # 打包输出目录（打包后生成）
-│   └── DBForge.exe  # 打包后的可执行文件
+│   └── DBForge.exe             # 打包后的可执行文件
 │
-└── 脚本文件（Windows批处理）
-    ├── install.bat              # 安装依赖脚本
+└── 其他脚本文件
+    ├── install.bat              # 安装依赖脚本（含 pymysql / pyodbc 说明）
     ├── build.bat                # 简化打包脚本
     ├── package.bat              # 完整打包脚本
-    └── verify.bat               # 验证脚本
+    ├── verify.bat               # 验证脚本
+    ├── create_sample.py         # 示例数据生成
+    ├── create_template.py       # 模板生成
+    ├── create_docs.py           # 文档生成
+    ├── test_all.py              # 综合测试
+    ├── test_core_logic.py       # 核心逻辑测试
+    ├── test_deep_core.py        # 深度核心测试
+    ├── test_deep_p1p2.py        # P1/P2 测试
+    ├── test_deep_p3.py          # P3 测试
+    ├── test_demo_html.py        # demo.html 测试
+    ├── test_layout_change.py    # 布局变更测试
+    ├── test_p0_security.py      # P0 安全测试
+    ├── test_code_doc_consistency.py
+    ├── test_consistency_example.py
+    ├── test_duplicate_example.py
+    ├── test_full_regression.py
+    ├── test_integration.py      # 集成测试
+    ├── demo.html                # HTML 原型（多数据库交互演示）
+    ├── docker-compose.yml       # Docker 编排（含 Microsoft ODBC Driver 17）
+    └── Dockerfile               # Docker 镜像（已含 pymysql / pyodbc / MS ODBC Driver 17）
 
 文件说明
-═══════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════
 
 核心模块说明
 ───────────────────────────────────────────────────────────────
 
 1. main.py
    - 程序入口点
-   - 初始化GUI并启动主循环
+   - 初始化 GUI 并启动主循环
+   - 检测可用数据库驱动（oracledb / pymysql / pyodbc）
 
 2. config_manager.py
-   - 管理连接管理配置
+   - 管理连接管理配置（支持多数据库类型字段）
    - 保存和加载用户配置
    - 自动保存最近使用的配置
 
 3. logger.py
    - 日志记录功能
-   - 支持INFO、SUCCESS、ERROR、WARNING级别
+   - 支持 INFO / 成功 / 错误 / 警告 级别
    - 记录失败记录
    - 导出日志到文件
 
-4. db_connection.py
-   - Oracle连接管理管理
-   - 执行SQL语句
+4. db_connection.py （v2.9.0 多数据库核心）
+   - Oracle / MySQL / SQL Server 三数据库连接管理
+   - 执行 SQL 语句（方言自适应）
    - 获取表和列信息
    - 事务管理
 
 5. excel_handler.py
-   - 读取Excel文件
-   - 验证Excel格式
-   - 导出日志和失败记录到Excel
+   - 读取 Excel 文件
+   - 验证 Excel 格式
+   - 导出日志和失败记录到 Excel
    - 数据预览
 
-6. data_updater.py
-   - 表备份功能
-   - 临时表管理
-   - Excel数据导入
-   - 数据更新执行
+6. data_updater.py （v2.9.0 多数据库核心）
+   - 表备份功能（Schema / Database / 方括号/反引号适配）
+   - 临时表管理（方言自适应 DDL）
+   - Excel 数据导入
+   - 数据更新执行（MERGE / ON DUPLICATE KEY UPDATE / UPDATE FROM）
    - 错误处理
 
 7. gui.py
    - 图形用户界面
-   - 连接管理配置面板
+   - 连接管理配置面板（含数据库类型下拉：Oracle / MySQL / SQL Server）
    - 更新参数配置面板
-   - 日志显示面板
+   - Excel 数据预览
    - 进度显示
    - 失败记录弹窗
 
@@ -89,32 +126,57 @@ config.json 结构：
     "connection_name": "上次使用的连接名",
     "target_table": "上次使用的表名",
     "key_column": "上次使用的标识列",
-    "update_column": "上次使用的更新列"
+    "update_column": "上次使用的更新列",
+    "database_type": "Oracle | MySQL | SQL_Server"
   },
   "connections": [
     {
       "name": "连接名称",
+      "database_type": "Oracle",
       "host": "主机地址",
       "port": 1521,
       "service": "服务名",
       "username": "用户名",
-      "password": "密码"
+      "password": "加密密码"
+    },
+    {
+      "name": "连接名称",
+      "database_type": "MySQL",
+      "host": "主机地址",
+      "port": 3306,
+      "service": "database",
+      "username": "用户名",
+      "password": "加密密码"
+    },
+    {
+      "name": "连接名称",
+      "database_type": "SQL_Server",
+      "host": "主机地址",
+      "port": 1433,
+      "service": "database",
+      "username": "用户名",
+      "password": "加密密码"
     }
   ]
 }
 
 使用说明
-═══════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════
 
 开发模式运行：
   python main.py
 
-打包为exe：
+打包为 exe：
   Windows: 运行 package.bat
   或手动: pyinstaller DBForge.spec --clean
 
 安装依赖：
   pip install -r requirements.txt
+  pip install pymysql pyodbc          # 多数据库额外依赖（MySQL / SQL Server）
 
 验证安装：
   Windows: 运行 verify.bat
+
+Docker 部署：
+  docker-compose up -d
+  浏览器访问 http://localhost:6080

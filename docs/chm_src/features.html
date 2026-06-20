@@ -133,7 +133,42 @@
     <tr><td><span class="kbd">←</span> / <span class="kbd">→</span></td><td>横向滚动当前内容区（支持日志文本、操作历史表格、数据预览等可滚动控件）</td></tr>
 </table>
 
-<h2>4.8 配置场景</h2>
+<h2>4.8 多数据库支持 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<p>自 v2.9.0 起，DBForge 在数据访问层引入统一的数据库抽象接口，支持 Oracle、MySQL、MS SQL Server 三种主流数据库，根据连接配置自动切换对应驱动与方言。</p>
+
+<h3>4.8.1 多数据库驱动支持</h3>
+<table>
+    <tr><th>数据库</th><th>Python 驱动</th><th>版本要求</th><th>说明</th></tr>
+    <tr><td>Oracle</td><td>python-oracledb</td><td>1.0+</td><td>Oracle 官方驱动，无需 Instant Client（thin 模式）</td></tr>
+    <tr><td>MySQL</td><td>PyMySQL</td><td>1.0+</td><td>纯 Python 实现，轻量、跨平台</td></tr>
+    <tr><td>MS SQL Server</td><td>pyodbc + ODBC Driver 17</td><td>ODBC 17.x</td><td>微软官方 ODBC 驱动 + pyodbc Python 绑定</td></tr>
+</table>
+
+<h3>4.8.2 SQL 方言自动适配</h3>
+<p>根据数据库类型自动生成符合对应方言的 SQL 语句，用户无需手工修改：</p>
+<table>
+    <tr><th>特性</th><th>Oracle</th><th>MySQL</th><th>MS SQL Server</th></tr>
+    <tr><td>LIMIT / TOP 分页</td><td>FETCH FIRST N ROWS / ROWNUM</td><td>LIMIT N</td><td>TOP N</td></tr>
+    <tr><td>字符串拼接</td><td>|| 或 CONCAT()</td><td>CONCAT()</td><td>+ 或 CONCAT()</td></tr>
+    <tr><td>当前时间</td><td>SYSDATE</td><td>NOW()</td><td>GETDATE()</td></tr>
+    <tr><td>临时表创建</td><td>CREATE TABLE xxx_tmp</td><td>CREATE TABLE xxx_tmp</td><td>SELECT ... INTO #xxx_tmp 或 CREATE TABLE</td></tr>
+    <tr><td>参数占位符</td><td>:name</td><td>%s</td><td>?</td></tr>
+    <tr><td>自增列</td><td>IDENTITY / SEQUENCE</td><td>AUTO_INCREMENT</td><td>IDENTITY(1,1)</td></tr>
+</table>
+
+<h3>4.8.3 自动识别标识符包裹方式</h3>
+<p>系统根据连接配置自动选择标识符（表名、列名、Schema 名）的包裹字符，确保大小写敏感、特殊字符场景下 SQL 正确执行：</p>
+<table>
+    <tr><th>数据库</th><th>标识符包裹字符</th><th>示例</th><th>适用场景</th></tr>
+    <tr><td>Oracle</td><td>双引号 "</td><td>"EMP_ID"</td><td>区分大小写 / 保留字 / 含特殊字符的标识符</td></tr>
+    <tr><td>MySQL</td><td>反引号 `</td><td>`emp_id`</td><td>sql_mode=ANSI_QUOTES / 保留字</td></tr>
+    <tr><td>MS SQL Server</td><td>方括号 []</td><td>[Emp ID]</td><td>含空格 / 保留字 / 区分大小写 collation</td></tr>
+</table>
+<div class="tip-box">
+    <strong>示例说明：</strong> 当目标表名包含空格或使用数据库保留字（如 <code>ORDER</code>）时，系统会自动包裹对应标识符，避免 SQL 语法错误。用户无需关心底层差异，只需按真实名称填写即可。
+</div>
+
+<h2>4.9 配置场景</h2>
 <p>配置场景功能允许您保存常用的配置组合，下次使用时可直接加载，无需手工填写。</p>
 
 <h3>使用场景</h3>
@@ -170,9 +205,9 @@
     <strong>注意：</strong>场景名称不能为空，不超过 100 字符，同名场景会提示覆盖确认。
 </div>
 
-<h2>4.7 v2.8.0 新增功能</h2>
+<h2>4.10 v2.8.0 新增功能</h2>
 
-<h3>4.7.1 多格式数据导入</h3>
+<h3>4.10.1 多格式数据导入</h3>
 <p>v2.8.0 起支持 5 种数据格式：</p>
 <table>
     <tr><th>格式</th><th>扩展名</th><th>最大行数</th><th>读取方式</th></tr>
@@ -183,7 +218,7 @@
     <tr><td>JSON Lines</td><td>.jsonl</td><td>1000 万</td><td>流式读取</td></tr>
 </table>
 
-<h3>4.7.2 CLI 命令行</h3>
+<h3>4.10.2 CLI 命令行</h3>
 <pre><code># 执行批量更新
 python -m src.cli update --connection DEV --table EMPLOYEE \
     --file data.csv --key-column EMP_ID \
@@ -195,11 +230,10 @@ python -m src.cli update --connection DEV --table EMPLOYEE \
     --update-columns NAME --dry-run
 
 # 验证审计日志
-python -m src.cli verify-audit
-</code></pre>
+python -m src.cli verify-audit</code></pre>
 <p>退出码：0=成功, 1=参数错误, 2=连接失败, 3=验证失败, 4=部分失败, 5=全部失败</p>
 
-<h3>4.7.3 统计分析（ImportStats）</h3>
+<h3>4.10.3 统计分析（ImportStats）</h3>
 <p>v2.8.0 新增 <code>ImportStats</code> 模块，从历史日志自动生成 7 维度统计报表：</p>
 <table>
     <tr><th>维度</th><th>方法</th><th>说明</th></tr>
@@ -213,10 +247,10 @@ python -m src.cli verify-audit
 </table>
 <p>支持导出为 text / html / json 三种格式。</p>
 
-<h3>4.7.4 通知系统</h3>
+<h3>4.10.4 通知系统</h3>
 <p>支持 4 种通知渠道：钉钉机器人、企业微信机器人、通用 Webhook、邮件。配置 <code>notification.json</code> 即可启用。</p>
 
-<h3>4.7.5 平台化功能</h3>
+<h3>4.10.5 平台化功能</h3>
 <ul>
     <li><strong>DataCompare</strong>：两表对比 / 表 vs Excel 对比 / HTML 差异报告</li>
     <li><strong>诊断包</strong>：环境/数据库/配置/日志 四维度诊断</li>
@@ -226,7 +260,7 @@ python -m src.cli verify-audit
     <li><strong>趋势分析</strong>：频率/错误/表活动/性能 四维度</li>
 </ul>
 
-<h3>4.7.6 安全增强</h3>
+<h3>4.10.6 安全增强</h3>
 <ul>
     <li>SQL 注入防御：标识符白名单校验</li>
     <li>密码 Fernet AES-GCM 加密存储</li>
@@ -236,8 +270,16 @@ python -m src.cli verify-audit
     <li>4 角色操作员认证 + 双人审批</li>
 </ul>
 
+<h2>4.11 v2.9.0 多数据库更新 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<ul>
+    <li>新增 MySQL / MS SQL Server 双数据库支持</li>
+    <li>连接管理增加"数据库类型"字段</li>
+    <li>统一数据访问层：驱动管理、方言适配、标识符包裹三要素自动切换</li>
+    <li>安装文档新增 PyMySQL、ODBC Driver 17 安装指引</li>
+</ul>
+
 <div class="footer">
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 </div>

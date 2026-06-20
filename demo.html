@@ -2061,6 +2061,11 @@
                     执行重复性校验确认无重复员工号，点击"执行"后 DBForge 自动：① 备份 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMPLOYEE</code> 到 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMPLOYEE_BAK_时间戳</code>；② 创建临时表分批加载数据；③ 按主键匹配执行 UPDATE；④ 返回成功/失败统计。
                     过程中可在"运行日志"实时查看进度，在"操作历史"追溯历次更新。
                 </div>
+                <div style="margin-top: 12px; padding: 8px 12px; background: rgba(232,164,76,0.08); border-left: 3px solid #e8a44c; font-size: 11px; color: #6c757d; line-height: 1.6; border-radius: 3px;">
+                    <span style="color: #d97706; font-weight: 600;">v2.9.0+ 支持的数据库:</span>
+                    Oracle 11g / 12c / 19c ｜ MySQL 5.7+ / 8.0+ ｜ MS SQL Server 2003 / 2008 R2 / 2012+
+                    （自动选择 SQL 方言、标识符包裹、批量操作占位符）
+                </div>
             </div>
 
             <!-- 配置场景 -->
@@ -2383,41 +2388,39 @@
             <div class="config-section">
                 <div class="section-header">
                     <span class="section-marker">§ CONNECTION</span>
-                    <span class="section-title">连接配置</span>
+                    <span class="section-title">已保存连接</span>
                     <span class="section-rule"></span>
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="field-label">
-                            连接名称
-                            <span class="label-code">ALIAS</span>
-                        </label>
-                        <select class="field-select" id="connectionSelect" onchange="switchConnection()">
-                            <option value="dev" selected>开发环境 · DEV</option>
-                            <option value="test">测试环境 · TEST</option>
-                            <option value="uat">UAT环境 · UAT</option>
-                            <option value="prod">生产环境 · PROD</option>
-                        </select>
-                    </div>
-                    <div class="form-field" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-teal" onclick="testConnection()" style="width: 100%;">
-                            <span class="btn-icon">⇄</span>
-                            <span>测试连接</span>
-                        </button>
-                    </div>
+                <div id="savedConnections" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                    <!-- 连接卡片由 JS 动态生成 -->
+                </div>
+
+                <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="openAddConnectionModal()">
+                        <span class="btn-icon">+</span>
+                        <span>添加连接</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="alert('请在连接卡片上选择要删除的连接')">
+                        <span class="btn-icon">−</span>
+                        <span>删除连接</span>
+                    </button>
                 </div>
             </div>
 
             <!-- 连接详情表 -->
             <div class="data-panel">
                 <div class="panel-header">
-                    <div class="panel-title">连接参数 <span style="color: var(--text-muted); font-weight: 400; font-size: 12px; font-family: var(--font-mono);">· connection_info</span></div>
+                    <div class="panel-title">当前连接参数 <span style="color: var(--text-muted); font-weight: 400; font-size: 12px; font-family: var(--font-mono);">· connection_info</span></div>
                     <div class="panel-badge" id="connStatusBadge">CONNECTED</div>
                 </div>
                 <div class="table-wrapper">
-                    <table class="data-table">
+                    <table class="data-table" id="connDetailTable">
                         <tbody>
+                            <tr>
+                                <td style="width: 40%; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">数据库类型 DB_TYPE</td>
+                                <td id="connDbType" style="font-family: var(--font-mono); color: var(--amber-600); font-weight: 600;">Oracle 11g / 12c / 19c</td>
+                            </tr>
                             <tr>
                                 <td style="width: 40%; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">主机 HOST</td>
                                 <td id="connHost" style="font-family: var(--font-mono);">192.168.1.100</td>
@@ -2427,8 +2430,8 @@
                                 <td style="font-family: var(--font-mono);">1521</td>
                             </tr>
                             <tr>
-                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">服务名 SID</td>
-                                <td style="font-family: var(--font-mono);">ORCL</td>
+                                <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;" id="connServiceLabel">服务名 SID</td>
+                                <td id="connService" style="font-family: var(--font-mono);">ORCL</td>
                             </tr>
                             <tr>
                                 <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">用户名 USER</td>
@@ -2440,7 +2443,7 @@
                             </tr>
                             <tr>
                                 <td style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">版本 VERSION</td>
-                                <td style="font-family: var(--font-mono);">Oracle Database 19c Enterprise Edition</td>
+                                <td style="font-family: var(--font-mono);" id="connVersion">Oracle Database 19c Enterprise Edition</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2448,13 +2451,9 @@
             </div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-secondary" onclick="alert('添加连接配置')">
-                    <span class="btn-icon">+</span>
-                    <span>添加连接</span>
-                </button>
-                <button class="btn btn-ghost" onclick="alert('删除当前连接')">
-                    <span class="btn-icon">−</span>
-                    <span>删除连接</span>
+                <button class="btn btn-teal" onclick="testCurrentConnection()">
+                    <span class="btn-icon">⇄</span>
+                    <span>测试当前连接</span>
                 </button>
             </div>
         </div>
@@ -3043,6 +3042,92 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="hideSuccessModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== 模态框：添加连接 ============== -->
+    <div class="modal-overlay" id="addConnectionModal">
+        <div class="modal wide">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon">⊕</div>
+                    <div>
+                        <div class="modal-title">添加数据库连接</div>
+                        <div class="modal-subtitle">请填写连接基本信息</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeAddConnectionModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-field full">
+                        <label class="field-label">
+                            连接名称
+                            <span class="label-code">ALIAS</span>
+                        </label>
+                        <input type="text" class="field-input" id="newConnName" placeholder="例如：生产环境 · PROD" value="">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            数据库类型
+                            <span class="label-code">DB_TYPE</span>
+                        </label>
+                        <select class="field-select" id="newConnDbType" onchange="onDbTypeChange()">
+                            <option value="oracle">Oracle (11g / 12c / 19c)</option>
+                            <option value="mysql">MySQL (5.7+ / 8.0+)</option>
+                            <option value="mssql">MS SQL Server (2003 / 2008 R2 / 2012+)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            主机
+                            <span class="label-code">HOST</span>
+                        </label>
+                        <input type="text" class="field-input" id="newConnHost" placeholder="192.168.1.100" value="">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            端口
+                            <span class="label-code">PORT</span>
+                        </label>
+                        <input type="text" class="field-input" id="newConnPort" placeholder="1521" value="1521">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" id="newConnServiceLabel">
+                            服务名 / SID
+                            <span class="label-code">SERVICE</span>
+                        </label>
+                        <input type="text" class="field-input" id="newConnService" placeholder="ORCL" value="">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            用户名
+                            <span class="label-code">USER</span>
+                        </label>
+                        <input type="text" class="field-input" id="newConnUser" placeholder="SCOTT" value="">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">
+                            密码
+                            <span class="label-code">PASSWORD</span>
+                        </label>
+                        <input type="password" class="field-input" id="newConnPassword" placeholder="••••••••" value="">
+                    </div>
+                </div>
+
+                <div class="alert-box" id="newConnTestResult" style="display: none; margin-top: 18px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddConnectionModal()">取消</button>
+                <button class="btn btn-ghost" onclick="testNewConnection()">
+                    <span class="btn-icon">⇄</span>
+                    <span>测试连接</span>
+                </button>
+                <button class="btn btn-primary" onclick="saveNewConnection()">
+                    <span class="btn-icon">✓</span>
+                    <span>保存</span>
+                </button>
             </div>
         </div>
     </div>
@@ -3811,6 +3896,262 @@
             if (path) path.textContent = 'employee_update_20250619.' + type;
             if (meta) meta.textContent = type === 'csv' ? '2.4 MB · 125 rows' : (type === 'json' ? '3.1 MB · 125 rows' : '42 KB · 125 rows');
             addLog('切换数据源类型: ' + type.toUpperCase(), 'info');
+        }
+
+        // ================== 数据库类型配置 ==================
+        const DB_TYPE_CONFIG = {
+            'oracle': {
+                label: 'Oracle',
+                fullLabel: 'Oracle 11g / 12c / 19c',
+                defaultPort: '1521',
+                serviceLabel: '服务名 / SID',
+                servicePlaceholder: 'ORCL',
+                charset: 'AL32UTF8',
+                version: 'Oracle Database 19c Enterprise Edition'
+            },
+            'mysql': {
+                label: 'MySQL',
+                fullLabel: 'MySQL 5.7+ / 8.0+',
+                defaultPort: '3306',
+                serviceLabel: '数据库名',
+                servicePlaceholder: 'example_db',
+                charset: 'utf8mb4',
+                version: 'MySQL 8.0.33 Community Server'
+            },
+            'mssql': {
+                label: 'SQLServer',
+                fullLabel: 'MS SQL Server 2003 / 2008 R2 / 2012+',
+                defaultPort: '1433',
+                serviceLabel: '数据库名',
+                servicePlaceholder: 'master',
+                charset: 'UTF-8',
+                version: 'Microsoft SQL Server 2012 (SP4) - 11.0.7507.2'
+            }
+        };
+
+        // ================== 已保存连接 ==================
+        let savedConnections = [
+            {
+                id: 'dev',
+                name: '开发环境 · DEV',
+                dbType: 'oracle',
+                host: '192.168.1.100',
+                port: '1521',
+                service: 'ORCL',
+                user: 'SCOTT',
+                charset: 'AL32UTF8',
+                active: true
+            },
+            {
+                id: 'test',
+                name: '测试环境 · TEST',
+                dbType: 'mysql',
+                host: '192.168.1.200',
+                port: '3306',
+                service: 'test_db',
+                user: 'tester',
+                charset: 'utf8mb4',
+                active: false
+            },
+            {
+                id: 'uat',
+                name: 'UAT 环境 · UAT',
+                dbType: 'mssql',
+                host: '192.168.1.250',
+                port: '1433',
+                service: 'uat_db',
+                user: 'uat_user',
+                charset: 'UTF-8',
+                active: false
+            }
+        ];
+
+        let currentConnId = 'dev';
+
+        function renderSavedConnections() {
+            const container = document.getElementById('savedConnections');
+            if (!container) return;
+            container.innerHTML = '';
+            savedConnections.forEach(conn => {
+                const cfg = DB_TYPE_CONFIG[conn.dbType] || DB_TYPE_CONFIG['oracle'];
+                const card = document.createElement('div');
+                card.style.cssText = 'position: relative; background: var(--bg-soft); border: 1px solid ' + (conn.active ? 'var(--amber-500)' : 'var(--bg-line)') + '; border-radius: var(--radius-md); padding: 14px 16px; cursor: pointer; transition: all 0.2s; box-shadow: ' + (conn.active ? '0 2px 10px rgba(232,164,76,0.15)' : 'none');
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">${conn.name}</div>
+                        <span style="font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(232,164,76,0.15); color: var(--amber-600); font-weight: 600; white-space: nowrap; margin-left: 8px;">[${cfg.label}]</span>
+                    </div>
+                    <div style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-secondary); line-height: 1.7;">
+                        ${conn.user}@${conn.host}:${conn.port}/${conn.service}
+                    </div>
+                    <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10.5px; font-family: var(--font-mono); color: ${conn.active ? 'var(--teal-600)' : 'var(--text-muted)'}; font-weight: 600;">
+                            ${conn.active ? '● 当前连接' : '○ 未选择'}
+                        </span>
+                        <button class="btn btn-ghost" style="font-size: 11px; padding: 4px 10px; border: 1px solid var(--bg-line); background: transparent;" onclick="event.stopPropagation(); deleteConnection('${conn.id}');">删除</button>
+                    </div>
+                `;
+                card.onclick = () => selectConnection(conn.id);
+                container.appendChild(card);
+            });
+            updateConnectionDetail();
+        }
+
+        function selectConnection(id) {
+            savedConnections.forEach(c => c.active = (c.id === id));
+            currentConnId = id;
+            renderSavedConnections();
+            const conn = savedConnections.find(c => c.id === id);
+            if (conn) {
+                addLog('切换到连接: ' + conn.name + ' (' + (DB_TYPE_CONFIG[conn.dbType]?.label || 'Oracle') + ')', 'info');
+                updateStatusBar('已切换连接');
+                if (document.getElementById('sbConn')) document.getElementById('sbConn').textContent = conn.name;
+                if (document.getElementById('sbDb')) document.getElementById('sbDb').textContent = conn.service;
+                if (document.getElementById('sbUser')) document.getElementById('sbUser').textContent = conn.user;
+            }
+        }
+
+        function deleteConnection(id) {
+            if (!confirm('确定删除该连接吗？')) return;
+            savedConnections = savedConnections.filter(c => c.id !== id);
+            if (currentConnId === id && savedConnections.length > 0) {
+                savedConnections[0].active = true;
+                currentConnId = savedConnections[0].id;
+            }
+            renderSavedConnections();
+            addLog('已删除连接', 'info');
+        }
+
+        function updateConnectionDetail() {
+            const conn = savedConnections.find(c => c.active) || savedConnections[0];
+            if (!conn) return;
+            const cfg = DB_TYPE_CONFIG[conn.dbType] || DB_TYPE_CONFIG['oracle'];
+            if (document.getElementById('connDbType')) document.getElementById('connDbType').textContent = cfg.fullLabel;
+            if (document.getElementById('connHost')) document.getElementById('connHost').textContent = conn.host;
+            if (document.getElementById('connService')) document.getElementById('connService').textContent = conn.service;
+            if (document.getElementById('connServiceLabel')) document.getElementById('connServiceLabel').textContent = cfg.serviceLabel;
+            const rows = document.querySelectorAll('#connDetailTable tr');
+            rows.forEach(row => {
+                const cell = row.querySelector('td');
+                if (cell && cell.textContent.trim().indexOf('端口') !== -1) {
+                    const portCell = row.querySelectorAll('td')[1];
+                    if (portCell) portCell.textContent = conn.port;
+                }
+                if (cell && cell.textContent.trim().indexOf('用户') !== -1) {
+                    const userCell = row.querySelectorAll('td')[1];
+                    if (userCell) userCell.textContent = conn.user;
+                }
+                if (cell && cell.textContent.trim().indexOf('字符集') !== -1) {
+                    const csCell = row.querySelectorAll('td')[1];
+                    if (csCell) csCell.textContent = conn.charset || cfg.charset;
+                }
+                if (cell && cell.textContent.trim().indexOf('版本') !== -1) {
+                    const vCell = row.querySelectorAll('td')[1];
+                    if (vCell) vCell.textContent = cfg.version;
+                }
+            });
+        }
+
+        // ================== 添加连接模态框 ==================
+        function openAddConnectionModal() {
+            const modal = document.getElementById('addConnectionModal');
+            if (modal) modal.classList.add('active');
+            // 重置表单
+            if (document.getElementById('newConnName')) document.getElementById('newConnName').value = '';
+            if (document.getElementById('newConnDbType')) document.getElementById('newConnDbType').value = 'oracle';
+            if (document.getElementById('newConnHost')) document.getElementById('newConnHost').value = '';
+            if (document.getElementById('newConnPort')) document.getElementById('newConnPort').value = '1521';
+            if (document.getElementById('newConnService')) document.getElementById('newConnService').value = '';
+            if (document.getElementById('newConnUser')) document.getElementById('newConnUser').value = '';
+            if (document.getElementById('newConnPassword')) document.getElementById('newConnPassword').value = '';
+            const resultEl = document.getElementById('newConnTestResult');
+            if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
+            onDbTypeChange();
+        }
+
+        function closeAddConnectionModal() {
+            const modal = document.getElementById('addConnectionModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function onDbTypeChange() {
+            const type = document.getElementById('newConnDbType').value;
+            const cfg = DB_TYPE_CONFIG[type];
+            if (!cfg) return;
+            const portEl = document.getElementById('newConnPort');
+            if (portEl) portEl.value = cfg.defaultPort;
+            const svcLabel = document.getElementById('newConnServiceLabel');
+            const svcInput = document.getElementById('newConnService');
+            if (svcLabel) {
+                const mainText = cfg.serviceLabel;
+                svcLabel.innerHTML = mainText + ' <span class="label-code">SERVICE</span>';
+            }
+            if (svcInput) svcInput.placeholder = cfg.servicePlaceholder;
+            const resultEl = document.getElementById('newConnTestResult');
+            if (resultEl) resultEl.style.display = 'none';
+        }
+
+        function testNewConnection() {
+            const type = document.getElementById('newConnDbType').value;
+            const cfg = DB_TYPE_CONFIG[type];
+            const host = document.getElementById('newConnHost').value || 'host.example.com';
+            const user = document.getElementById('newConnUser').value || 'user';
+            const resultEl = document.getElementById('newConnTestResult');
+            if (!resultEl) return;
+            resultEl.style.display = 'block';
+            resultEl.style.background = 'rgba(78, 205, 196, 0.10)';
+            resultEl.style.borderLeft = '3px solid var(--teal-600)';
+            resultEl.style.color = 'var(--text-primary)';
+            resultEl.innerHTML = '<strong style="color: var(--teal-600);">✓ 连接成功 (' + cfg.fullLabel + ')</strong><br><span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">已建立连接到 ' + user + '@' + host + ' · 延迟 ' + (Math.floor(Math.random() * 40) + 5) + 'ms</span>';
+            addLog('测试连接成功: ' + cfg.label + ' @ ' + host, 'success');
+        }
+
+        function testCurrentConnection() {
+            const conn = savedConnections.find(c => c.active) || savedConnections[0];
+            if (!conn) return;
+            const cfg = DB_TYPE_CONFIG[conn.dbType] || DB_TYPE_CONFIG['oracle'];
+            alert('✓ 连接成功 (' + cfg.fullLabel + ')\n\n用户: ' + conn.user + '\n主机: ' + conn.host + ':' + conn.port + '\n延迟: ' + (Math.floor(Math.random() * 40) + 5) + ' ms');
+            addLog('测试连接成功: ' + cfg.label + ' @ ' + conn.host, 'success');
+        }
+
+        function saveNewConnection() {
+            const name = document.getElementById('newConnName').value.trim();
+            if (!name) { alert('请填写连接名称'); return; }
+            const type = document.getElementById('newConnDbType').value;
+            const cfg = DB_TYPE_CONFIG[type];
+            const newConn = {
+                id: 'conn_' + Date.now(),
+                name: name,
+                dbType: type,
+                host: document.getElementById('newConnHost').value || 'localhost',
+                port: document.getElementById('newConnPort').value || cfg.defaultPort,
+                service: document.getElementById('newConnService').value || cfg.servicePlaceholder,
+                user: document.getElementById('newConnUser').value || 'user',
+                charset: cfg.charset,
+                active: false
+            };
+            savedConnections.forEach(c => c.active = false);
+            newConn.active = true;
+            currentConnId = newConn.id;
+            savedConnections.push(newConn);
+            renderSavedConnections();
+            closeAddConnectionModal();
+            addLog('已保存新连接: ' + newConn.name, 'success');
+            if (document.getElementById('sbConn')) document.getElementById('sbConn').textContent = newConn.name;
+            if (document.getElementById('sbDb')) document.getElementById('sbDb').textContent = newConn.service;
+            if (document.getElementById('sbUser')) document.getElementById('sbUser').textContent = newConn.user;
+        }
+
+        // 初始化：渲染已保存连接
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(renderSavedConnections, 50);
+        });
+
+        // 兼容：保留原有 testConnection / switchConnection 命名
+        function testConnection() { testCurrentConnection(); }
+        function switchConnection() {
+            const sel = document.getElementById('connectionSelect');
+            if (sel) selectConnection(sel.value);
         }
     </script>
 </body>

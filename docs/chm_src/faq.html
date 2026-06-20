@@ -118,8 +118,54 @@
     <strong>A:</strong> CHM 格式不支持路径中包含 <code>#</code> 字符。请将文件移动到不含 # 字符的路径。
 </div>
 
+<h2>5.7 MySQL 常见问题 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+
+<h3>Q: MySQL 连接提示 "No module named 'pymysql'"？</h3>
+<div class="tip-box">
+    <strong>A:</strong> PyMySQL 驱动尚未安装。请运行 <code>pip install PyMySQL</code> 安装驱动后重启 DBForge。详情见「安装配置 → 2.3.1 PyMySQL 安装」。
+</div>
+
+<h3>Q: MySQL 连接提示 "Host 'xxx' is not allowed to connect to this MySQL server"？</h3>
+<div class="tip-box">
+    <strong>A:</strong> MySQL 账号没有开启远程访问权限。请在 MySQL 服务端执行：
+    <pre><code>GRANT ALL PRIVILEGES ON *.* TO 'username'@'%' IDENTIFIED BY 'password';
+FLUSH PRIVILEGES;</code></pre>
+    其中 <code>'%'</code> 表示允许任意 IP 访问，也可以限定为特定 IP。
+</div>
+
+<h3>Q: MySQL 中文列名/中文表名报错？</h3>
+<div class="tip-box">
+    <strong>A:</strong> v2.9.0 起系统已自动使用反引号（`` ` ``）包裹标识符。如仍报错，请确认数据库字符集为 <code>utf8mb4</code>：
+    <pre><code>SHOW VARIABLES LIKE 'character_set_%';
+# 确保 character_set_server = utf8mb4</code></pre>
+</div>
+
+<h2>5.8 MS SQL Server 常见问题 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+
+<h3>Q: 连接 SQL Server 提示 "IM002: [Microsoft][ODBC Driver Manager] 未发现数据源名称并且未指定默认驱动程序"？</h3>
+<div class="tip-box">
+    <strong>A:</strong> ODBC Driver 17 for SQL Server 尚未安装。请按「安装配置 → 2.3.2 ODBC Driver 17 for SQL Server 安装」指引下载安装驱动，并运行 <code>python -c "import pyodbc; print(pyodbc.drivers())"</code> 验证。
+</div>
+
+<h3>Q: 连接 SQL Server 提示超时或拒绝连接？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 请逐项排查：
+    <ol>
+        <li>SQL Server 配置管理器中「SQL Server 网络配置 → 协议 → TCP/IP」是否已启用</li>
+        <li>TCP/IP 属性中 IPAll 的 TCP 端口是否为 1433（或与配置一致）</li>
+        <li>Windows 防火墙是否已允许 1433 端口入站规则</li>
+        <li>SQL Server Browser 服务是否已启用（动态端口场景）</li>
+        <li>是否使用了实例名（如 <code>SQLSERVER2019</code>），此时端口需为动态端口</li>
+    </ol>
+</div>
+
+<h3>Q: SQL Server 表名含空格或中文列名报错？</h3>
+<div class="tip-box">
+    <strong>A:</strong> v2.9.0 起系统已自动使用方括号（<code>[ ]</code>）包裹标识符。如仍报错，请确认 Excel 表头与数据库实际列名完全一致（区分大小写取决于数据库的 collation 配置）。
+</div>
+
 <div class="footer">
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 </div>

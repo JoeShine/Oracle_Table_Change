@@ -9,6 +9,10 @@ import subprocess
 import platform
 from src.config_manager import ConfigManager
 from src.db_connection import DBConnection
+from src.constants import (
+    DB_TYPE_ORACLE, DB_TYPE_MYSQL, DB_TYPE_MSSQL,
+    DB_DEFAULT_PORTS, DB_DISPLAY_NAMES,
+)
 from src.excel_handler import ExcelHandler, MAX_FILE_SIZE, MAX_ROWS, MAX_PREVIEW_ROWS
 from src.data_updater import DataUpdater
 from src.logger import LogManager
@@ -1051,7 +1055,7 @@ class OracleBatchUpdaterGUI:
 
     def create_connection_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
-        
+
         panel = ttk.LabelFrame(tab, text="连接配置管理", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
         ttk.Label(panel, text="选择连接:", style="Header.TLabel").pack(anchor=tk.W, pady=(0, 8))
@@ -1069,11 +1073,33 @@ class OracleBatchUpdaterGUI:
         add_btn.pack(side=tk.LEFT, expand=True, fill=tk.X)
         delete_btn = ttk.Button(btn_frame, text="➖ 删除连接", command=self.delete_connection, style="Action.TButton")
         delete_btn.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(5, 0))
+
+        # v2.9.0+：显示当前选中连接的数据库类型
+        def _refresh_conn_type_label():
+            conn = self.config.get_connection_by_name(self.connection_var.get())
+            if conn:
+                dt = conn.get("db_type", DB_TYPE_ORACLE)
+                display_name = DB_DISPLAY_NAMES.get(dt, dt)
+                self._conn_type_label.config(text=f"数据库类型: {display_name}")
+
+        # 覆盖原有 on_connection_selected 以同时更新类型标签
+        original_on_selected = self.on_connection_selected
+
+        def on_connection_changed(_evt=None):
+            original_on_selected()
+            _refresh_conn_type_label()
+
+        self.connection_combo.bind("<<ComboboxSelected>>", on_connection_changed)
+
+        self._conn_type_label = ttk.Label(panel, text="", foreground="#6c757d")
+        self._conn_type_label.pack(anchor=tk.W, padx=5, pady=(2, 0))
+
         self.connection_status_frame = ttk.Frame(panel)
         self.connection_status_frame.pack(fill=tk.X)
         self.connection_status_label = ttk.Label(self.connection_status_frame, text="🔌 未连接", style="Status.TLabel", foreground="#6c757d")
         self.connection_status_label.pack(anchor=tk.W)
         self.update_connection_list()
+        _refresh_conn_type_label()
 
         return tab
 
@@ -1286,33 +1312,41 @@ class OracleBatchUpdaterGUI:
         if not conn_info:
             messagebox.showerror("错误", "未找到连接信息")
             return
-        
+
+        # v2.9.0+：支持多数据库类型
+        db_type = conn_info.get("db_type", DB_TYPE_ORACLE)
+        database = conn_info.get("database", "")
+
         self.add_log("正在测试数据库连接...")
         self.update_status_bar(connected=False, conn_name=conn_name, operation="正在连接...")
-        
+
         success, msg = self.db_connection.connect(
             host=conn_info['host'],
             port=conn_info['port'],
             service=conn_info['service'],
             username=conn_info['username'],
-            password=conn_info['password']
+            password=conn_info['password'],
+            db_type=db_type,
+            database=database,
         )
-        
+
+        display_type = DB_DISPLAY_NAMES.get(db_type, db_type)
+
         if success:
             self.is_connected = True
             self.current_connection_info = conn_info
-            self.connection_status_label.config(text=f"✅ 已连接: {conn_info['username']}@{conn_info['host']}", foreground="#28a745")
-            self.update_status_bar(connected=True, conn_name=conn_name, db_name=conn_info['service'], 
+            self.connection_status_label.config(text=f"✅ 已连接 ({display_type}): {conn_info['username']}@{conn_info['host']}", foreground="#28a745")
+            self.update_status_bar(connected=True, conn_name=conn_name, db_name=conn_info['service'],
                                    db_user=conn_info['username'], operation="已连接")
-            self.log_manager.log_connection(conn_info['host'], conn_info['service'], 
+            self.log_manager.log_connection(conn_info['host'], conn_info['service'],
                                            conn_info['username'], True)
             self.add_log(msg, "SUCCESS")
             messagebox.showinfo("成功", msg)
         else:
             self.is_connected = False
-            self.connection_status_label.config(text="❌ 连接失败", foreground="#dc3545")
+            self.connection_status_label.config(text=f"❌ 连接失败 ({display_type})", foreground="#dc3545")
             self.update_status_bar(connected=False, conn_name=conn_name, operation="连接失败")
-            self.log_manager.log_connection(conn_info['host'], conn_info['service'], 
+            self.log_manager.log_connection(conn_info['host'], conn_info['service'],
                                            conn_info['username'], False, str(msg))
             self.add_log(msg, "ERROR")
             messagebox.showerror("连接失败", msg)
@@ -1320,7 +1354,7 @@ class OracleBatchUpdaterGUI:
     def open_add_connection_dialog(self):
         dialog = tk.Toplevel(self.root)
         dialog.title("添加数据库连接")
-        dialog.geometry("420x320")
+        dialog.geometry("440x380")
         dialog.transient(self.root)
         dialog.grab_set()
         dialog.resizable(False, False)
@@ -1328,61 +1362,100 @@ class OracleBatchUpdaterGUI:
         dialog.configure(bg=theme["bg"])
         main_frame = ttk.Frame(dialog, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
-        ttk.Label(main_frame, text="连接名称:", style="Header.TLabel").grid(row=0, column=0, sticky=tk.W, padx=5, pady=8)
+
+        # L0 连接名称
+        ttk.Label(main_frame, text="连接名称:", style="Header.TLabel").grid(row=0, column=0, sticky=tk.W, padx=5, pady=6)
         name_var = tk.StringVar()
         name_entry = ttk.Entry(main_frame, textvariable=name_var, width=35, font=("Microsoft YaHei", 10))
-        name_entry.grid(row=0, column=1, padx=5, pady=8)
-        ttk.Label(main_frame, text="主机地址:", style="Header.TLabel").grid(row=1, column=0, sticky=tk.W, padx=5, pady=8)
-        host_var = tk.StringVar()
+        name_entry.grid(row=0, column=1, padx=5, pady=6)
+
+        # L1 数据库类型 (v2.9.0+)
+        ttk.Label(main_frame, text="数据库类型:", style="Header.TLabel").grid(row=1, column=0, sticky=tk.W, padx=5, pady=6)
+        db_type_var = tk.StringVar(value=DB_TYPE_ORACLE)
+        db_type_combo = ttk.Combobox(
+            main_frame, textvariable=db_type_var,
+            values=[DB_TYPE_ORACLE, DB_TYPE_MYSQL, DB_TYPE_MSSQL],
+            state="readonly", width=33, font=("Microsoft YaHei", 10))
+        db_type_combo.grid(row=1, column=1, padx=5, pady=6)
+
+        # L2 主机
+        ttk.Label(main_frame, text="主机地址:", style="Header.TLabel").grid(row=2, column=0, sticky=tk.W, padx=5, pady=6)
+        host_var = tk.StringVar(value="127.0.0.1")
         host_entry = ttk.Entry(main_frame, textvariable=host_var, width=35, font=("Microsoft YaHei", 10))
-        host_entry.grid(row=1, column=1, padx=5, pady=8)
-        ttk.Label(main_frame, text="端口:", style="Header.TLabel").grid(row=2, column=0, sticky=tk.W, padx=5, pady=8)
-        port_var = tk.IntVar(value=1521)
+        host_entry.grid(row=2, column=1, padx=5, pady=6)
+
+        # L3 端口 — 根据数据库类型自动设置默认值
+        ttk.Label(main_frame, text="端口:", style="Header.TLabel").grid(row=3, column=0, sticky=tk.W, padx=5, pady=6)
+        port_var = tk.IntVar(value=DB_DEFAULT_PORTS[DB_TYPE_ORACLE])
         port_entry = ttk.Entry(main_frame, textvariable=port_var, width=35, font=("Microsoft YaHei", 10))
-        port_entry.grid(row=2, column=1, padx=5, pady=8)
-        ttk.Label(main_frame, text="服务名:", style="Header.TLabel").grid(row=3, column=0, sticky=tk.W, padx=5, pady=8)
-        service_var = tk.StringVar()
-        service_entry = ttk.Entry(main_frame, textvariable=service_var, width=35, font=("Microsoft YaHei", 10))
-        service_entry.grid(row=3, column=1, padx=5, pady=8)
-        ttk.Label(main_frame, text="用户名:", style="Header.TLabel").grid(row=4, column=0, sticky=tk.W, padx=5, pady=8)
+        port_entry.grid(row=3, column=1, padx=5, pady=6)
+
+        # L4 数据库名/服务名 — 标签根据 db_type 动态变化
+        service_label = ttk.Label(main_frame, text="服务名/SID:", style="Header.TLabel")
+        service_label.grid(row=4, column=0, sticky=tk.W, padx=5, pady=6)
+        database_var = tk.StringVar()
+        database_entry = ttk.Entry(main_frame, textvariable=database_var, width=35, font=("Microsoft YaHei", 10))
+        database_entry.grid(row=4, column=1, padx=5, pady=6)
+
+        # L5 用户名
+        ttk.Label(main_frame, text="用户名:", style="Header.TLabel").grid(row=5, column=0, sticky=tk.W, padx=5, pady=6)
         user_var = tk.StringVar()
         user_entry = ttk.Entry(main_frame, textvariable=user_var, width=35, font=("Microsoft YaHei", 10))
-        user_entry.grid(row=4, column=1, padx=5, pady=8)
-        ttk.Label(main_frame, text="密码:", style="Header.TLabel").grid(row=5, column=0, sticky=tk.W, padx=5, pady=8)
+        user_entry.grid(row=5, column=1, padx=5, pady=6)
+
+        # L6 密码
+        ttk.Label(main_frame, text="密码:", style="Header.TLabel").grid(row=6, column=0, sticky=tk.W, padx=5, pady=6)
         pwd_var = tk.StringVar()
         pwd_entry = ttk.Entry(main_frame, textvariable=pwd_var, show="*", width=35, font=("Microsoft YaHei", 10))
-        pwd_entry.grid(row=5, column=1, padx=5, pady=8)
+        pwd_entry.grid(row=6, column=1, padx=5, pady=6)
 
+        # 数据库类型切换 — 同步更新端口默认值 + 标签文本
+        def on_db_type_changed(_evt=None):
+            dt = db_type_var.get()
+            port_var.set(DB_DEFAULT_PORTS.get(dt, 1521))
+            if dt == DB_TYPE_ORACLE:
+                service_label.config(text="服务名/SID:")
+            elif dt == DB_TYPE_MYSQL:
+                service_label.config(text="数据库名:")
+            elif dt == DB_TYPE_MSSQL:
+                service_label.config(text="数据库名:")
+        db_type_combo.bind("<<ComboboxSelected>>", on_db_type_changed)
+
+        # 测试并保存按钮
         def test_and_save():
-            if not all([name_var.get(), host_var.get(), service_var.get(), user_var.get(), pwd_var.get()]):
+            if not all([name_var.get(), host_var.get(), user_var.get(), pwd_var.get()]):
                 messagebox.showwarning("提示", "请填写所有字段")
                 return
             temp_conn = DBConnection()
             success, msg = temp_conn.connect(
                 host=host_var.get(),
                 port=port_var.get(),
-                service=service_var.get(),
+                service=database_var.get(),
                 username=user_var.get(),
-                password=pwd_var.get()
+                password=pwd_var.get(),
+                db_type=db_type_var.get(),
+                database=database_var.get(),
             )
             if success:
                 self.config.add_connection({
                     "name": name_var.get(),
                     "host": host_var.get(),
                     "port": port_var.get(),
-                    "service": service_var.get(),
+                    "service": database_var.get(),
+                    "database": database_var.get(),
+                    "db_type": db_type_var.get(),
                     "username": user_var.get(),
-                    "password": pwd_var.get()
+                    "password": pwd_var.get(),
                 })
                 self.update_connection_list()
-                messagebox.showinfo("成功", "连接信息已保存")
+                messagebox.showinfo("成功", f"连接信息已保存 (数据库: {DB_DISPLAY_NAMES.get(db_type_var.get(), db_type_var.get())})")
                 dialog.destroy()
             else:
                 messagebox.showerror("连接失败", msg)
 
         btn_frame = ttk.Frame(main_frame)
-        btn_frame.grid(row=6, column=0, columnspan=2, pady=15)
-        ttk.Button(btn_frame, text="🔗 测试连接", command=test_and_save, style="Primary.TButton").pack(side=tk.LEFT, padx=5)
+        btn_frame.grid(row=7, column=0, columnspan=2, pady=15)
+        ttk.Button(btn_frame, text="🔗 测试连接并保存", command=test_and_save, style="Primary.TButton").pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="取消", command=dialog.destroy, style="Action.TButton").pack(side=tk.LEFT, padx=5)
 
     def delete_connection(self):

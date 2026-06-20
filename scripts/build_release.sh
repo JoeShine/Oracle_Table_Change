@@ -13,10 +13,30 @@
 
 set -e
 
-VERSION="2.8.0"
+VERSION="2.9.0"
 APP_NAME="DBForge"
 RELEASE_DIR="release_v${VERSION}"
 DIST_DIR="dist"
+
+# ------------------------------------------------------------------
+# 依赖说明（多数据库支持：Oracle / MySQL / SQL Server）
+# ------------------------------------------------------------------
+# 如需使用源码模式或开发模式，请安装以下 Python 依赖：
+#   pip install oracledb pandas openpyxl pymysql pyodbc
+#
+# 其中：
+#   - oracledb  : Oracle 数据库驱动（支持 Oracle 11g/12c/19c/21c）
+#   - pymysql   : MySQL 数据库驱动（支持 MySQL 5.7+/8.0+，MariaDB 10.x）
+#   - pyodbc    : SQL Server 数据库驱动（支持 SQL Server 2008 R2/2012+/2016/2019/2022）
+#   - pandas    : Excel/CSV 数据处理
+#   - openpyxl  : Excel .xlsx 文件读写
+#
+# 注意：pyodbc 在 Linux 上需要系统级 unixODBC 开发库：
+#   Debian/Ubuntu: apt-get install unixodbc unixodbc-dev
+#   CentOS/RHEL:   yum install unixODBC unixODBC-devel
+#
+# SQL Server 在 Linux 上需要额外安装 Microsoft ODBC Driver 17 for SQL Server。
+# ------------------------------------------------------------------
 
 echo "========================================"
 echo "构建 DBForge v${VERSION} 发布包"
@@ -203,6 +223,27 @@ echo "========================================"
 echo ""
 ls -lh "${RELEASE_DIR}"
 echo ""
-echo "注意: 以下产物需要其他环境构建："
-echo "  - Windows exe / Windows 便携版 zip: 需在 Windows 环境运行 package.bat + create_portable.bat"
-echo "  - Docker 镜像 tar.gz: 需在有 Docker 的环境运行 docker build + docker save"
+echo ""
+echo "========================================"
+echo "多数据库支持说明（v2.9.0）"
+echo "========================================"
+echo ""
+echo "DBForge v2.9.0 支持以下三种主流关系型数据库："
+echo ""
+echo "  [1] Oracle          11g / 12c / 19c / 21c     - 驱动: oracledb"
+echo "  [2] MySQL           5.7 / 8.0 / MariaDB 10.x   - 驱动: pymysql"
+echo "  [3] SQL Server      2008 R2 / 2012+ / 2019/2022 - 驱动: pyodbc + MS ODBC Driver 17"
+echo ""
+echo "核心特性："
+echo "  - 自动 SQL 方言适配（根据数据库类型切换 DDL/DML 语句）"
+echo "  - 统一的 DB-API 2.0 抽象层（同一套业务逻辑兼容三种数据库）"
+echo "  - 连接管理页支持数据库类型选择（Oracle/MySQL/SQL Server）"
+echo "  - 批量更新页 SQL 方言自动切换"
+echo "  - 原型 demo 支持多数据库交互测试"
+echo ""
+echo "安装建议："
+echo "  - Oracle: 只需 oracledb（纯 Python 实现，不需要 Instant Client 也可运行）"
+echo "  - MySQL : 只需 pymysql（纯 Python 实现）"
+echo "  - SQL Server: 需要 pyodbc + 系统级 Microsoft ODBC Driver 17 for SQL Server"
+echo ""
+echo "========================================"

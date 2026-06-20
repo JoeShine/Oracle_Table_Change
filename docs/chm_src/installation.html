@@ -132,8 +132,77 @@ http://localhost:6080</code></pre>
     </div>
 </div>
 
+<h2>2.3.1 PyMySQL 安装 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<p>用于连接 MySQL 数据库的 Python 驱动库。</p>
+<h3>Windows / Linux / macOS</h3>
+<pre><code>pip install PyMySQL</code></pre>
+<div class="tip-box">
+    <strong>验证安装：</strong>
+    <pre><code>python -c "import pymysql; print('PyMySQL', pymysql.__version__)"</code></pre>
+</div>
+<div class="tip-box">
+    <strong>注意：</strong>MySQL 服务器需开启远程连接权限，执行：
+    <pre><code>GRANT ALL PRIVILEGES ON *.* TO 'username'@'%' IDENTIFIED BY 'password';
+FLUSH PRIVILEGES;</code></pre>
+</div>
+
+<h2>2.3.2 ODBC Driver 17 for SQL Server 安装 <span style="color:#4A90D9;">[v2.9.0+]</span></h2>
+<p>用于连接 MS SQL Server 数据库的驱动。需要同时安装系统级 ODBC 驱动与 Python 级 pyodbc 库。</p>
+<h3>Windows</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>下载并安装 ODBC Driver 17</h3>
+        <p>从微软官网下载：<code>msodbcsql.msi</code>，运行安装向导</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>安装 pyodbc</h3>
+        <pre><code>pip install pyodbc</code></pre>
+    </div>
+</div>
+
+<h3>Linux（Ubuntu / Debian）</h3>
+<pre><code># 添加微软 GPG 公钥
+curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+
+# 添加微软 apt 仓库
+curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+
+# 安装驱动
+sudo apt-get update
+sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
+
+# 安装 Python 库
+pip install pyodbc</code></pre>
+
+<h3>Linux（CentOS / RHEL）</h3>
+<pre><code>sudo su
+curl https://packages.microsoft.com/config/rhel/7/prod.repo > /etc/yum.repos.d/mssql-release.repo
+exit
+sudo yum remove unixODBC-utf16 unixODBC-utf16-devel
+sudo ACCEPT_EULA=Y yum install msodbcsql17 unixODBC-devel
+pip install pyodbc</code></pre>
+
+<h3>macOS</h3>
+<pre><code>brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+brew update
+HOMEBREW_NO_ENV_FILTERING=1 ACCEPT_EULA=Y brew install msodbcsql17 mssql-tools
+pip install pyodbc</code></pre>
+
+<div class="tip-box">
+    <strong>验证驱动：</strong>
+    <pre><code>python -c "import pyodbc; print(pyodbc.drivers())"</code></pre>
+    输出中应包含 <code>ODBC Driver 17 for SQL Server</code>。
+</div>
+<div class="warning-box">
+    <strong>SQL Server 注意：</strong> 需确保 SQL Server 已启用 TCP/IP 协议（默认端口 1433），防火墙允许远程连接，并将 SQL Server Browser 服务启用。
+</div>
+
 <div class="footer">
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 <h2>2.4 帮助手册安全设置（重要）</h2>
@@ -183,7 +252,7 @@ http://localhost:6080</code></pre>
 </div>
 
 <div class="footer">
-    <p>DBForge v2.8.0 &copy; 2026</p>
+    <p>DBForge v2.9.0 &copy; 2026</p>
 </div>
 
 </div>

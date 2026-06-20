@@ -9,7 +9,7 @@ echo "========================================"
 echo ""
 
 # 设置版本号
-VERSION="2.8.0"
+VERSION="2.9.0"
 APP_NAME="DBForge"
 PORTABLE_DIR="${APP_NAME}_Portable_v${VERSION}"
 
@@ -126,7 +126,7 @@ echo "创建使用说明..."
 cat > "${PORTABLE_DIR}/README_Portable.txt" << 'EOF'
 ========================================
 DBForge - 便携版
-版本: 2.8.0
+版本: 2.9.0（多数据库支持版）
 ========================================
 
 【使用说明】
@@ -145,22 +145,35 @@ DBForge - 便携版
    - backups: 数据备份
    - config: 配置文件
 
-4. Oracle客户端
-   - 如需使用Oracle客户端，请将instantclient目录
-     放到 OracleClient 目录中
-   - 或使用已安装的Oracle客户端
+4. 多数据库支持（v2.9.0）
+   DBForge 支持以下三种主流关系型数据库：
+
+   [1] Oracle       11g/12c/19c/21c       - 驱动: oracledb
+       - 如需使用 Oracle 客户端，请将 instantclient 目录
+         放到 OracleClient 目录中
+       - 或使用已安装的 Oracle Instant Client
+
+   [2] MySQL        5.7+/8.0+/MariaDB 10.x - 驱动: pymysql
+       - 纯 Python 驱动，无需额外系统依赖
+       - 端口默认 3306
+
+   [3] SQL Server   2008 R2/2012+/2019/2022 - 驱动: pyodbc
+       - 需要系统已安装 Microsoft ODBC Driver 17 for SQL Server
+       - 端口默认 1433
+
+   数据库类型可在「连接管理」页选择，SQL 方言自动适配。
 
 5. 系统要求
    - Windows 7 及以上
    - Windows Server 2008 R2 及以上
    - 不需要安装 Python（便携版包含 .exe 可执行文件）
-   - 仅 Oracle Instant Client 需要单独配置
+   - 仅 Oracle Instant Client 与 SQL Server ODBC Driver 需要单独配置
 
 6. 连接数据库
-   - 使用 Easy Connect 方式
-   - 格式: host:port/service_name
-   - 示例: 192.168.1.100:1521/ORCL
-   - 无需配置文件
+   - Oracle    格式: host:port/service_name  示例: 192.168.1.100:1521/ORCL
+   - MySQL     格式: host:port/database       示例: 192.168.1.100:3306/mydb
+   - SQL Server 格式: host[:port]/database    示例: 192.168.1.100:1433/MYDB
+   - 无需配置 tnsnames.ora 等文件
 
 ========================================
 EOF
@@ -207,13 +220,18 @@ echo "    ├── Data/                   数据目录"
 echo "    │   ├── logs/               日志"
 echo "    │   ├── backups/            备份"
 echo "    │   └── config/             配置"
-echo "    ├── OracleClient/           Oracle客户端(可选)"
+echo "    ├── OracleClient/           Oracle 客户端(可选)"
 echo "    ├── DBForge_Portable.bat  启动脚本"
-echo "    └── README_Portable.txt     使用说明"
+echo "    └── README_Portable.txt     使用说明（含多数据库支持说明）"
 echo ""
 echo "适用系统:"
 echo "  ✓ Windows 7 及以上"
 echo "  ✓ Windows Server 2008 R2 及以上"
 echo "  ✓ 无需安装，解压即用"
+echo ""
+echo "多数据库支持（v2.9.0）:"
+echo "  ✓ Oracle       11g/12c/19c/21c       - 驱动: oracledb"
+echo "  ✓ MySQL        5.7+/8.0+/MariaDB 10.x - 驱动: pymysql"
+echo "  ✓ SQL Server   2008 R2/2012+/2019/2022 - 驱动: pyodbc + MS ODBC Driver 17"
 echo "========================================"
 EOF

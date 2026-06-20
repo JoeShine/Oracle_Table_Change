@@ -265,7 +265,7 @@ def build_hhc(pages):
         '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">',
         '<HTML>',
         '<HEAD>',
-        '<meta name="GENERATOR" content="Oracle Batch Updater CHM Builder">',
+        '<meta name="GENERATOR" content="DBForge CHM Builder">',
         '</HEAD>',
         '<BODY>',
         '<OBJECT type="text/site properties">',
@@ -276,12 +276,14 @@ def build_hhc(pages):
     
     toc_items = [
         ("封面", "index.html"),
-        ("1. 产品介绍", "product_intro.html"),
+        ("1. 产品介绍（DBForge）", "product_intro.html"),
         ("2. 安装配置", "installation.html"),
+        ("2.1 Oracle Instant Client 配置", "installation.html"),
         ("3. 快速入门", "quick_start.html"),
         ("4. 功能详解", "features.html"),
-        ("5. 常见问题", "faq.html"),
-        ("6. 最佳实践", "best_practices.html"),
+        ("5. v2.9.0 多数据库支持", "features.html"),
+        ("6. 常见问题", "faq.html"),
+        ("7. 最佳实践", "best_practices.html"),
     ]
     
     for title, url in toc_items:
@@ -303,7 +305,7 @@ def build_hhk():
         '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">',
         '<HTML>',
         '<HEAD>',
-        '<meta name="GENERATOR" content="Oracle Batch Updater CHM Builder">',
+        '<meta name="GENERATOR" content="DBForge CHM Builder">',
         '</HEAD>',
         '<BODY>',
         '<UL>',
@@ -323,7 +325,12 @@ def build_hhk():
         ("快捷键", "features.html"),
         ("操作历史", "features.html"),
         ("连接配置", "quick_start.html"),
-        ("Oracle 客户端", "installation.html"),
+        ("Oracle 客户端 / Oracle Instant Client", "installation.html"),
+        ("MySQL 连接", "features.html"),
+        ("SQL Server 连接 / pyodbc", "features.html"),
+        ("多数据库支持", "features.html"),
+        ("DB-API 2.0 抽象层", "features.html"),
+        ("SQL 方言适配", "features.html"),
         ("配色说明", "best_practices.html"),
         ("批量更新", "quick_start.html"),
         ("连接管理", "features.html"),
@@ -558,7 +565,7 @@ reg add "HKLM\\SOFTWARE\\Microsoft\\HTMLHelp\\1.x\\ItssRestrictions" ^
 ---
 
 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-CHM 版本: v2.8.0
+CHM 版本: v2.9.0（DBForge 多数据库版本）
 """
         readme_path = chm_path.parent / "CHM_安全说明.md"
         readme_path.write_text(readme_content, encoding='utf-8')

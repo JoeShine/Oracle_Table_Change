@@ -41,11 +41,14 @@ class TestDBConnectionConnect(unittest.TestCase):
         self.db = DBConnection()
 
     def test_connect_signature(self):
-        """connect 方法接受 5 个位置参数 (host, port, service, username, password)"""
+        """connect 方法接受位置参数 (host, port, service, username, password) + 可选 db_type/database"""
         import inspect
         sig = inspect.signature(self.db.connect)
         params = list(sig.parameters.keys())
-        self.assertEqual(params, ["host", "port", "service", "username", "password"])
+        # v2.9.0 增加 db_type/database 关键字参数（有默认值），保持向后兼容
+        self.assertEqual(params[:5], ["host", "port", "service", "username", "password"])
+        self.assertIn("db_type", params)
+        self.assertIn("database", params)
 
     @patch("src.db_connection.oracledb")
     def test_connect_success(self, mock_oracledb):

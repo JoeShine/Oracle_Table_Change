@@ -17,7 +17,7 @@ sys.path.insert(0, str(_project_root))
 
 
 def connect_db(config: Dict[str, Any]):
-    """建立连接管理"""
+    """建立连接（v2.9.0+ 支持多数据库类型）"""
     from src.db_connection import DBConnection
     db = DBConnection()
     success, msg = db.connect(
@@ -26,6 +26,8 @@ def connect_db(config: Dict[str, Any]):
         service=config["service"],
         username=config["username"],
         password=config["password"],
+        db_type=config.get("db_type", "oracle"),
+        database=config.get("database", ""),
     )
     if not success:
         print(f"连接失败: {msg}", file=sys.stderr)
@@ -51,6 +53,10 @@ def cmd_update(args):
     if not conn_info:
         print(f"错误: 连接 '{args.connection}' 不存在", file=sys.stderr)
         sys.exit(1)
+
+    # 命令行 --db-type 覆盖连接配置
+    if hasattr(args, "db_type") and args.db_type:
+        conn_info["db_type"] = args.db_type
 
     # 解析待更新列
     update_columns = [c.strip() for c in args.update_columns.split(",")]
@@ -196,7 +202,8 @@ def cmd_connections(args):
         return
 
     for conn in connections:
-        print(f"  {conn['name']}: {conn['host']}:{conn['port']}/{conn['service']} ({conn['username']})")
+        display_type = conn.get("db_type", "oracle")
+        print(f"  {conn['name']}: {conn['host']}:{conn['port']}/{conn.get('service', '')} ({conn['username']}) [{display_type}]")
 
 
 def cmd_verify_audit(args):
@@ -245,6 +252,12 @@ def main():
   python -m src.cli update --connection PROD --table EMPLOYEE --excel data.csv \\
       --key-column EMP_ID --update-columns SALARY --dry-run
 
+  python -m src.cli update --connection MSSQL_PROD --table employees --excel data.xlsx \\
+      --key-column emp_id --update-columns name,salary --db-type mssql --yes
+
+  python -m src.cli update --connection MYSQL_DEV --table users --excel data.xlsx \\
+      --key-column id --update-columns email --db-type mysql --dry-run
+
   python -m src.cli version
   python -m src.cli connections
   python -m src.cli verify-audit
@@ -263,6 +276,9 @@ def main():
     update_parser.add_argument("--key-column", "-k", required=True, help="唯一标识列")
     update_parser.add_argument("--update-columns", "-u", required=True,
                                help="待更新列，逗号分隔 (如: NAME,AGE,DEPT)")
+    update_parser.add_argument("--db-type", dest="db_type", default="oracle",
+                               choices=["oracle", "mysql", "mssql"],
+                               help="数据库类型 (oracle/mysql/mssql)，默认 oracle")
     update_parser.add_argument("--yes", "-y", action="store_true", help="跳过确认提示")
     update_parser.add_argument("--dry-run", action="store_true", help="仅验证，不实际执行")
 
