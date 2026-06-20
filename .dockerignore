@@ -65,7 +65,7 @@ ehthumbs.db
 Desktop.ini
 
 # Oracle Instant Client (已在 Dockerfile 中安装)
-instantclient*
+# instantclient*  # 注释掉以允许复制zip文件用于构建
 
 # 其他
 *.xlsx

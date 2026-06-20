@@ -45,7 +45,7 @@ class ConfigManager:
                 "theme_dark": False
             },
             "connections": [],
-            "templates": []  # 配置模板列表
+            "templates": []  # 配置场景列表
         }
 
     def save_config(self):
@@ -61,13 +61,15 @@ class ConfigManager:
         return self.config.get("last_used", {})
 
     def set_last_used(self, connection_name="", target_table="", key_column="", update_column="", schema="APPS",
-                      theme_style="terminal", theme_dark=False):
+                      temp_schema="APPS", theme_style="terminal", theme_dark=False):
+        """保存最后使用的配置，包含临时表Schema"""
         self.config["last_used"] = {
             "connection_name": connection_name,
             "target_table": target_table,
             "key_column": key_column,
             "update_column": update_column,
             "schema": schema,
+            "temp_schema": temp_schema,
             "theme_style": theme_style,
             "theme_dark": theme_dark
         }
@@ -107,48 +109,48 @@ class ConfigManager:
                 return conn
         return None
 
-    # ==================== 模板管理功能 ====================
+    # ==================== 场景管理功能 ====================
 
     def get_templates(self):
-        """获取所有配置模板"""
+        """获取所有配置场景"""
         return self.config.get("templates", [])
 
     def get_template_by_name(self, name):
-        """根据名称获取模板"""
+        """根据名称获取场景"""
         for template in self.get_templates():
             if template["name"] == name:
                 return template
         return None
 
     def add_template(self, template_info):
-        """添加或更新配置模板"""
-        # 验证模板名称
+        """添加或更新配置场景"""
+        # 验证场景名称
         name = template_info.get("name", "")
         if not name or not name.strip():
-            return False, "模板名称不能为空"
+            return False, "场景名称不能为空"
         name = name.strip()
         if len(name) > 100:
-            return False, "模板名称不能超过100个字符"
+            return False, "场景名称不能超过100个字符"
         
         # 更新名称（去除空格）
         template_info["name"] = name
         
         templates = self.config.get("templates", [])
-        # 检查是否已存在同名模板
+        # 检查是否已存在同名场景
         for i, template in enumerate(templates):
             if template["name"] == name:
                 templates[i] = template_info
                 self.config["templates"] = templates
                 self.save_config()
-                return True, "模板已更新"
-        # 新增模板
+                return True, "场景已更新"
+        # 新增场景
         templates.append(template_info)
         self.config["templates"] = templates
         self.save_config()
-        return True, "模板已添加"
+        return True, "场景已添加"
 
     def delete_template(self, name):
-        """删除配置模板"""
+        """删除配置场景"""
         templates = self.config.get("templates", [])
         templates = [t for t in templates if t["name"] != name]
         self.config["templates"] = templates
@@ -156,14 +158,14 @@ class ConfigManager:
         return True
 
     def create_template_from_current(self, name, description="", connection_name="", target_table="", 
-                                      key_column="", update_columns=None, schema="APPS"):
-        """从当前配置创建模板"""
-        # 验证模板名称
+                                      key_column="", update_columns=None, schema="APPS", temp_schema="APPS"):
+        """从当前配置创建场景，支持临时表Schema"""
+        # 验证场景名称
         if not name or not name.strip():
-            return False, "模板名称不能为空"
+            return False, "场景名称不能为空"
         name = name.strip()
         if len(name) > 100:
-            return False, "模板名称不能超过100个字符"
+            return False, "场景名称不能超过100个字符"
         
         template = {
             "name": name,
@@ -173,6 +175,7 @@ class ConfigManager:
             "key_column": key_column,
             "update_columns": update_columns or [],
             "schema": schema,
+            "temp_schema": temp_schema,
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         return self.add_template(template)

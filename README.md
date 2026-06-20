@@ -19,9 +19,18 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 - ✅ 操作日志记录
 - ✅ 审计日志记录
 - ✅ 历史记录管理
-- ✅ 三套主题风格切换（默认深墨琥珀 🖥，另含 Idea 蓝色 💡、清爽浅色 ✨，各支持深浅色模式），主题设置持久化到 `config.json`（`last_used.theme_style` / `last_used.theme_dark`），启动时用 `set_dark_mode()` 恢复
+- ✅ 三套主题风格切换（默认深墨琥珀 🖥，另含 Idea 蓝色 💡、清爽浅色 ✨，各支持深浅色模式）
 - ✅ 状态栏显示
 - ✅ 快捷键支持（Ctrl+S保存）
+- ✅ 配置场景保存/加载
+- ✅ 键盘导航（←/→切换标签页，↑/↓滚动）
+- ✅ 国产化适配（麒麟V10操作系统）
+
+### 数据处理特性
+- ✅ 空字段保留原值（不更新为NULL）
+- ✅ 未匹配记录不更新目标表
+- ✅ 临时表和目标表支持不同Schema
+- ✅ Easy Connect连接方式（无需配置文件）
 
 ## 界面预览
 
@@ -36,23 +45,55 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 - **清爽浅色**：蓝白配色，简洁干净
 - 每套风格均支持浅色/深色模式，共六种视觉方案
 
+## 系统兼容性
+
+| 发布方式 | Windows 7 | Windows Server 2008 R2 | Windows 10+ | Windows Server 2016+ |
+|---------|-----------|------------------------|-------------|----------------------|
+| exe打包 | ✅ 支持 | ✅ 支持 | ✅ 支持 | ✅ 支持 |
+| 便携版 | ✅ 支持 | ✅ 支持 | ✅ 支持 | ✅ 支持 |
+| Docker | ❌ 不支持 | ❌ 不支持 | ✅ 支持 | ✅ 支持 |
+
+**推荐：** Windows 7 和 Windows Server 2008 R2 用户使用 exe打包 或 便携版方式。
+
 ## 快速开始
 
 ### 环境要求
-- Windows 7及以上
-- Oracle Instant Client 11g+
+- Windows 7及以上 / Windows Server 2008 R2及以上 / macOS / Linux / 麒麟V10
+- Oracle Instant Client 11g+（或使用已安装的Oracle客户端）
 - Python 3.7+（仅开发时需要）
 
-### 安装步骤
+### 安装方式
 
-1. **安装Oracle Instant Client**
-   - 下载地址：https://www.oracle.com/database/technologies/instant-client/downloads.html
-   - 解压并配置PATH环境变量
+#### 方式一：exe打包（推荐）
 
-2. **运行工具**
-   - 下载发行版
-   - 解压并运行 `OracleBatchUpdater.exe`
-   - 或者使用源码运行（见开发章节）
+```bash
+# 直接运行
+OracleBatchUpdater.exe
+```
+
+#### 方式二：便携版
+
+```bash
+# 解压即用
+1. 解压 OracleBatchUpdater_Portable_v2.7.0.zip
+2. 双击 OracleBatchUpdater_Portable.bat
+```
+
+#### 方式三：Docker（仅适用于 Windows 10+ / Server 2016+）
+
+```bash
+docker-compose up -d
+# 浏览器访问 http://localhost:6080
+```
+
+### 数据库连接
+
+使用 Easy Connect 方式，无需配置文件：
+
+```
+连接字符串格式: host:port/service_name
+示例: 192.168.1.100:1521/ORCL
+```
 
 ### 使用流程
 
@@ -71,6 +112,8 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 | 1001             | 张三     | 28  | 技术部 |
 | 1002             | 李四     | 30  | 市场部 |
 
+**注意：空字段将保留目标表原值，不会被更新为NULL**
+
 ## 项目结构
 
 ```
@@ -84,18 +127,24 @@ Oracle_Table_Change/
 │   ├── data_updater.py         # 数据更新
 │   ├── config_manager.py       # 配置管理
 │   └── logger.py              # 日志和审计
+├── scripts/
+│   ├── create_portable.bat     # 便携版打包脚本
+│   ├── create_portable.sh      # Linux便携版脚本
+│   └── install_oracle_client.sh # Oracle客户端安装
 ├── docs/                       # 文档
 │   ├── 需求规格说明书.md
 │   ├── 设计方案.md
 │   ├── 开发方案.md
 │   ├── 部署方案.md
 │   ├── 用户手册.md
-│   └── 代码生成提示词.md
+│   └── Windows_Server使用指南.md
 ├── Oracle数据批量修改工具_导入模板.xlsx  # Excel模板
 ├── requirements.txt            # 依赖列表
 ├── build.bat                  # 构建脚本
 ├── package.bat                # 打包脚本
-└── README.txt                 # 说明
+├── Dockerfile                 # Docker镜像
+├── docker-compose.yml         # Docker配置
+└── README.md                  # 说明
 ```
 
 ## 开发指南

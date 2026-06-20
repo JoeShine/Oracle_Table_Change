@@ -624,6 +624,7 @@ class OracleBatchUpdaterGUI:
             key_column=self.key_column_var.get(),
             update_column=self.first_update_entry.get() if hasattr(self, 'first_update_entry') else "",
             schema=self.schema_var.get() if hasattr(self, 'schema_var') else "APPS",
+            temp_schema=self.temp_schema_var.get() if hasattr(self, 'temp_schema_var') else "APPS",
             theme_style=style_name,
             theme_dark=is_dark
         )
@@ -688,31 +689,31 @@ class OracleBatchUpdaterGUI:
         tab = ttk.Frame(self.notebook, padding="10")
         self.notebook.add(tab, text="📋 当前配置")
         
-        # ========== 模板选择区域 ==========
-        template_panel = ttk.LabelFrame(tab, text="📝 配置模板", padding="15", style="Card.TFrame")
+        # ========== 场景选择区域 ==========
+        template_panel = ttk.LabelFrame(tab, text="📝 配置场景", padding="15", style="Card.TFrame")
         template_panel.pack(fill=tk.X, pady=(0, 10))
         
         template_row1 = ttk.Frame(template_panel)
         template_row1.pack(fill=tk.X, pady=6)
         
-        ttk.Label(template_row1, text="选择模板:", width=14, font=(self.os_info["font_family"], 10)).pack(side=tk.LEFT)
+        ttk.Label(template_row1, text="选择场景:", width=14, font=(self.os_info["font_family"], 10)).pack(side=tk.LEFT)
         self.template_var = tk.StringVar()
         self.template_combo = ttk.Combobox(template_row1, textvariable=self.template_var, 
                                             state="readonly", font=(self.os_info["font_family"], 10), width=30)
         self.template_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.template_combo.bind("<<ComboboxSelected>>", self.on_template_selected)
         
-        # 模板操作按钮
+        # 场景操作按钮
         load_btn = ttk.Button(template_row1, text="📂 加载", command=self.load_template, style="Action.TButton", width=8)
         load_btn.pack(side=tk.LEFT, padx=(5, 0))
         
-        save_btn = ttk.Button(template_row1, text="💾 保存为模板", command=self.save_as_template, style="Action.TButton", width=12)
+        save_btn = ttk.Button(template_row1, text="💾 保存为场景", command=self.save_as_template, style="Action.TButton", width=12)
         save_btn.pack(side=tk.LEFT, padx=(3, 0))
         
         delete_btn = ttk.Button(template_row1, text="🗑 删除", command=self.delete_template, style="Action.TButton", width=8)
         delete_btn.pack(side=tk.LEFT, padx=(3, 0))
         
-        # 刷新模板列表
+        # 刷新场景列表
         self.refresh_template_list()
         
         # ========== 当前配置区域 ==========
@@ -721,11 +722,20 @@ class OracleBatchUpdaterGUI:
         
         row0 = ttk.Frame(config_panel)
         row0.pack(fill=tk.X, pady=6)
-        ttk.Label(row0, text="数据库模式:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        ttk.Label(row0, text="目标表模式:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
         self.schema_var = tk.StringVar(value="APPS")
         schema_combo = ttk.Combobox(row0, textvariable=self.schema_var, 
                                      values=["APPS", "SYS", "SYSTEM"], state="readonly", font=("Microsoft YaHei", 10))
         schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        row0b = ttk.Frame(config_panel)
+        row0b.pack(fill=tk.X, pady=6)
+        ttk.Label(row0b, text="临时表模式:", width=14, font=("Microsoft YaHei", 10)).pack(side=tk.LEFT)
+        self.temp_schema_var = tk.StringVar(value="APPS")
+        temp_schema_combo = ttk.Combobox(row0b, textvariable=self.temp_schema_var, 
+                                     values=["APPS", "SYS", "SYSTEM"], state="readonly", font=("Microsoft YaHei", 10))
+        temp_schema_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ttk.Label(row0b, text="(临时表创建位置)", font=("Microsoft YaHei", 8), foreground="#6c757d").pack(side=tk.LEFT, padx=(5, 0))
         
         row1 = ttk.Frame(config_panel)
         row1.pack(fill=tk.X, pady=6)
@@ -1024,6 +1034,8 @@ class OracleBatchUpdaterGUI:
             self.first_update_entry.insert(0, last_used['update_column'])
         if last_used.get('schema'):
             self.schema_var.set(last_used['schema'])
+        if last_used.get('temp_schema'):
+            self.temp_schema_var.set(last_used['temp_schema'])
         
         # 恢复主题设置（在UI渲染后应用）
         saved_style = last_used.get('theme_style', 'terminal')
@@ -1057,6 +1069,7 @@ class OracleBatchUpdaterGUI:
             key_column=self.key_column_var.get(),
             update_column=self.first_update_entry.get(),
             schema=self.schema_var.get(),
+            temp_schema=self.temp_schema_var.get(),
             theme_style=style_name,
             theme_dark=is_dark
         )
@@ -1547,7 +1560,10 @@ Excel文件: {excel_path}
             key_column = self.key_column_var.get().strip()
             update_columns = self.get_update_columns()
             excel_path = self.excel_path_var.get().strip()
-            schema = self.schema_var.get()
+            schema = self.schema_var.get()  # 目标表Schema
+            temp_schema = self.temp_schema_var.get()  # 临时表Schema
+            
+            self.add_log(f"目标表模式: {schema}, 临时表模式: {temp_schema}", "INFO")
             
             self.root.after(0, lambda: self.update_progress_gui(0, 100, 10, "正在验证Excel文件..."))
             self.add_log("正在验证Excel文件...")
@@ -1592,16 +1608,16 @@ Excel文件: {excel_path}
             self.root.after(0, lambda: self.update_step_gui(1, "active"))
             self.root.after(0, lambda: self.update_progress_gui(20, 100, 30, "正在创建临时表..."))
             self.add_log("正在创建临时表...")
-            success, msg = updater.create_temp_table_multi_column(schema, target_table, key_column, update_columns)
+            success, msg = updater.create_temp_table_multi_column(temp_schema, target_table, key_column, update_columns)
             if not success:
                 self.add_log(f"创建临时表失败: {msg}", "ERROR")
-                updater.cleanup_on_failure(schema)
+                updater.cleanup_on_failure(temp_schema)
                 self.root.after(0, lambda: messagebox.showerror("创建临时表失败", msg))
                 self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="创建临时表失败"))
                 return
-            self.add_log(f"临时表: {updater.temp_table_name}", "SUCCESS")
+            self.add_log(f"临时表: {temp_schema}.{updater.temp_table_name}", "SUCCESS")
             
             def progress_callback(current, total, percentage, operation):
                 adjusted_percentage = 30 + int(percentage * 0.2)
@@ -1611,10 +1627,10 @@ Excel文件: {excel_path}
             
             self.root.after(0, lambda: self.update_progress_gui(30, 100, 35, "正在导入Excel数据..."))
             self.add_log("正在导入Excel数据...")
-            success, error, count = updater.import_excel_data_multi_column(schema, key_column, update_columns, data_rows)
+            success, error, count = updater.import_excel_data_multi_column(temp_schema, key_column, update_columns, data_rows)
             if not success:
                 self.add_log(f"导入失败: {error}", "ERROR")
-                updater.cleanup_on_failure(schema)
+                updater.cleanup_on_failure(temp_schema)
                 self.root.after(0, lambda: messagebox.showerror("导入失败", error))
                 self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
                 self.root.after(0, lambda: self.close_progress_window())
@@ -1634,36 +1650,52 @@ Excel文件: {excel_path}
             updater.set_progress_callback(update_progress_callback)
             
             success_count, fail_count, failed_records = updater.execute_multi_column_update(
-                schema, target_table, key_column, update_columns
+                schema, temp_schema, target_table, key_column, update_columns
             )
             
             self.root.after(0, lambda: self.update_step_gui(2, "done"))
             self.root.after(0, lambda: self.update_progress_gui(100, 100, 95, "正在清理临时表..."))
             
-            updater.cleanup_temp_table(schema)
+            updater.cleanup_temp_table(temp_schema)
             self.add_log(f"临时表已清理", "SUCCESS")
             
             self.root.after(0, lambda: self.update_progress_gui(100, 100, 100, "更新完成"))
-            self.add_log(f"更新完成 - 成功: {success_count}, 失败: {fail_count}")
+            
+            # 统计未匹配记录数
+            unmatched_count = len([r for r in failed_records if r.get('reason') == '目标表中不存在此key_value'])
+            actual_fail_count = fail_count - unmatched_count
+            
+            self.add_log(f"更新完成 - 成功: {success_count}, 失败: {actual_fail_count}, 未匹配: {unmatched_count}")
             
             self.log_manager.log_update(
                 schema=schema,
                 table=target_table,
                 key_column=key_column,
                 update_columns=update_columns,
-                total_count=success_count + fail_count,
+                total_count=success_count + actual_fail_count,
                 success_count=success_count,
-                fail_count=fail_count,
-                success=(fail_count == 0),
+                fail_count=actual_fail_count,
+                success=(actual_fail_count == 0),
                 backup_table=updater.backup_table_name
             )
             
             if failed_records:
-                self.root.after(0, lambda: self.update_status_bar(connected=True, operation=f"部分失败({fail_count}条)"))
-                self.root.after(0, lambda: self.show_failure_dialog(failed_records, updater.backup_table_name))
+                # 分离失败记录和未匹配记录
+                actual_failures = [r for r in failed_records if r.get('reason') != '目标表中不存在此key_value']
+                unmatched_records = [r for r in failed_records if r.get('reason') == '目标表中不存在此key_value']
+                
+                if actual_failures:
+                    self.root.after(0, lambda: self.update_status_bar(connected=True, operation=f"部分失败({len(actual_failures)}条)"))
+                    self.root.after(0, lambda: self.show_failure_dialog(actual_failures, updater.backup_table_name, unmatched_count))
+                elif unmatched_records:
+                    self.root.after(0, lambda: self.update_status_bar(connected=True, operation=f"更新成功({unmatched_count}条未匹配)"))
+                    self.root.after(0, lambda: self.show_unmatched_dialog(unmatched_records))
+                else:
+                    self.root.after(0, lambda: self.update_status_bar(connected=True, operation="更新成功"))
+                    self.root.after(0, lambda: messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {actual_fail_count}\n未匹配: {unmatched_count}"))
             else:
                 self.root.after(0, lambda: self.update_status_bar(connected=True, operation="更新成功"))
-                self.root.after(0, lambda: messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {fail_count}"))
+                self.root.after(0, lambda: messagebox.showinfo("完成", f"更新完成！\n成功: {success_count}\n失败: {actual_fail_count}\n未匹配: {unmatched_count}"))
             
             self.root.after(0, lambda: self.refresh_history())
             self.root.after(0, lambda: self.start_btn.config(state=tk.NORMAL))
@@ -1676,7 +1708,8 @@ Excel文件: {excel_path}
             self.root.after(0, lambda: self.close_progress_window())
             self.root.after(0, lambda: self.update_status_bar(connected=True, operation="执行出错"))
 
-    def show_failure_dialog(self, failed_records, backup_table):
+    def show_failure_dialog(self, failed_records, backup_table, unmatched_count=0):
+        """显示失败记录对话框"""
         dialog = tk.Toplevel(self.root)
         dialog.title("更新失败记录")
         dialog.geometry("650x500")
@@ -1685,7 +1718,11 @@ Excel文件: {excel_path}
         _, is_dark, theme = self.theme_manager.get_theme()
         dialog.configure(bg=theme["bg"])
         
-        info_label = tk.Label(dialog, text="⚠️ 更新完成但存在失败记录。目标表数据未更新，已回滚到初始状态。",
+        # 信息提示
+        info_text = "⚠️ 更新完成但存在失败记录。目标表数据未更新，已回滚到初始状态。"
+        if unmatched_count > 0:
+            info_text += f"\n另外有 {unmatched_count} 条记录未匹配（Excel中存在但目标表中不存在）。"
+        info_label = tk.Label(dialog, text=info_text,
                              font=("Microsoft YaHei", 10), fg="#dc3545", bg=theme["card_bg"])
         info_label.pack(fill=tk.X, padx=15, pady=(15, 5))
         
@@ -1719,8 +1756,50 @@ Excel文件: {excel_path}
         ttk.Button(btn_frame, text="📊 导出失败记录", command=export_and_close, style="Primary.TButton").pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="确定", command=dialog.destroy, style="Action.TButton").pack(side=tk.LEFT, padx=5)
 
+    def show_unmatched_dialog(self, unmatched_records):
+        """显示未匹配记录对话框"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("未匹配记录")
+        dialog.geometry("550x400")
+        dialog.transient(self.root)
+        dialog.resizable(True, True)
+        _, is_dark, theme = self.theme_manager.get_theme()
+        dialog.configure(bg=theme["bg"])
+        
+        # 信息提示
+        info_label = tk.Label(dialog, 
+                             text=f"⚠️ 有 {len(unmatched_records)} 条记录未匹配。\n这些key_value在Excel中存在，但在目标表中不存在。\n目标表数据已正常更新，未匹配记录不影响更新结果。",
+                             font=("Microsoft YaHei", 10), fg="#ca8230", bg=theme["card_bg"])
+        info_label.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        tree_frame = ttk.Frame(dialog, padding="15")
+        tree_frame.pack(fill=tk.BOTH, expand=True)
+        
+        columns = ("key_value", "reason", "timestamp")
+        tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=10)
+        tree.heading("key_value", text="唯一标识", anchor=tk.CENTER)
+        tree.heading("reason", text="原因", anchor=tk.CENTER)
+        tree.heading("timestamp", text="时间", anchor=tk.CENTER)
+        tree.column("key_value", width=150, anchor=tk.CENTER)
+        tree.column("reason", width=200, anchor=tk.CENTER)
+        tree.column("timestamp", width=120, anchor=tk.CENTER)
+        
+        for record in unmatched_records:
+            tree.insert('', tk.END, values=(record["key_value"], record["reason"], record["timestamp"]))
+        
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        btn_frame = ttk.Frame(dialog, padding="15")
+        btn_frame.pack(fill=tk.X)
+        
+        ttk.Button(btn_frame, text="确定", command=dialog.destroy, style="Action.TButton").pack(side=tk.LEFT, padx=5)
+
     def clear_form(self):
         self.schema_var.set("APPS")
+        self.temp_schema_var.set("APPS")
         self.target_table_var.set("")
         self.key_column_var.set("")
         self.first_update_entry.delete(0, tk.END)
@@ -1819,39 +1898,40 @@ Excel文件: {excel_path}
                 self.log_manager.log_export("失败记录", file_path, 0, False, str(msg))
                 messagebox.showerror("导出失败", msg)
 
-    # ==================== 模板管理功能 ====================
+    # ==================== 场景管理功能 ====================
 
     def refresh_template_list(self):
-        """刷新模板下拉列表"""
+        """刷新场景下拉列表"""
         templates = self.config.get_templates()
         template_names = [t["name"] for t in templates]
         self.template_combo['values'] = template_names
         if template_names:
             self.template_combo.set('')
-        self.add_log(f"已加载 {len(templates)} 个配置模板", "INFO")
+        self.add_log(f"已加载 {len(templates)} 个配置场景", "INFO")
 
     def on_template_selected(self, event=None):
-        """模板选择事件处理"""
+        """场景选择事件处理"""
         template_name = self.template_var.get()
         if template_name:
             template = self.config.get_template_by_name(template_name)
             if template:
-                self.add_log(f"已选择模板: {template_name}", "INFO")
+                self.add_log(f"已选择场景: {template_name}", "INFO")
 
     def load_template(self):
-        """加载选中的模板"""
+        """加载选中的场景"""
         template_name = self.template_var.get()
         if not template_name:
-            messagebox.showwarning("提示", "请先选择一个模板")
+            messagebox.showwarning("提示", "请先选择一个场景")
             return
         
         template = self.config.get_template_by_name(template_name)
         if not template:
-            messagebox.showerror("错误", f"模板 '{template_name}' 不存在")
+            messagebox.showerror("错误", f"场景 '{template_name}' 不存在")
             return
         
-        # 应用模板配置
+        # 应用场景配置
         self.schema_var.set(template.get("schema", "APPS"))
+        self.temp_schema_var.set(template.get("temp_schema", "APPS"))
         self.target_table_var.set(template.get("target_table", ""))
         self.key_column_var.set(template.get("key_column", ""))
         
@@ -1874,8 +1954,9 @@ Excel文件: {excel_path}
             for col in update_columns[1:]:
                 self.add_update_column_with_value(col)
         
-        self.add_log(f"已加载模板: {template_name}", "SUCCESS")
-        messagebox.showinfo("成功", f"模板 '{template_name}' 已加载")
+        self.add_log(f"已加载场景: {template_name}", "SUCCESS")
+        self.add_log(f"目标表模式: {template.get('schema', 'APPS')}, 临时表模式: {template.get('temp_schema', 'APPS')}", "INFO")
+        messagebox.showinfo("成功", f"场景 '{template_name}' 已加载")
 
     def add_update_column_with_value(self, value):
         """添加更新列并设置值"""
@@ -1897,7 +1978,7 @@ Excel文件: {excel_path}
             row.destroy()
 
     def save_as_template(self):
-        """保存当前配置为模板"""
+        """保存当前配置为场景"""
         # 获取当前配置
         connection_name = self.connection_var.get()
         target_table = self.target_table_var.get().strip()
@@ -1909,25 +1990,25 @@ Excel文件: {excel_path}
             messagebox.showwarning("提示", "请先填写目标表名和唯一标识列")
             return
         
-        # 弹出对话框输入模板名称
+        # 弹出对话框输入场景名称
         dialog = tk.Toplevel(self.root)
-        dialog.title("保存为模板")
+        dialog.title("保存为场景")
         dialog.geometry("400x200")
         dialog.transient(self.root)
         dialog.grab_set()
         
-        # 模板名称
+        # 场景名称
         name_frame = ttk.Frame(dialog, padding="10")
         name_frame.pack(fill=tk.X)
-        ttk.Label(name_frame, text="模板名称:", width=12).pack(side=tk.LEFT)
+        ttk.Label(name_frame, text="场景名称:", width=12).pack(side=tk.LEFT)
         name_var = tk.StringVar()
         name_entry = ttk.Entry(name_frame, textvariable=name_var, width=30)
         name_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
-        # 模板描述
+        # 场景描述
         desc_frame = ttk.Frame(dialog, padding="10")
         desc_frame.pack(fill=tk.X)
-        ttk.Label(desc_frame, text="模板描述:", width=12).pack(side=tk.LEFT)
+        ttk.Label(desc_frame, text="场景描述:", width=12).pack(side=tk.LEFT)
         desc_var = tk.StringVar()
         desc_entry = ttk.Entry(desc_frame, textvariable=desc_var, width=30)
         desc_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -1939,20 +2020,20 @@ Excel文件: {excel_path}
         def do_save():
             name = name_var.get().strip()
             if not name:
-                messagebox.showwarning("提示", "请输入模板名称")
+                messagebox.showwarning("提示", "请输入场景名称")
                 return
             
             if len(name) > 100:
-                messagebox.showwarning("提示", "模板名称不能超过100个字符")
+                messagebox.showwarning("提示", "场景名称不能超过100个字符")
                 return
             
             # 检查是否已存在
             existing = self.config.get_template_by_name(name)
             if existing:
-                if not messagebox.askyesno("确认", f"模板 '{name}' 已存在，是否覆盖？"):
+                if not messagebox.askyesno("确认", f"场景 '{name}' 已存在，是否覆盖？"):
                     return
             
-            # 创建模板
+            # 创建场景
             success, msg = self.config.create_template_from_current(
                 name=name,
                 description=desc_var.get().strip(),
@@ -1960,13 +2041,14 @@ Excel文件: {excel_path}
                 target_table=target_table,
                 key_column=key_column,
                 update_columns=update_columns,
-                schema=schema
+                schema=schema,
+                temp_schema=self.temp_schema_var.get()
             )
             
             if success:
                 self.refresh_template_list()
                 self.template_var.set(name)
-                self.add_log(f"已保存模板: {name}", "SUCCESS")
+                self.add_log(f"已保存场景: {name}", "SUCCESS")
                 messagebox.showinfo("成功", msg)
                 dialog.destroy()
             else:
@@ -1978,18 +2060,18 @@ Excel文件: {excel_path}
         cancel_btn.pack(side=tk.LEFT, padx=(5, 0))
 
     def delete_template(self):
-        """删除选中的模板"""
+        """删除选中的场景"""
         template_name = self.template_var.get()
         if not template_name:
-            messagebox.showwarning("提示", "请先选择一个模板")
+            messagebox.showwarning("提示", "请先选择一个场景")
             return
         
-        if messagebox.askyesno("确认", f"确定要删除模板 '{template_name}' 吗？"):
+        if messagebox.askyesno("确认", f"确定要删除场景 '{template_name}' 吗？"):
             self.config.delete_template(template_name)
             self.refresh_template_list()
             self.template_var.set('')
-            self.add_log(f"已删除模板: {template_name}", "INFO")
-            messagebox.showinfo("成功", f"模板 '{template_name}' 已删除")
+            self.add_log(f"已删除场景: {template_name}", "INFO")
+            messagebox.showinfo("成功", f"场景 '{template_name}' 已删除")
 
     def on_closing(self):
         if self.db_connection.is_connected():
