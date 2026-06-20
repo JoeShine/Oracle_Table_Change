@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>安装配置 - Oracle 数据批量修改工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="nav-top">
+    <a href="index.html">封面</a>
+    <a href="product_intro.html">产品介绍</a>
+    <a href="installation.html">安装配置</a>
+    <a href="quick_start.html">快速入门</a>
+    <a href="features.html">功能详解</a>
+    <a href="faq.html">常见问题</a>
+    <a href="best_practices.html">最佳实践</a>
+</div>
+<div class="page-container">
+
+<h1>2. 安装配置</h1>
+
+<h2>2.1 系统要求</h2>
+<table>
+    <tr><th>配置项</th><th>最低要求</th><th>推荐配置</th></tr>
+    <tr><td>操作系统</td><td>Windows 7 / Windows Server 2008 R2</td><td>Windows 10+ / Windows Server 2016+</td></tr>
+    <tr><td>跨平台支持</td><td colspan="2">macOS / Linux / 麒麟 V10</td></tr>
+    <tr><td>内存</td><td>2 GB</td><td>4 GB 以上</td></tr>
+    <tr><td>硬盘</td><td>500 MB</td><td>1 GB 以上</td></tr>
+    <tr><td>Oracle 客户端</td><td>Oracle Instant Client 19+</td><td>已安装 Oracle 数据库客户端</td></tr>
+</table>
+
+<div class="tip-box">
+    <strong>提示：</strong>使用 Easy Connect 方式连接数据库，无需配置 tnsnames.ora 文件，简化了部署流程。
+</div>
+
+<h2>2.2 安装方式</h2>
+
+<h3>方式一：exe 打包（推荐）</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>下载程序</h3>
+        <p>下载 <code>OracleBatchUpdater_v2.7.0_linux-x86_64.tar.gz</code>（Linux）或 <code>OracleBatchUpdater.exe</code>（Windows）</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>解压运行</h3>
+        <p>Linux：<code>tar -xzf OracleBatchUpdater_v2.7.0_linux-x86_64.tar.gz && ./OracleBatchUpdater</code></p>
+        <p>Windows：双击 <code>OracleBatchUpdater.exe</code> 即可运行</p>
+    </div>
+</div>
+
+<h3>方式二：便携版</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>下载便携版</h3>
+        <p>下载 <code>OracleBatchUpdater_Portable_v2.7.0.zip</code></p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>解压即用</h3>
+        <p>解压到任意目录，双击 <code>OracleBatchUpdater_Portable.bat</code>（Windows）或运行 <code>./OracleBatchUpdater_Portable.sh</code>（Linux）</p>
+    </div>
+</div>
+
+<div class="tip-box">
+    <strong>便携版优势：</strong>
+    <ul>
+        <li>无需管理员权限</li>
+        <li>可放在 U 盘运行</li>
+        <li>数据完全隔离，配置文件独立存储</li>
+        <li>支持 Windows 7 / Server 2008 R2 等老旧系统</li>
+    </ul>
+</div>
+
+<h3>方式三：Docker 部署</h3>
+<div class="warning-box">
+    <strong>注意：</strong>Docker 方式仅适用于 Windows 10+ / Windows Server 2016+ / Linux 系统。
+</div>
+<pre><code># 构建并启动
+docker-compose up -d
+
+# 浏览器访问
+http://localhost:6080</code></pre>
+
+<div class="image-container">
+    <img src="images/user_manual_connection.jpg" alt="数据库连接配置">
+    <div class="image-caption">图2-1：数据库连接配置界面</div>
+</div>
+
+<h2>2.3 Oracle 客户端配置</h2>
+<div class="tip-box">
+    <strong>重要说明：</strong>使用 Easy Connect 方式，无需配置任何文件！直接在工具界面输入连接参数即可。
+</div>
+
+<h3>方式 A：使用已安装的 Oracle 客户端（推荐）</h3>
+<p>如果服务器已安装 Oracle 数据库或客户端：</p>
+<ul>
+    <li><strong>无需额外安装</strong> Instant Client</li>
+    <li><strong>无需配置</strong> tnsnames.ora</li>
+    <li>直接在工具界面输入连接参数即可</li>
+</ul>
+
+<h3>方式 B：安装 Oracle Instant Client（可选）</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>下载 Instant Client</h3>
+        <p>访问 Oracle 官网下载对应操作系统版本（Basic 或 Basic Light）</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>解压到目录</h3>
+        <p>Windows：<code>C:\oracle\instantclient_19_8</code></p>
+        <p>Linux：<code>/opt/oracle/instantclient_19_8</code></p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <h3>配置环境变量</h3>
+        <p>Windows：在系统环境变量 PATH 中添加 Instant Client 目录</p>
+        <p>Linux：<code>export LD_LIBRARY_PATH=/opt/oracle/instantclient_19_8:$LD_LIBRARY_PATH</code></p>
+    </div>
+</div>
+
+<div class="footer">
+    <p>Oracle 数据批量修改工具 v2.7.0 &copy; 2026</p>
+</div>
+
+</div>
+</body>
+</html>

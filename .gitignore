@@ -40,6 +40,11 @@ Thumbs.db
 # Config (local)
 config.json
 
+# Release artifacts
+release_*/
+OracleBatchUpdater_Portable_*/
+dist/
+
 # Test files
 *.xlsx
 test_*.xlsx

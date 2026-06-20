@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>最佳实践 - Oracle 数据批量修改工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="nav-top">
+    <a href="index.html">封面</a>
+    <a href="product_intro.html">产品介绍</a>
+    <a href="installation.html">安装配置</a>
+    <a href="quick_start.html">快速入门</a>
+    <a href="features.html">功能详解</a>
+    <a href="faq.html">常见问题</a>
+    <a href="best_practices.html">最佳实践</a>
+</div>
+<div class="page-container">
+
+<h1>6. 最佳实践</h1>
+
+<h2>6.1 操作前准备</h2>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <h3>在测试环境先验证</h3>
+        <p>在生产环境操作前，务必在测试环境完整验证整个流程。</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>备份重要数据</h3>
+        <p>虽然工具会自动备份，但建议提前手工备份关键数据。</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <h3>检查 Excel 数据正确性</h3>
+        <p>确认唯一标识列准确无误，待更新数据格式正确。</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+        <h3>确认数据库账号权限</h3>
+        <p>确保账号有 CREATE TABLE、UPDATE、DROP TABLE 等必要权限。</p>
+    </div>
+</div>
+
+<h2>6.2 数据更新建议</h2>
+<table>
+    <tr><th>建议</th><th>说明</th></tr>
+    <tr><td>小批量测试</td><td>先用几十条数据测试，确认无误后再全量更新</td></tr>
+    <tr><td>不要关闭程序</td><td>操作期间保持程序运行，避免中断导致异常</td></tr>
+    <tr><td>保存更新日志</td><td>导出日志文件，便于后续审计和问题排查</td></tr>
+    <tr><td>分批执行</td><td>大数据量（>1万条）建议分批执行，每批不超过 1 万条</td></tr>
+    <tr><td>避免高峰期</td><td>选择数据库负载较低时段执行批量更新</td></tr>
+</table>
+
+<h2>6.3 Excel 数据建议</h2>
+<table>
+    <tr><th>建议</th><th>说明</th></tr>
+    <tr><td>使用提供的模板</td><td>确保格式正确，避免导入错误</td></tr>
+    <tr><td>第一列唯一标识不能为空</td><td>每条记录必须有唯一标识用于匹配</td></tr>
+    <tr><td>数据类型与数据库一致</td><td>数字列不要填写文本，日期列使用标准格式</td></tr>
+    <tr><td>避免特殊字符</td><td>避免在数据中使用换行符、制表符等特殊字符</td></tr>
+    <tr><td>使用 .xlsx 格式</td><td>推荐使用 .xlsx 格式，兼容性更好</td></tr>
+    <tr><td>空字段保留原值</td><td>不需要更新的列可以留空，不会被更新为 NULL</td></tr>
+</table>
+
+<h2>6.4 日常维护建议</h2>
+<ul>
+    <li><strong>定期清理历史记录</strong>：避免历史记录过多影响性能</li>
+    <li><strong>定期备份配置</strong>：保存 <code>config.json</code> 文件的备份</li>
+    <li><strong>保存重要的审计日志</strong>：将关键操作的日志导出存档</li>
+    <li><strong>关注日志中的错误和警告</strong>：及时发现和解决潜在问题</li>
+</ul>
+
+<h2>6.5 安全建议</h2>
+<div class="danger-box">
+    <strong>安全须知：</strong>
+    <ol>
+        <li>在测试环境充分验证后再在生产使用</li>
+        <li>更新前自动备份，失败可回滚</li>
+        <li>审计日志记录所有操作</li>
+        <li>密码使用 Base64 编码存储在本地配置文件</li>
+        <li>定期备份重要数据</li>
+    </ol>
+</div>
+
+<h2>7. 技术支持</h2>
+<p>如遇到问题，请按以下顺序排查：</p>
+<ol>
+    <li>查看日志文件（<code>logs</code> 目录）</li>
+    <li>查看本文档的常见问题章节</li>
+    <li>查看操作日志排查原因</li>
+    <li>联系技术支持</li>
+</ol>
+
+<h2>附录 A：Excel 模板说明</h2>
+<p>Excel 包含两个 Sheet：</p>
+<table>
+    <tr><th>Sheet</th><th>用途</th></tr>
+    <tr><td>数据更新模板</td><td>数据更新用：A 列唯一标识（必填），B 列起待更新列（按需填写）</td></tr>
+    <tr><td>使用说明</td><td>使用说明和注意事项</td></tr>
+</table>
+
+<h2>附录 B：配色说明</h2>
+<div class="theme-demo">
+    <div class="theme-demo-item">
+        <div style="background:#0D1B2A; color:#E8A44C; padding:20px; border-radius:4px;">
+            <strong>深墨琥珀</strong><br>
+            <span style="font-size:11px;">terminal（默认）</span>
+        </div>
+        <div class="label">深墨蓝 + 琥珀金</div>
+    </div>
+    <div class="theme-demo-item">
+        <div style="background:#4A86E8; color:#fff; padding:20px; border-radius:4px;">
+            <strong>Idea 蓝色</strong><br>
+            <span style="font-size:11px;">idea</span>
+        </div>
+        <div class="label">IntelliJ IDEA 风格</div>
+    </div>
+    <div class="theme-demo-item">
+        <div style="background:#0066CC; color:#fff; padding:20px; border-radius:4px;">
+            <strong>清爽浅色</strong><br>
+            <span style="font-size:11px;">clean</span>
+        </div>
+        <div class="label">清新蓝白简约</div>
+    </div>
+</div>
+
+<h2>附录 C：变更历史</h2>
+<table>
+    <tr><th>版本</th><th>日期</th><th>说明</th></tr>
+    <tr><td>v1.0</td><td>2026-05-15</td><td>初版发布</td></tr>
+    <tr><td>v2.0</td><td>2026-05-20</td><td>增加多列更新、状态栏优化</td></tr>
+    <tr><td>v2.1</td><td>2026-06-19</td><td>升级三套主题风格系统</td></tr>
+    <tr><td>v2.2</td><td>2026-06-19</td><td>校正默认风格为深墨琥珀</td></tr>
+    <tr><td>v2.3</td><td>2026-06-19</td><td>全面修正文档与代码不一致</td></tr>
+    <tr><td>v2.4</td><td>2026-06-19</td><td>新增键盘导航功能</td></tr>
+    <tr><td>v2.5</td><td>2026-06-19</td><td>新增国产化适配（麒麟 V10）</td></tr>
+    <tr><td>v2.6</td><td>2026-06-19</td><td>新增配置场景功能</td></tr>
+    <tr><td>v2.7</td><td>2026-06-19</td><td>新增 Docker 部署支持</td></tr>
+</table>
+
+<div class="footer">
+    <p>感谢使用本工具！希望能帮助您高效完成 Oracle 数据批量更新工作。</p>
+    <p>Oracle 数据批量修改工具 v2.7.0 &copy; 2026</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>快速入门 - Oracle 数据批量修改工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="nav-top">
+    <a href="index.html">封面</a>
+    <a href="product_intro.html">产品介绍</a>
+    <a href="installation.html">安装配置</a>
+    <a href="quick_start.html">快速入门</a>
+    <a href="features.html">功能详解</a>
+    <a href="faq.html">常见问题</a>
+    <a href="best_practices.html">最佳实践</a>
+</div>
+<div class="page-container">
+
+<h1>3. 快速入门</h1>
+
+<div class="image-container">
+    <img src="images/user_manual_workflow.jpg" alt="三步操作流程">
+    <div class="image-caption">图3-1：三步操作流程概览</div>
+</div>
+
+<h2>3.1 三步上手</h2>
+
+<h3>第一步：配置数据库连接</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <p>切换到「<strong>数据库连接</strong>」标签页</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <p>点击「<strong>+ 添加连接</strong>」按钮</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <h3>填写连接信息（Easy Connect 方式）</h3>
+        <table>
+            <tr><th>字段</th><th>说明</th><th>示例</th></tr>
+            <tr><td>连接名称</td><td>给连接起个名字</td><td>开发环境</td></tr>
+            <tr><td>主机地址</td><td>数据库服务器 IP 地址</td><td>192.168.1.100</td></tr>
+            <tr><td>端口</td><td>Oracle 监听端口</td><td>1521</td></tr>
+            <tr><td>服务名</td><td>Oracle 服务名</td><td>ORCL</td></tr>
+            <tr><td>用户名</td><td>数据库账号</td><td>scott</td></tr>
+            <tr><td>密码</td><td>数据库密码</td><td>********</td></tr>
+        </table>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+        <p>点击「<strong>测试连接</strong>」验证配置</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+        <p>点击「<strong>保存</strong>」保存配置</p>
+    </div>
+</div>
+
+<div class="tip-box">
+    <strong>Easy Connect 连接字符串格式：</strong>
+    <pre><code>host:port/service_name
+示例：192.168.1.100:1521/ORCL</code></pre>
+</div>
+
+<h3>第二步：准备 Excel 数据</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <p>使用提供的模板：<code>Oracle数据批量修改工具_导入模板.xlsx</code></p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>按格式填写数据</h3>
+        <ul>
+            <li>第 1 列：唯一标识（如：员工 ID）</li>
+            <li>第 2 列起：要更新的列</li>
+        </ul>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <p>保存 Excel 文件</p>
+    </div>
+</div>
+
+<div class="warning-box">
+    <strong>注意：</strong>空字段将保留目标表原值，不会被更新为 NULL。
+</div>
+
+<p><strong>Excel 数据示例：</strong></p>
+<table>
+    <tr><th>EMP_ID</th><th>EMP_NAME</th><th>AGE</th><th>DEPT</th><th>说明</th></tr>
+    <tr><td>1001</td><td>张三</td><td style="color:#999; font-style:italic;">（空）</td><td>技术部</td><td>AGE 为空，保留原值</td></tr>
+    <tr><td>1002</td><td>李四</td><td>30</td><td style="color:#999; font-style:italic;">（空）</td><td>DEPT 为空，保留原值</td></tr>
+    <tr><td>1003</td><td>王五</td><td>28</td><td>财务部</td><td>全部填写，全部更新</td></tr>
+</table>
+
+<div class="image-container">
+    <img src="images/user_manual_excel_preview.jpg" alt="Excel 数据预览">
+    <div class="image-caption">图3-2：Excel 数据导入与预览界面</div>
+</div>
+
+<h3>第三步：执行更新</h3>
+<div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+        <p>切换到「<strong>当前配置</strong>」标签页</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+        <h3>填写配置</h3>
+        <ul>
+            <li><strong>目标表模式</strong>：输入或选择目标表所在的数据库模式（如 APPS、SYS 等），支持手工填写</li>
+            <li><strong>临时表模式</strong>：输入或选择临时表创建位置（可与目标表不同），支持手工填写</li>
+            <li><strong>目标表名</strong>：要更新的表名</li>
+            <li><strong>唯一标识列</strong>：Excel 第 1 列对应的数据库列</li>
+            <li><strong>待修改列</strong>：点击「➕」添加列，点击「➖」删除列，顺序要与 Excel 一致</li>
+        </ul>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+        <p>选择 Excel 文件</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+        <p>点击「<strong>👁 预览</strong>」查看数据</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+        <p>点击「<strong>🔍 验证数据</strong>」检查 Excel 和数据库</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">6</div>
+    <div class="step-content">
+        <p>验证通过后点击「<strong>✅ 执行</strong>」开始更新</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">7</div>
+    <div class="step-content">
+        <p>在二次确认对话框中确认操作</p>
+    </div>
+</div>
+<div class="step">
+    <div class="step-num">8</div>
+    <div class="step-content">
+        <p>等待更新完成，查看结果</p>
+    </div>
+</div>
+
+<div class="footer">
+    <p>Oracle 数据批量修改工具 v2.7.0 &copy; 2026</p>
+</div>
+
+</div>
+</body>
+</html>

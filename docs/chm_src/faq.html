@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>常见问题 - Oracle 数据批量修改工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="nav-top">
+    <a href="index.html">封面</a>
+    <a href="product_intro.html">产品介绍</a>
+    <a href="installation.html">安装配置</a>
+    <a href="quick_start.html">快速入门</a>
+    <a href="features.html">功能详解</a>
+    <a href="faq.html">常见问题</a>
+    <a href="best_practices.html">最佳实践</a>
+</div>
+<div class="page-container">
+
+<h1>5. 常见问题</h1>
+
+<h2>5.1 安装问题</h2>
+
+<h3>Q: 启动时提示找不到 Oracle 客户端？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 请确认已安装 Oracle Instant Client，并配置了环境变量 PATH。如果服务器已安装 Oracle 数据库，通常无需额外安装 Instant Client，系统会自动检测。
+</div>
+
+<h3>Q: 中文显示乱码？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 设置环境变量：<code>NLS_LANG=SIMPLIFIED CHINESE_CHINA.AL32UTF8</code>
+</div>
+
+<h2>5.2 连接问题</h2>
+
+<h3>Q: 测试连接失败怎么办？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 请逐项检查：
+    <ol>
+        <li>网络是否能连接到数据库服务器</li>
+        <li>主机地址、端口、服务名是否正确</li>
+        <li>用户名密码是否正确</li>
+        <li>数据库是否允许远程连接</li>
+    </ol>
+</div>
+
+<h3>Q: 连接超时？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 检查防火墙设置，确认 1521 端口（或其他端口）已开放。
+</div>
+
+<h2>5.3 Excel 问题</h2>
+
+<h3>Q: Excel 导入失败？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 请检查：
+    <ol>
+        <li>是否使用提供的模板格式</li>
+        <li>第一列是否是唯一标识，不能为空</li>
+        <li>文件大小是否超过 10 MB</li>
+        <li>行数是否超过 10 万行</li>
+    </ol>
+</div>
+
+<h3>Q: 提示重复键？</h3>
+<div class="tip-box">
+    <strong>A:</strong> Excel 第 1 列有重复值，请检查并去重。
+</div>
+
+<h2>5.4 更新问题</h2>
+
+<h3>Q: 更新失败了，数据会怎么样？</h3>
+<div class="warning-box">
+    <strong>A:</strong> 更新失败时会自动回滚到初始状态，不用担心数据丢失。但是会保留备份表供检查。
+</div>
+
+<h3>Q: 如何查看更新失败的记录？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 在「操作日志」标签页点击「导出失败记录」。
+</div>
+
+<h3>Q: 更新成功后发现改错了怎么办？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 查看日志中的备份表名，手工从备份表恢复数据。
+</div>
+
+<h2>5.5 性能问题</h2>
+
+<h3>Q: 大数据量更新很慢怎么办？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 建议分批处理，每批不超过 1 万条。可以使用 Excel 的筛选功能拆分数据。
+</div>
+
+<h3>Q: 最大支持多少条数据？</h3>
+<div class="tip-box">
+    <strong>A:</strong> 单次最多支持 10 万行数据。超过此限制，建议分批次执行。
+</div>
+
+<div class="footer">
+    <p>Oracle 数据批量修改工具 v2.7.0 &copy; 2026</p>
+</div>
+
+</div>
+</body>
+</html>
