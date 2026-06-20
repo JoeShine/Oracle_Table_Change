@@ -39,7 +39,24 @@ reg add "HKLM\SOFTWARE\Microsoft\HTMLHelp\1.x\ItssRestrictions" ^
 
 > 注意：修改注册表可能降低系统安全性，不建议在生产环境使用。
 
+## 移动设备 / 掌阅 APP 阅读
+
+CHM 格式依赖 Windows 的 HTML Help 引擎，**安卓版掌阅 APP 不支持直接打开 .chm 文件**。
+
+如需在手机或平板上阅读，请使用同目录下的 EPUB 版本：
+
+- **文件**: `OracleBatchUpdater_UserManual.epub`
+- **用途**: 掌阅、微信读书、Kindle 等支持 EPUB 的阅读器
+- **生成方式**: `python scripts/build_epub.py`
+
+### 掌阅 APP 导入步骤
+
+1. 将 `OracleBatchUpdater_UserManual.epub` 传输到手机
+2. 打开掌阅 APP → 书架 → 右上角 **+** / **导入本地书**
+3. 选择 EPUB 文件，导入后即可阅读
+
 ---
 
-生成时间: 2026-06-20 08:51:29
+生成时间: 2026-06-20 10:45:00
 CHM 版本: v2.8.0
+EPUB 版本: v2.8.0
