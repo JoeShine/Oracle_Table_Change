@@ -417,7 +417,7 @@ class ThemeManager:
 class OracleBatchUpdaterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Oracle数据批量修改工具")
+        self.root.title("DBForge")
         self.root.geometry("1000x800")
         self.root.resizable(True, True)
         self.root.minsize(900, 700)
@@ -623,12 +623,12 @@ class OracleBatchUpdaterGUI:
         
         # 导航按钮配置
         nav_items = [
-            "📋 当前配置",
-            "📜 操作日志",
-            "🔌 数据库连接",
-            "📊 历史记录",
-            "📈 报表统计",
-            "🔧 诊断工具",
+            "📝 批量更新",
+            "📜 运行日志",
+            "🔌 连接管理",
+            "📊 操作历史",
+            "📊 统计分析",
+            "🔧 系统诊断",
         ]
         self.nav_buttons = []      # (button, indicator) 元组列表
         self.nav_button_refs = []  # button 引用
@@ -680,9 +680,9 @@ class OracleBatchUpdaterGUI:
         header_frame.pack(fill=tk.X, pady=(0, 5))
         title_frame = ttk.Frame(header_frame)
         title_frame.pack(side=tk.LEFT)
-        title_label = ttk.Label(title_frame, text="📦 Oracle数据批量修改工具", style="Title.TLabel")
+        title_label = ttk.Label(title_frame, text="📦 DBForge", style="Title.TLabel")
         title_label.pack()
-        subtitle_label = ttk.Label(title_frame, text="Oracle Data Batch Modifier", font=("Microsoft YaHei", 10), foreground="#6c757d")
+        subtitle_label = ttk.Label(title_frame, text="Database Forge · 数据库批量更新工具", font=("Microsoft YaHei", 10), foreground="#6c757d")
         subtitle_label.pack(pady=(2, 0))
         control_frame = ttk.Frame(header_frame)
         control_frame.pack(side=tk.RIGHT)
@@ -832,7 +832,37 @@ class OracleBatchUpdaterGUI:
 
     def create_config_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
-        
+
+        # ========== 核心操作逻辑 · 业务场景说明 ==========
+        workflow_panel = ttk.Frame(tab)
+        workflow_panel.pack(fill=tk.X, pady=(0, 10))
+
+        # 用 Canvas 绘制左侧琥珀色竖条
+        wf_canvas = tk.Canvas(workflow_panel, height=2, bg="#d97706", highlightthickness=0)
+        # 改用带左边框的 Labelframe 风格
+        workflow_label = ttk.Label(workflow_panel,
+            text=" 核心操作逻辑 · 5 步完成安全批量更新  |  ① 选场景 → ② 配目标 → ③ 取数据 → ④ 校验预览 → ⑤ 执行（自动备份+批量更新）",
+            style="Card.TLabel",
+            font=("Microsoft YaHei", 9),
+            foreground="#d97706",
+            padding=(10, 8),
+            background="#f8f9fa",
+        )
+        workflow_label.pack(fill=tk.X)
+
+        scene_label = ttk.Label(workflow_panel,
+            text="  业务场景示例：HR 将 1,200 名员工的部门归属 Excel 载入 DBForge，配置目标表 EMPLOYEE / 主键 EMP_ID / 待更新列 DEPT，"
+                 "\n  经重复性校验后一键执行。DBForge 自动：① 备份到 EMPLOYEE_BAK_时间戳 ② 创建临时表分批加载 ③ 按主键匹配 UPDATE ④ 返回统计。"
+                 "\n  执行过程可在『运行日志』实时跟踪，历次更新可在『操作历史』追溯。",
+            style="Card.TLabel",
+            font=("Microsoft YaHei", 8),
+            foreground="#6c757d",
+            padding=(10, 6),
+            wraplength=800,
+            justify=tk.LEFT,
+        )
+        scene_label.pack(fill=tk.X)
+
         # ========== 场景选择区域 ==========
         template_panel = ttk.LabelFrame(tab, text="📝 配置场景", padding="15", style="Card.TFrame")
         template_panel.pack(fill=tk.X, pady=(0, 10))
@@ -998,7 +1028,7 @@ class OracleBatchUpdaterGUI:
     def create_log_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
         
-        log_panel = ttk.LabelFrame(tab, text="操作日志", padding="12", style="Card.TFrame")
+        log_panel = ttk.LabelFrame(tab, text="运行日志", padding="12", style="Card.TFrame")
         log_panel.pack(fill=tk.BOTH, expand=True)
         self.log_text = scrolledtext.ScrolledText(log_panel, height=20, wrap=tk.WORD, font=("Consolas", 9), relief="flat")
         self.log_text.pack(fill=tk.BOTH, expand=True)
@@ -1022,7 +1052,7 @@ class OracleBatchUpdaterGUI:
     def create_connection_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
         
-        panel = ttk.LabelFrame(tab, text="数据库连接配置", padding="15", style="Card.TFrame")
+        panel = ttk.LabelFrame(tab, text="连接配置管理", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
         ttk.Label(panel, text="选择连接:", style="Header.TLabel").pack(anchor=tk.W, pady=(0, 8))
         connection_frame = ttk.Frame(panel)
@@ -1050,7 +1080,7 @@ class OracleBatchUpdaterGUI:
     def create_history_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
         
-        panel = ttk.LabelFrame(tab, text="历史导入记录", padding="15", style="Card.TFrame")
+        panel = ttk.LabelFrame(tab, text="历史操作记录", padding="15", style="Card.TFrame")
         panel.pack(fill=tk.BOTH, expand=True)
         
         btn_frame = ttk.Frame(panel)
@@ -1095,13 +1125,13 @@ class OracleBatchUpdaterGUI:
 
     def create_stats_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
-        placeholder = ttk.Label(tab, text="📈 报表统计功能即将上线", style="Header.TLabel")
+        placeholder = ttk.Label(tab, text="📊 统计分析功能即将上线", style="Header.TLabel")
         placeholder.pack(expand=True)
         return tab
 
     def create_diagnosis_tab(self):
         tab = ttk.Frame(self.content_frame, padding="10")
-        placeholder = ttk.Label(tab, text="🔧 诊断工具功能即将上线", style="Header.TLabel")
+        placeholder = ttk.Label(tab, text="🔧 系统诊断功能即将上线", style="Header.TLabel")
         placeholder.pack(expand=True)
         return tab
 
@@ -2396,7 +2426,7 @@ def main():
         tb = traceback.format_exc()
         try:
             messagebox.showerror(
-                "Oracle 批量更新工具 - 启动失败",
+                "DBForge - 启动失败",
                 f"程序启动时发生错误:\n\n"
                 f"{type(e).__name__}: {str(e)}\n\n"
                 f"请检查:\n"

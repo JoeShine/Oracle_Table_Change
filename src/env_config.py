@@ -39,7 +39,7 @@ from src.errors import ConfigError, ValidationError
 class EnvironmentConfig:
     """P3-3: 多环境配置管理器
 
-    管理多个环境（DEV/TEST/UAT/PROD）的数据库连接和设置，
+    管理多个环境（DEV/TEST/UAT/PROD）的连接管理和设置，
     支持环境切换、验证和持久化。
 
     Attributes:
@@ -384,7 +384,7 @@ class EnvironmentConfig:
         return True
 
     def get_connection_for_env(self, env_name: str) -> Dict[str, Any]:
-        """获取指定环境的数据库连接信息。
+        """获取指定环境的连接管理信息。
 
         Args:
             env_name: 环境名称

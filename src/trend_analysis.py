@@ -516,7 +516,7 @@ class TrendAnalyzer:
         """生成纯文本趋势报告。"""
         lines = []
         lines.append("=" * 70)
-        lines.append("  OracleBatchUpdater 趋势分析报告")
+        lines.append("  DBForge 趋势分析报告")
         lines.append("=" * 70)
         lines.append(f"  生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("")

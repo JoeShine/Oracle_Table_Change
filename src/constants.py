@@ -1,4 +1,4 @@
-"""Centralized constants configuration for OracleBatchUpdater.
+"""Centralized constants configuration for DBForge.
 
 All hardcoded values used across the application are defined here
 to provide a single source of truth for configuration defaults.
@@ -8,7 +8,7 @@ to provide a single source of truth for configuration defaults.
 # Application metadata
 # ---------------------------------------------------------------------------
 VERSION = "2.8.0"
-APP_NAME = "OracleBatchUpdater"
+APP_NAME = "DBForge"
 
 # ---------------------------------------------------------------------------
 # Batch processing defaults

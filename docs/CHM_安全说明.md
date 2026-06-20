@@ -10,7 +10,7 @@ Windows 会在文件上附加一个 Zone.Identifier 标记（"来自其他计算
 
 ### 方案一：从 ZIP 包解压（推荐）
 
-1. 解压旁边的 OracleBatchUpdater_UserManual.zip 文件
+1. 解压旁边的 DBForge_UserManual.zip 文件
 2. 将解压出的 .chm 文件复制到本地磁盘（如 C:\ 或 D:\）
 3. 双击打开
 
@@ -45,13 +45,13 @@ CHM 格式依赖 Windows 的 HTML Help 引擎，**安卓版掌阅 APP 不支持�
 
 如需在手机或平板上阅读，请使用同目录下的 EPUB 版本：
 
-- **文件**: `OracleBatchUpdater_UserManual.epub`
+- **文件**: `DBForge_UserManual.epub`
 - **用途**: 掌阅、微信读书、Kindle 等支持 EPUB 的阅读器
 - **生成方式**: `python scripts/build_epub.py`
 
 ### 掌阅 APP 导入步骤
 
-1. 将 `OracleBatchUpdater_UserManual.epub` 传输到手机
+1. 将 `DBForge_UserManual.epub` 传输到手机
 2. 打开掌阅 APP → 书架 → 右上角 **+** / **导入本地书**
 3. 选择 EPUB 文件，导入后即可阅读
 

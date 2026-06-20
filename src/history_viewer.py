@@ -1,4 +1,4 @@
-"""History query UI for OracleBatchUpdater.
+"""History query UI for DBForge.
 
 Provides the HistoryViewer class for reading, searching, filtering,
 and exporting past update operations from audit and update log files.

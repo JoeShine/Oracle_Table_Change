@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Oracle数据批量修改工具 - 全面回归测试
+DBForge - 全面回归测试
 测试所有新增功能和核心功能
 """
 
@@ -222,7 +222,7 @@ class TestDataUpdater(unittest.TestCase):
         """测试数据更新器导入"""
         print("\n[测试] 数据更新器导入...")
         
-        # 需要mock数据库连接
+        # 需要mock连接管理
         from unittest.mock import MagicMock
         mock_db = MagicMock()
         mock_log = MagicMock()
@@ -390,7 +390,7 @@ class TestDemoHTML(unittest.TestCase):
 def run_full_regression_test():
     """运行完整回归测试"""
     print("\n" + "=" * 60)
-    print("Oracle数据批量修改工具 - 全面回归测试")
+    print("DBForge - 全面回归测试")
     print("=" * 60)
     print(f"测试时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)

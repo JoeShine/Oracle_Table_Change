@@ -1,4 +1,4 @@
-# Oracle 数据批量修改工具 - Docker 部署指南
+# DBForge - Docker 部署指南
 
 ## 快速开始
 
@@ -55,7 +55,7 @@ docker-compose up -d
 
 浏览器访问：http://localhost:6080
 
-### 步骤5：配置数据库连接
+### 步骤5：配置连接管理
 
 在应用界面中直接输入 Easy Connect 连接字符串：
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Oracle数据批量修改工具 - demo.html 测试脚本
+DBForge - demo.html 测试脚本
 测试HTML原型的结构和功能
 """
 
@@ -129,12 +129,12 @@ class TestDemoHTML(unittest.TestCase):
         self.assertIn('tab-content', self.content)
         
         # 检查6个菜单文案
-        self.assertIn('配置与预览', self.content)
-        self.assertIn('操作日志', self.content)
-        self.assertIn('数据库连接', self.content)
-        self.assertIn('历史记录', self.content)
-        self.assertIn('报表统计', self.content)
-        self.assertIn('诊断工具', self.content)
+        self.assertIn('批量更新', self.content)
+        self.assertIn('运行日志', self.content)
+        self.assertIn('连接管理', self.content)
+        self.assertIn('操作历史', self.content)
+        self.assertIn('统计分析', self.content)
+        self.assertIn('系统诊断', self.content)
         
         # 检查左侧导航样式（纵向、宽度、左侧指示条）
         self.assertIn('flex-direction: column', self.content)
@@ -339,7 +339,7 @@ def run_demo_html_tests():
     from datetime import datetime
     
     print("\n" + "=" * 60)
-    print("Oracle数据批量修改工具 - demo.html 测试")
+    print("DBForge - demo.html 测试")
     print("=" * 60)
     print(f"测试时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)

@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo Oracle数据批量修改工具 - 验证脚本
+echo DBForge - 验证脚本
 echo ========================================
 echo.
 
@@ -40,7 +40,7 @@ python -c "from src.logger import LogManager; print('✓ logger')"
 python -c "from src.excel_handler import ExcelHandler; print('✓ excel_handler')"
 python -c "from src.db_connection import DBConnection; print('✓ db_connection')"
 python -c "from src.data_updater import DataUpdater; print('✓ data_updater')"
-python -c "from src.gui import OracleBatchUpdaterGUI; print('✓ gui')"
+python -c "from src.gui import DBForgeGUI; print('✓ gui')"
 
 echo.
 echo 检查文件完整性...
@@ -79,8 +79,8 @@ if not exist "src\gui.py" (
     exit /b 1
 )
 
-if not exist "OracleBatchUpdater.spec" (
-    echo [警告] 缺少OracleBatchUpdater.spec（不影响运行）
+if not exist "DBForge.spec" (
+    echo [警告] 缺少DBForge.spec（不影响运行）
 )
 
 if not exist "requirements.txt" (

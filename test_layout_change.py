@@ -189,8 +189,8 @@ class TestHTMLLayout(unittest.TestCase):
 
     def test_06_menu_item_texts(self):
         expected_menus = [
-            "配置与预览", "操作日志", "数据库连接",
-            "历史记录", "报表统计", "诊断工具",
+            "批量更新", "运行日志", "连接管理",
+            "操作历史", "统计分析", "系统诊断",
         ]
         for name in expected_menus:
             self.assertIn(name, self.html_content, f"左侧菜单应包含：{name}")

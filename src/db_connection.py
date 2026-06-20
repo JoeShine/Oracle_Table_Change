@@ -43,7 +43,7 @@ class DBConnection:
             return False, f"连接失败: {str(e)}"
 
     def disconnect(self):
-        """断开数据库连接"""
+        """断开连接管理"""
         if self.connection:
             try:
                 self.connection.close()
@@ -52,7 +52,7 @@ class DBConnection:
             self.connection = None
 
     def is_connected(self) -> bool:
-        """检查数据库连接是否有效"""
+        """检查连接管理是否有效"""
         if self.connection:
             try:
                 self.connection.ping()

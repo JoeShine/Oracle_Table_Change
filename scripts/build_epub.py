@@ -45,7 +45,7 @@ def read_file_bytes(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def build_epub(output_name: str = "OracleBatchUpdater_UserManual.epub") -> Path:
+def build_epub(output_name: str = "DBForge_UserManual.epub") -> Path:
     """生成 EPUB 文件。"""
     out_path = OUT_DIR / output_name
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -111,7 +111,7 @@ def build_epub(output_name: str = "OracleBatchUpdater_UserManual.epub") -> Path:
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="bookid">urn:uuid:{book_uuid}</dc:identifier>
-    <dc:title>Oracle 数据批量修改工具 - 用户手册</dc:title>
+    <dc:title>DBForge - 用户手册</dc:title>
     <dc:language>zh-CN</dc:language>
     <dc:creator>Oracle Updater Team</dc:creator>
     <dc:date>{modified[:10]}</dc:date>
@@ -147,7 +147,7 @@ def build_epub(output_name: str = "OracleBatchUpdater_UserManual.epub") -> Path:
     <meta name="dtb:totalPageCount" content="0"/>
     <meta name="dtb:maxPageNumber" content="0"/>
   </head>
-  <docTitle><text>Oracle 数据批量修改工具 - 用户手册</text></docTitle>
+  <docTitle><text>DBForge - 用户手册</text></docTitle>
   <navMap>\n""" + "\n".join(nav_points) + """
   </navMap>
 </ncx>

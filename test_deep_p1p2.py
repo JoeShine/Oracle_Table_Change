@@ -746,7 +746,7 @@ class TestCli:
             cmd_version(argparse.Namespace())
             mock_print.assert_called_once()
             output = mock_print.call_args[0][0]
-            assert "OracleBatchUpdater" in output
+            assert "DBForge" in output
             assert "v" in output
 
     def test_connections_subcommand_parsing(self):
@@ -1617,7 +1617,7 @@ class TestConstants:
 
     def test_app_name(self):
         from src.constants import APP_NAME
-        assert APP_NAME == "OracleBatchUpdater"
+        assert APP_NAME == "DBForge"
 
     def test_default_batch_size(self):
         from src.constants import DEFAULT_BATCH_SIZE

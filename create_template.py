@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Oracle数据批量修改工具 - Excel导入模板生成器
+DBForge - Excel导入模板生成器
 生成美观的Excel模板，带首行配色和首行冻结
 """
 
@@ -77,7 +77,7 @@ def create_excel_template():
     guide_header_font = Font(name="微软雅黑", size=12, bold=True, color="FFFFFF")
     guide_header_fill = PatternFill(start_color="3592C4", end_color="3592C4", fill_type="solid")
     
-    ws_guide.cell(row=1, column=1, value="Oracle数据批量修改工具 - Excel模板使用说明")
+    ws_guide.cell(row=1, column=1, value="DBForge - Excel模板使用说明")
     ws_guide.merge_cells("A1:B1")
     guide_title = ws_guide.cell(row=1, column=1)
     guide_title.font = Font(name="微软雅黑", size=14, bold=True, color="FFFFFF")
@@ -86,7 +86,7 @@ def create_excel_template():
     ws_guide.row_dimensions[1].height = 30
     
     guide_content = [
-        ["模板说明", "本模板用于Oracle数据批量修改工具的数据导入"],
+        ["模板说明", "本模板用于DBForge的数据导入"],
         ["必填字段", "第1列必须为唯一标识列，不能为空"],
         ["更新字段", "第2列及以后为待更新的字段，根据实际需要填写"],
         ["文件格式", "建议使用.xlsx格式（Excel 2007及以上）"],
@@ -112,7 +112,7 @@ def create_excel_template():
         ws_guide.row_dimensions[row_idx].height = 20
     
     # 保存文件
-    output_file = "Oracle数据批量修改工具_导入模板.xlsx"
+    output_file = "DBForge_导入模板.xlsx"
     wb.save(output_file)
     print(f"Excel导入模板已生成: {output_file}")
     return output_file

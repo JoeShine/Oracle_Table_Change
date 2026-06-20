@@ -1,13 +1,13 @@
-# Oracle数据批量修改工具
+# DBForge
 
 Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
 
-**当前版本：v2.8.0** | [更新日志](docs/) | [用户手册](docs/用户手册.md) | [CHM 帮助](docs/OracleBatchUpdater_UserManual.chm)
+**当前版本：v2.8.0** | [更新日志](docs/) | [用户手册](docs/用户手册.md) | [CHM 帮助](docs/DBForge_UserManual.chm)
 
 ## 功能特性
 
 ### 核心功能
-- ✅ 数据库连接管理（支持多连接配置）
+- ✅ 连接管理管理（支持多连接配置）
 - ✅ 多格式数据导入（.xlsx / .xls / .csv / .json / .jsonl）
 - ✅ 数据预览（前50行）
 - ✅ 多列同时更新
@@ -18,9 +18,9 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 ### 增强功能
 - ✅ 文件大小限制（10MB）
 - ✅ 行数限制（10万行；CSV/JSON 流式可达千万行）
-- ✅ 操作日志记录
+- ✅ 运行日志记录
 - ✅ 审计日志记录（HMAC-SHA256 链式防篡改）
-- ✅ 历史记录管理
+- ✅ 操作历史管理
 - ✅ 三套主题风格切换（默认深墨琥珀 🖥，另含 Idea 蓝色 💡、清爽浅色 ✨，各支持深浅色模式）
 - ✅ 状态栏显示（连接名、用户、数据库、连接状态、操作状态、操作系统版本）
 - ✅ 快捷键支持（Ctrl+S保存）
@@ -56,8 +56,8 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 - ✅ Service 层解耦（GUI/CLI 共享业务逻辑）
 - ✅ 通知系统（钉钉/企业微信/Webhook/邮件）
 - ✅ ETA 进度条 + 预计剩余时间
-- ✅ 历史记录查询 UI（多条件搜索 + CSV/JSON 导出）
-- ✅ 报表统计模块（多维度导入信息统计）
+- ✅ 操作历史查询 UI（多条件搜索 + CSV/JSON 导出）
+- ✅ 统计分析模块（多维度导入信息统计）
 - ✅ DataCompare 表/Excel 对比
 - ✅ 诊断包（环境/数据库/配置/日志 四维度）
 - ✅ 多环境配置（DEV/TEST/UAT/PROD）
@@ -101,16 +101,16 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 
 ```bash
 # 直接运行
-OracleBatchUpdater.exe
+DBForge.exe
 ```
 
 #### 方式二：便携版（无需安装 Python）
 
 ```bash
 # 解压即用 — 不需要安装 Python，便携版包含 .exe 可执行文件
-1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
-2. 双击 OracleBatchUpdater_Portable.bat
-3. 或直接运行 App\OracleBatchUpdater.exe
+1. 解压 DBForge_Portable_v2.8.0.zip
+2. 双击 DBForge_Portable.bat
+3. 或直接运行 App\DBForge.exe
 ```
 
 > 便携版使用 PyInstaller 打包，Python 运行时已内嵌在 .exe 中，无需额外安装。
@@ -142,7 +142,7 @@ python -m src.cli verify-audit
 
 退出码约定：`0=成功, 1=参数错误, 2=连接失败, 3=验证失败, 4=部分失败, 5=全部失败`
 
-### 数据库连接
+### 连接管理
 
 使用 Easy Connect 方式，无需配置文件：
 
@@ -153,7 +153,7 @@ python -m src.cli verify-audit
 
 ### 使用流程
 
-1. 配置数据库连接
+1. 配置连接管理
 2. 准备Excel数据（使用提供的模板）
 3. 选择文件并预览
 4. 点击「验证数据」检查Excel和数据库
@@ -162,7 +162,7 @@ python -m src.cli verify-audit
 
 ## Excel模板格式
 
-使用 `Oracle数据批量修改工具_导入模板.xlsx`：
+使用 `DBForge_导入模板.xlsx`：
 
 | EMP_ID (唯一标识) | EMP_NAME | AGE | DEPT |
 |------------------|----------|-----|------|
@@ -171,7 +171,7 @@ python -m src.cli verify-audit
 
 **注意：空字段将保留目标表原值，不会被更新为NULL**
 
-## 报表统计 (v2.8.0 新增)
+## 统计分析 (v2.8.0 新增)
 
 `ImportStats` 类从历史日志自动生成多维度统计报表：
 
@@ -210,7 +210,7 @@ Oracle_Table_Change/
 ├── src/
 │   ├── __init__.py
 │   ├── gui.py                   # GUI 界面
-│   ├── db_connection.py         # 数据库连接 + 连接池 + 权限预检
+│   ├── db_connection.py         # 连接管理 + 连接池 + 权限预检
 │   ├── excel_handler.py         # Excel 处理
 │   ├── data_updater.py          # 数据更新 (MERGE INTO + 取消机制)
 │   ├── config_manager.py        # 配置管理 (Fernet 加密)
@@ -225,8 +225,8 @@ Oracle_Table_Change/
 │   ├── cli.py                   # CLI 命令行 (P1-3)
 │   ├── notification.py          # 通知系统 (P2-9)
 │   ├── service/__init__.py      # Service 层 (P2-1)
-│   ├── history_viewer.py        # 历史记录查询 (P2-4)
-│   ├── import_stats.py          # 报表统计 (P-Stats)
+│   ├── history_viewer.py        # 操作历史查询 (P2-4)
+│   ├── import_stats.py          # 统计分析 (P-Stats)
 │   ├── data_compare.py          # 表/Excel 对比 (P3-1)
 │   ├── diagnostics.py           # 诊断包 (P3-2)
 │   ├── env_config.py            # 多环境配置 (P3-3)
@@ -246,7 +246,7 @@ Oracle_Table_Change/
 │   ├── 用户手册.md
 │   └── Windows_Server使用指南.md
 ├── demo.html                    # 前端原型
-├── Oracle数据批量修改工具_导入模板.xlsx  # Excel模板
+├── DBForge_导入模板.xlsx  # Excel模板
 ├── requirements.txt             # 依赖列表
 ├── build.bat                    # 构建脚本
 ├── package.bat                  # 打包脚本
@@ -276,10 +276,10 @@ python main.py
 package.bat
 
 # 方式二：手动
-pyinstaller --clean OracleBatchUpdater.spec
+pyinstaller --clean DBForge.spec
 ```
 
-打包结果在 `dist/OracleBatchUpdater/` 目录。
+打包结果在 `dist/DBForge/` 目录。
 
 ### 运行测试
 
@@ -340,14 +340,14 @@ A: .xlsx / .xls / .csv / .json / .jsonl 五种格式。
 A: 是的，需要安装Oracle Instant Client。
 
 **Q: 如何生成导入统计报表？**
-A: 使用 `ImportStats` 类，详见 [报表统计](#报表统计-v280-新增) 章节。
+A: 使用 `ImportStats` 类，详见 [统计分析](#统计分析-v280-新增) 章节。
 
 **Q: 如何集成到 CI/CD 流水线？**
 A: 使用 `python -m src.cli update` 命令行模式，退出码可被 CI 捕获。
 
 **Q: CHM 帮助手册打开后显示空白？**
 A: 这是 Windows 安全机制，对下载文件附加了 Zone.Identifier 标记。解决方法：
-1. 从 ZIP 包解压（推荐）— `OracleBatchUpdater_UserManual.zip` 解压后自动解除锁定
+1. 从 ZIP 包解压（推荐）— `DBForge_UserManual.zip` 解压后自动解除锁定
 2. 运行修复脚本 — `chm_unblock.bat`（Win7）或 `chm_unblock.ps1`（Win10/11）
 3. 手动解除 — 右键 .chm → 属性 → 勾选「解除锁定」→ 确定
 
@@ -357,7 +357,7 @@ A: Windows 默认阻止从网络路径打开 CHM，请先复制到本地磁盘�
 **Q: exe 文件双击后弹出警告，确认后无法打开？**
 A: 这是 Windows 安全机制（SmartScreen 或下载标记）。解决方法：
 1. 右键 exe → 属性 → 勾选「解除锁定」→ 确定
-2. 或将 exe 放在不含中文/特殊字符的短路径中（如 `C:\Tools\OracleBatchUpdater.exe`）
+2. 或将 exe 放在不含中文/特殊字符的短路径中（如 `C:\Tools\DBForge.exe`）
 3. 如弹出"Windows 保护了你的电脑"，点击「更多信息」→「仍要运行」
 
 **Q: 弹出 "启动失败 - 缺少依赖" 错误？**

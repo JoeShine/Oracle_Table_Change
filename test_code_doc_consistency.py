@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Oracle数据批量修改工具 - 代码与文档一致性检查
+DBForge - 代码与文档一致性检查
 """
 
 import os
@@ -212,7 +212,7 @@ def run_consistency_tests():
     from datetime import datetime
     
     print("\n" + "=" * 60)
-    print("Oracle数据批量修改工具 - 代码与文档一致性检查")
+    print("DBForge - 代码与文档一致性检查")
     print("=" * 60)
     print(f"测试时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)

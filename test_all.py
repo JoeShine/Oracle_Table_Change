@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Oracle数据批量修改工具 - 综合测试脚本
+DBForge - 综合测试脚本
 """
 import sys
 import os
@@ -124,8 +124,8 @@ def test_excel_handler():
 
 
 def test_db_connection():
-    """测试数据库连接模块"""
-    print("\n[测试4] 数据库连接模块...")
+    """测试连接管理模块"""
+    print("\n[测试4] 连接管理模块...")
     from src.db_connection import DBConnection
 
     db = DBConnection()
@@ -134,7 +134,7 @@ def test_db_connection():
     assert db.connection is None
     assert not db.is_connected()
 
-    print("✓ 数据库连接模块测试通过")
+    print("✓ 连接管理模块测试通过")
 
 
 def test_data_updater():
@@ -172,7 +172,7 @@ def test_gui_import():
 def main():
     """主测试函数"""
     print("=" * 60)
-    print("Oracle数据批量修改工具 - 综合测试")
+    print("DBForge - 综合测试")
     print("=" * 60)
 
     try:

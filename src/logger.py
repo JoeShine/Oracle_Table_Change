@@ -208,7 +208,7 @@ class HistoryManager:
             with open(self.history_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"读取历史记录失败: {e}")
+            print(f"读取操作历史失败: {e}")
             return []
 
     def _save_history(self):
@@ -216,7 +216,7 @@ class HistoryManager:
             with open(self.history_file, 'w', encoding='utf-8') as f:
                 json.dump(self.history, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"保存历史记录失败: {e}")
+            print(f"保存操作历史失败: {e}")
 
     def add_record(self, record: Dict[str, Any]):
         record['id'] = datetime.now().strftime("%Y%m%d%H%M%S%f")

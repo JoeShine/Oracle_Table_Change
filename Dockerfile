@@ -1,12 +1,12 @@
-# Oracle 数据批量修改工具 Docker 镜像
+# DBForge Docker 镜像
 # 基于 Ubuntu 22.04，支持 VNC/noVNC 浏览器访问
 # 使用 Easy Connect 方式连接数据库，无需配置文件
 
 FROM ubuntu:22.04
 
-LABEL maintainer="Oracle Table Change Tool"
+LABEL maintainer="DBForge Tool"
 LABEL version="2.8"
-LABEL description="Oracle数据批量修改工具 - Docker版本，支持Easy Connect浏览器访问"
+LABEL description="DBForge - Docker版本，支持Easy Connect浏览器访问"
 
 # 设置环境变量
 ENV DEBIAN_FRONTEND=noninteractive
@@ -57,7 +57,7 @@ WORKDIR /app
 RUN echo '#!/bin/bash\n\
 set -e\n\
 echo "========================================"\n\
-echo "Oracle 数据批量修改工具"\n\
+echo "DBForge"\n\
 echo "========================================"\n\
 echo ""\n\
 echo "连接方式: Easy Connect (无需配置文件)"\n\
@@ -92,7 +92,7 @@ echo "访问方式:"\n\
 echo "  - 浏览器: http://localhost:6080"\n\
 echo "  - VNC客户端: localhost:5900"\n\
 echo ""\n\
-echo "数据库连接 (Easy Connect):"\n\
+echo "连接管理 (Easy Connect):"\n\
 echo "  格式: host:port/service_name"\n\
 echo "  示例: 192.168.1.100:1521/ORCL"\n\
 echo "========================================"\n\

@@ -1,4 +1,4 @@
-"""Progress tracking utilities for OracleBatchUpdater.
+"""Progress tracking utilities for DBForge.
 
 Provides ProgressTracker for elapsed time and ETA calculation,
 ASCII progress bar rendering, and human-readable time formatting.

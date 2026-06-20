@@ -1,4 +1,4 @@
-# Oracle 数据批量修改工具 - Windows Server 2008 R2 使用指南
+# DBForge - Windows Server 2008 R2 使用指南
 
 ## 适用场景
 
@@ -46,15 +46,15 @@
 
 直接运行打包好的exe文件：
 ```
-OracleBatchUpdater.exe
+DBForge.exe
 ```
 
 ### 方式二：便携版
 
 解压即用，无需安装：
 ```
-1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
-2. 双击 OracleBatchUpdater_Portable.bat
+1. 解压 DBForge_Portable_v2.8.0.zip
+2. 双击 DBForge_Portable.bat
 ```
 
 便携版优势：
@@ -116,14 +116,14 @@ https://github.com/JoeShine/Oracle_Table_Change
 
 或下载打包好的exe文件：
 ```
-OracleBatchUpdater.exe
+DBForge.exe
 ```
 
 ### 步骤2：运行工具
 
 **方式A：直接运行exe（推荐）**
 ```
-双击 OracleBatchUpdater.exe
+双击 DBForge.exe
 ```
 
 **方式B：Python源码运行**
@@ -366,7 +366,7 @@ Service "ORCL" has 1 instance(s).
    - 仅授予必要权限（SELECT, UPDATE）
 
 3. **操作审计**
-   - 工具自动记录操作日志
+   - 工具自动记录运行日志
    - 日志位置: `logs/update_*.log`
 
 4. **数据备份**
@@ -380,7 +380,7 @@ Service "ORCL" has 1 instance(s).
 **Windows Server 2008 R2 + Oracle 11g 使用流程：**
 
 ```
-1. 运行 OracleBatchUpdater.exe
+1. 运行 DBForge.exe
    ↓
 2. 点击 "添加连接"
    ↓

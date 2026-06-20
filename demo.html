@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Oracle 数据批量修改工具 · v2.8.0</title>
+    <title>DBForge · v2.8.0</title>
     <style>
         /* ============================================================
            三套主题系统 · 设计令牌 / Design Tokens
@@ -1265,7 +1265,7 @@
         }
 
         /* ============================================================
-           历史记录状态标签
+           操作历史状态标签
            ============================================================ */
         .status-tag {
             display: inline-flex;
@@ -1962,7 +1962,7 @@
                 <div class="header-brand">
                     <div class="brand-mark">∎O</div>
                     <div class="brand-text">
-                        <div class="brand-title">Oracle 数据批量修改工具</div>
+                        <div class="brand-title">DBForge</div>
                         <div class="brand-subtitle">ORACLE <span class="dot">·</span> BATCH MODIFIER <span class="dot">·</span> 数据安全更新</div>
                     </div>
                 </div>
@@ -1994,35 +1994,74 @@
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab(0)">
                         <span class="tab-icon">[01]</span>
-                        <span>配置与预览</span>
+                        <span>批量更新</span>
                     </div>
                     <div class="tab" onclick="switchTab(1)">
                         <span class="tab-icon">[02]</span>
-                        <span>操作日志</span>
+                        <span>运行日志</span>
                     </div>
                     <div class="tab" onclick="switchTab(2)">
                         <span class="tab-icon">[03]</span>
-                        <span>数据库连接</span>
+                        <span>连接管理</span>
                     </div>
                     <div class="tab" onclick="switchTab(3)">
                         <span class="tab-icon">[04]</span>
-                        <span>历史记录</span>
+                        <span>操作历史</span>
                     </div>
                     <div class="tab" onclick="switchTab(4)">
                         <span class="tab-icon">[05]</span>
-                        <span>报表统计</span>
+                        <span>统计分析</span>
                     </div>
                     <div class="tab" onclick="switchTab(5)">
                         <span class="tab-icon">[06]</span>
-                        <span>诊断工具</span>
+                        <span>系统诊断</span>
                     </div>
                 </div>
             </div>
 
             <div class="main-area">
 
-        <!-- ============== 页面 01：配置与预览 ============== -->
+        <!-- ============== 页面 01：批量更新 ============== -->
         <div class="tab-content active" id="tab-0">
+
+            <!-- 核心操作逻辑 · 业务场景说明 -->
+            <div class="config-section" style="border-left: 3px solid var(--amber-500); padding: 16px 20px; margin-bottom: 20px; background: linear-gradient(90deg, rgba(232,164,76,0.06) 0%, transparent 100%); border-radius: 4px;">
+                <div class="section-header" style="margin-bottom: 10px;">
+                    <span class="section-marker">§ WORKFLOW</span>
+                    <span class="section-title">核心操作逻辑 · 5 步完成安全批量更新</span>
+                    <span class="section-rule"></span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 12px;">
+                    <div style="text-align: center; padding: 8px 6px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: var(--amber-500); font-family: var(--font-mono);">① 选场景</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">加载预设配置或新建</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px 6px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: var(--amber-500); font-family: var(--font-mono);">② 配目标</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">目标表/主键/待更新列</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px 6px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: var(--amber-500); font-family: var(--font-mono);">③ 取数据</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">Excel/CSV/JSON 数据源</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px 6px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: var(--amber-500); font-family: var(--font-mono);">④ 校验预</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">重复/一致性校验 + 预览</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px 6px; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: var(--amber-500); font-family: var(--font-mono);">⑤ 执行</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">自动备份 + 批量更新</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+                    <span style="color: var(--text-secondary); font-weight: 600;">业务场景示例：</span>
+                    某企业 HR 系统需更新 1,200 名员工的部门归属。将 HR 导出的 Excel 文件加载到 DBForge，配置目标表为 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMPLOYEE</code>、
+                    主键列为 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMP_ID</code>、
+                    待更新列为 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">DEPT</code>，
+                    执行重复性校验确认无重复员工号，点击"执行"后 DBForge 自动：① 备份 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMPLOYEE</code> 到 <code style="background: var(--bg-soft); padding: 1px 6px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px;">EMPLOYEE_BAK_时间戳</code>；② 创建临时表分批加载数据；③ 按主键匹配执行 UPDATE；④ 返回成功/失败统计。
+                    过程中可在"运行日志"实时查看进度，在"操作历史"追溯历次更新。
+                </div>
+            </div>
 
             <!-- 配置场景 -->
             <div class="config-section">
@@ -2267,7 +2306,7 @@
             </div>
         </div>
 
-        <!-- ============== 页面 02：操作日志 ============== -->
+        <!-- ============== 页面 02：运行日志 ============== -->
         <div class="tab-content" id="tab-1">
             <div class="log-panel" id="logContent">
                 <div class="log-line log-success">
@@ -2338,7 +2377,7 @@
             </div>
         </div>
 
-        <!-- ============== 页面 03：数据库连接 ============== -->
+        <!-- ============== 页面 03：连接管理 ============== -->
         <div class="tab-content" id="tab-2">
 
             <div class="config-section">
@@ -2420,7 +2459,7 @@
             </div>
         </div>
 
-        <!-- ============== 页面 04：历史记录 ============== -->
+        <!-- ============== 页面 04：操作历史 ============== -->
         <div class="tab-content" id="tab-3">
 
             <div class="config-section">
@@ -2488,7 +2527,7 @@
             </div>
         </div>
 
-        <!-- ============== 页面 05：报表统计 ============== -->
+        <!-- ============== 页面 05：统计分析 ============== -->
         <div class="tab-content" id="tab-4">
             <div class="config-section">
                 <div class="section-header">
@@ -2598,7 +2637,7 @@
             </div>
         </div>
 
-        <!-- ============== 页面 06：诊断工具 ============== -->
+        <!-- ============== 页面 06：系统诊断 ============== -->
         <div class="tab-content" id="tab-5">
             <div class="config-section">
                 <div class="section-header">
@@ -2633,7 +2672,7 @@
                 </div>
                 <div class="diagnosis-card">
                     <div class="diag-header">
-                        <span class="diag-title">数据库连接</span>
+                        <span class="diag-title">连接管理</span>
                         <span class="diag-status pass">正常</span>
                     </div>
                     <div class="diag-items">
@@ -3618,7 +3657,7 @@
             }, 200);
         }
 
-        // ================== 数据库连接 ==================
+        // ================== 连接管理 ==================
         function switchConnection() {
             const sel = document.getElementById('connectionSelect');
             const name = sel.options[sel.selectedIndex].text.split(' · ')[0];
@@ -3654,7 +3693,7 @@
                 dot.classList.add('connected');
                 document.getElementById('sbConnStatus').textContent = '已连接';
                 badge.textContent = 'CONNECTED';
-                addLog('数据库连接测试成功', 'success');
+                addLog('连接管理测试成功', 'success');
                 updateStatusBar('连接成功');
                 showSuccessModal('连接成功', 'connection · ok',
                     '已成功连接到数据库 ORCL，当前用户 SCOTT，会话 SESSION_0x8472F1。');
@@ -3662,13 +3701,13 @@
         }
 
         function refreshHistory() {
-            addLog('刷新历史记录...', 'info');
+            addLog('刷新操作历史...', 'info');
             setTimeout(() => {
                 updateStatusBar('已刷新');
             }, 400);
         }
 
-        // ================== 报表统计 ==================
+        // ================== 统计分析 ==================
         function refreshStats() {
             updateStatusBar('刷新统计中...');
             addLog('刷新 7 维度导入统计...', 'info');
@@ -3685,7 +3724,7 @@
             }, 300);
         }
 
-        // ================== 诊断工具 ==================
+        // ================== 系统诊断 ==================
         function runDiagnosis() {
             updateStatusBar('运行诊断中...');
             addLog('开始四维度系统诊断...', 'info');
@@ -3702,7 +3741,7 @@
                 });
                 addLog('诊断完成 · 4/4 项通过 · 1 项警告', 'success');
                 updateStatusBar('诊断完成');
-                alert('系统诊断完成！\n\n✓ Python 环境: 正常\n✓ 数据库连接: 正常\n⚠ 配置检查: 备份数接近上限\n✓ 磁盘空间: 正常');
+                alert('系统诊断完成！\n\n✓ Python 环境: 正常\n✓ 连接管理: 正常\n⚠ 配置检查: 备份数接近上限\n✓ 磁盘空间: 正常');
             }, 1200);
         }
 

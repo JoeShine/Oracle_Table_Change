@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo Oracle数据批量修改工具 - 打包脚本
+echo DBForge - 打包脚本
 echo ========================================
 echo.
 
@@ -17,7 +17,7 @@ echo.
 echo 正在打包程序...
 echo.
 
-pyinstaller OracleBatchUpdater.spec --clean
+pyinstaller DBForge.spec --clean
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
@@ -32,11 +32,11 @@ echo ========================================
 echo 打包完成！
 echo ========================================
 echo.
-echo exe文件位置: dist\OracleBatchUpdater.exe
+echo exe文件位置: dist\DBForge.exe
 echo.
 echo 使用说明:
 echo 1. 将dist目录下的所有文件复制到目标电脑
-echo 2. 运行OracleBatchUpdater.exe即可使用
+echo 2. 运行DBForge.exe即可使用
 echo 3. 无需安装Python环境
 echo.
 pause

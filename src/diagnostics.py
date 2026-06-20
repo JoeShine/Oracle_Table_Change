@@ -325,7 +325,7 @@ class DiagnosticsCollector:
         """
         lines = []
         lines.append("=" * 70)
-        lines.append("  OracleBatchUpdater 诊断报告")
+        lines.append("  DBForge 诊断报告")
         lines.append("=" * 70)
         lines.append(f"  生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("")
@@ -480,6 +480,6 @@ class DiagnosticsCollector:
             try:
                 self.collect_db_info(db)
             except Exception:
-                self._collected["database"] = {"status": "收集失败（数据库连接异常）"}
+                self._collected["database"] = {"status": "收集失败（连接管理异常）"}
 
         return self._collected

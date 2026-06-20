@@ -6,7 +6,7 @@
 
 
 class OracleUpdaterError(Exception):
-    """OracleBatchUpdater 基础异常"""
+    """DBForge 基础异常"""
     exit_code = 1
 
     def __init__(self, message: str, original_error: Exception = None):
@@ -16,7 +16,7 @@ class OracleUpdaterError(Exception):
 
 
 class ConnectionError(OracleUpdaterError):
-    """数据库连接相关异常"""
+    """连接管理相关异常"""
     exit_code = 2
 
 

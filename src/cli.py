@@ -17,7 +17,7 @@ sys.path.insert(0, str(_project_root))
 
 
 def connect_db(config: Dict[str, Any]):
-    """建立数据库连接"""
+    """建立连接管理"""
     from src.db_connection import DBConnection
     db = DBConnection()
     success, msg = db.connect(
@@ -230,12 +230,12 @@ def cmd_templates(args):
 def cmd_version(args):
     """显示版本信息"""
     from src import __version__
-    print(f"OracleBatchUpdater v{__version__}")
+    print(f"DBForge v{__version__}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="OracleBatchUpdater CLI - 批量数据更新命令行工具",
+        description="DBForge CLI - 批量数据更新命令行工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:

@@ -41,8 +41,8 @@ scripts\create_portable.bat  # 创建便携版
 
 **使用便携版：**
 ```bash
-1. 解压 OracleBatchUpdater_Portable_v2.8.0.zip
-2. 双击 OracleBatchUpdater_Portable.bat
+1. 解压 DBForge_Portable_v2.8.0.zip
+2. 双击 DBForge_Portable.bat
 ```
 
 ### 功能特点
@@ -159,7 +159,7 @@ host:port/service_name
 - 显示所有重复的唯一标识值
 - 显示每个重复值出现的行号
 - 支持深色/浅色主题切换
-- 在操作日志中记录校验结果
+- 在运行日志中记录校验结果
 
 ---
 
@@ -186,7 +186,7 @@ host:port/service_name
 - 显示数据库中缺失的标识列表
 - 支持导出缺失标识到Excel文件
 - 支持深色/浅色主题切换
-- 在操作日志中记录校验结果
+- 在运行日志中记录校验结果
 
 ---
 
@@ -282,18 +282,18 @@ host:port/service_name
 - `ExcelHandler.get_key_values_from_excel()` - 获取Excel中唯一标识值
 - `ExcelHandler.get_key_values_with_rows()` - 获取带行号的标识数据
 - `DBConnection.get_key_values_from_table()` - 获取数据库表中的标识值
-- `OracleBatchUpdaterGUI.check_duplicates()` - 重复性校验主逻辑
-- `OracleBatchUpdaterGUI.show_duplicate_dialog()` - 显示重复值对话框
-- `OracleBatchUpdaterGUI.check_consistency()` - 一致性校验主逻辑
-- `OracleBatchUpdaterGUI.show_consistency_dialog()` - 显示一致性问题对话框
-- `OracleBatchUpdaterGUI.validate_data()` - 数据验证（Excel+DB表/列）
-- `OracleBatchUpdaterGUI.configure_schema_values()` - 配置Schema下拉选项
-- `OracleBatchUpdaterGUI.refresh_schema_combos()` - 刷新Schema下拉列表
-- `OracleBatchUpdaterGUI.switch_theme_style()` - 主题风格切换
-- `OracleBatchUpdaterGUI.toggle_theme()` - 深浅色切换
-- `OracleBatchUpdaterGUI._save_theme_config()` - 主题配置持久化
-- `OracleBatchUpdaterGUI._restore_theme(style_key, is_dark)` - 启动时恢复主题
-- `OracleBatchUpdaterGUI._update_theme_selector_buttons()` - 风格按钮选中态更新
+- `DBForgeGUI.check_duplicates()` - 重复性校验主逻辑
+- `DBForgeGUI.show_duplicate_dialog()` - 显示重复值对话框
+- `DBForgeGUI.check_consistency()` - 一致性校验主逻辑
+- `DBForgeGUI.show_consistency_dialog()` - 显示一致性问题对话框
+- `DBForgeGUI.validate_data()` - 数据验证（Excel+DB表/列）
+- `DBForgeGUI.configure_schema_values()` - 配置Schema下拉选项
+- `DBForgeGUI.refresh_schema_combos()` - 刷新Schema下拉列表
+- `DBForgeGUI.switch_theme_style()` - 主题风格切换
+- `DBForgeGUI.toggle_theme()` - 深浅色切换
+- `DBForgeGUI._save_theme_config()` - 主题配置持久化
+- `DBForgeGUI._restore_theme(style_key, is_dark)` - 启动时恢复主题
+- `DBForgeGUI._update_theme_selector_buttons()` - 风格按钮选中态更新
 - `ThemeManager.switch_theme_style()` - 切换风格并保留深浅模式
 - `ThemeManager.set_style()` / `set_dark_mode()` / `toggle_dark_mode()` - 风格与模式 API
 
@@ -302,7 +302,7 @@ host:port/service_name
 ## 使用建议
 
 1. **最佳实践流程**：
-   - 配置数据库连接
+   - 配置连接管理
    - 选择Excel文件
    - 点击"👁 预览"查看数据
    - 点击"🔍 重复性校验"检查重复

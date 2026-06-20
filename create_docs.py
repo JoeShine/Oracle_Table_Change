@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Oracle数据批量修改工具 - 文档生成脚本
+DBForge - 文档生成脚本
 生成开发方案、部署方案、代码生成提示词、用户手册等文档
 """
 
@@ -10,7 +10,7 @@ from datetime import datetime
 
 def create_development_plan():
     """创建开发方案文档"""
-    content = '''# Oracle数据批量修改工具 - 开发方案
+    content = '''# DBForge - 开发方案
 
 **文档版本：** v2.0
 **最后更新：** 2026-05-20
@@ -56,7 +56,7 @@ def create_development_plan():
 
 | 库名 | 用途 | 版本 |
 |-----|------|-----|
-| oracledb | Oracle数据库连接 | 最新版 |
+| oracledb | Oracle连接管理 | 最新版 |
 | openpyxl | Excel文件操作 | 最新版 |
 | pyinstaller | 打包成exe | 最新版 |
 
@@ -142,7 +142,7 @@ main (主分支)
 ### 5.1 单元测试
 
 - 测试各模块的独立功能
-- 重点测试Excel解析、数据库连接、数据更新逻辑
+- 重点测试Excel解析、连接管理、数据更新逻辑
 - 测试覆盖率 > 80%
 
 ### 5.2 集成测试
@@ -171,13 +171,13 @@ main (主分支)
 
 ### 6.1 功能开发
 
-- [ ] 数据库连接管理
+- [ ] 连接管理管理
 - [ ] Excel导入和验证
 - [ ] 数据预览
 - [ ] 数据更新
 - [ ] 备份和回滚
 - [ ] 日志记录
-- [ ] 历史记录
+- [ ] 操作历史
 - [ ] 审计日志
 - [ ] 多列更新
 - [ ] 进度显示
@@ -229,7 +229,7 @@ main (主分支)
 
 def create_deployment_plan():
     """创建部署方案文档"""
-    content = '''# Oracle数据批量修改工具 - 部署方案
+    content = '''# DBForge - 部署方案
 
 **文档版本：** v2.0
 **最后更新：** 2026-05-20
@@ -265,7 +265,7 @@ def create_deployment_plan():
 方式一：从GitHub下载
 ```
 访问：https://github.com/JoeShine/Oracle_Table_Change
-下载：OracleBatchUpdater.zip
+下载：DBForge.zip
 ```
 
 方式二：自行构建（见构建章节）
@@ -304,16 +304,16 @@ def create_deployment_plan():
 
 ### 3.1 安装程序
 
-1. 解压 `OracleBatchUpdater.zip` 到指定目录
+1. 解压 `DBForge.zip` 到指定目录
    ```
-   C:\\Program Files\\OracleBatchUpdater
+   C:\\Program Files\\DBForge
    ```
 
 2. 目录结构
    ```
-   OracleBatchUpdater/
-   ├── OracleBatchUpdater.exe    # 主程序
-   ├── Oracle数据批量修改工具_导入模板.xlsx   # Excel模板
+   DBForge/
+   ├── DBForge.exe    # 主程序
+   ├── DBForge_导入模板.xlsx   # Excel模板
    ├── docs/                     # 文档目录
    ├── logs/                     # 日志目录
    ├── README.txt                # 说明文档
@@ -322,8 +322,8 @@ def create_deployment_plan():
 
 ### 3.2 首次运行
 
-1. 双击 `OracleBatchUpdater.exe` 启动程序
-2. 配置数据库连接
+1. 双击 `DBForge.exe` 启动程序
+2. 配置连接管理
 3. 测试连接
 4. 保存配置
 
@@ -357,7 +357,7 @@ def create_deployment_plan():
 日志文件命名规则：
 - 普通日志：`update_YYYYMMDD_HHMMSS.log`
 - 审计日志：`audit.log`
-- 历史记录：`history.json`
+- 操作历史：`history.json`
 
 ---
 
@@ -435,15 +435,15 @@ pip install -r requirements.txt
 build.bat
 
 # 方式二：手动执行
-pyinstaller --clean OracleBatchUpdater.spec
+pyinstaller --clean DBForge.spec
 ```
 
 ### 9.3 输出
 
 打包后的文件在 `dist/` 目录下：
 ```
-dist/OracleBatchUpdater/
-└── OracleBatchUpdater.exe
+dist/DBForge/
+└── DBForge.exe
 ```
 
 ---
@@ -462,7 +462,7 @@ dist/OracleBatchUpdater/
 
 def create_code_prompt():
     """创建代码生成提示词文档"""
-    content = '''# Oracle数据批量修改工具 - 代码生成提示词文档
+    content = '''# DBForge - 代码生成提示词文档
 
 **文档版本：** v2.0
 **最后更新：** 2026-05-20
@@ -472,7 +472,7 @@ def create_code_prompt():
 
 ## 概述
 
-本文档提供了使用AI大模型生成完整Oracle数据批量修改工具代码的详细提示词。可以将这些提示词直接提供给ChatGPT、Claude等AI模型，让其协助生成代码。
+本文档提供了使用AI大模型生成完整DBForge代码的详细提示词。可以将这些提示词直接提供给ChatGPT、Claude等AI模型，让其协助生成代码。
 
 ---
 
@@ -481,7 +481,7 @@ def create_code_prompt():
 ### 1.1 项目创建提示词
 
 ```
-请帮我创建一个Oracle数据批量修改工具项目，使用Python语言开发。
+请帮我创建一个DBForge项目，使用Python语言开发。
 
 技术栈要求：
 - GUI：Python tkinter
@@ -492,10 +492,10 @@ def create_code_prompt():
 项目功能需求（按优先级）：
 
 P0（核心功能）：
-1. 数据库连接管理（支持多个连接配置）
+1. 连接管理管理（支持多个连接配置）
 2. Excel文件导入（第一列唯一标识，第二列开始待更新列）
 3. 数据更新（备份 -> 导入临时表 -> 更新 -> 清理）
-4. 操作日志记录和显示
+4. 运行日志记录和显示
 5. 错误处理和异常捕获
 
 P1（重要功能）：
@@ -505,7 +505,7 @@ P1（重要功能）：
 9. 失败记录导出
 
 P2（增强功能）：
-10. 历史记录管理
+10. 操作历史管理
 11. 审计日志
 12. 多列同时更新
 13. 实时进度显示
@@ -534,7 +534,7 @@ P3（体验优化）：
 请帮我实现配置管理模块 (config_manager.py)，功能需求：
 
 1. JSON格式存储配置
-2. 支持多个数据库连接配置
+2. 支持多个连接管理配置
 3. 记录最近使用的配置（连接名、表名、列名等）
 4. 支持连接的增删改查
 5. 配置文件保存到用户目录下的 .OracleTableChange 文件夹
@@ -573,10 +573,10 @@ P3（体验优化）：
 }
 ```
 
-### 2.2 数据库连接模块
+### 2.2 连接管理模块
 
 ```
-请帮我实现数据库连接模块 (db_connection.py)，功能需求：
+请帮我实现连接管理模块 (db_connection.py)，功能需求：
 
 1. 使用oracledb库连接Oracle数据库
 2. 连接信息：host, port, service_name, username, password
@@ -684,7 +684,7 @@ P3（体验优化）：
    - JSON格式存储
    - 不可修改
 
-3. HistoryManager 历史记录
+3. HistoryManager 操作历史
    - 记录更新历史
    - 支持查询
    - 支持删除
@@ -725,7 +725,7 @@ P3（体验优化）：
 
 主要功能：
 1. 主窗口（1000x800）
-2. 标签页：当前配置、操作日志、数据库连接、历史记录
+2. 标签页：当前配置、运行日志、连接管理、操作历史
 3. 状态栏（从左到右：连接名、用户、数据库、连接状态、操作状态）
 4. 主题切换（浅色/深色，Idea风格）
 5. 配置表单：数据库模式、目标表、唯一标识列、待更新列（支持添加多个）
@@ -740,7 +740,7 @@ P3（体验优化）：
   - DARK_THEME 配色字典
   - toggle_theme()
 
-- OracleBatchUpdaterGUI 类
+- DBForgeGUI 类
   - __init__(root)
   - setup_styles()
   - create_widgets()
@@ -795,7 +795,7 @@ P3（体验优化）：
 请帮我编写完整的功能测试，测试以下功能：
 
 1. 配置保存和加载
-2. 数据库连接测试
+2. 连接管理测试
 3. Excel文件验证
 4. 数据更新流程（成功/失败场景）
 5. 日志记录
@@ -876,7 +876,7 @@ P3（体验优化）：
 
 def create_user_manual():
     """创建用户手册"""
-    content = '''# Oracle数据批量修改工具 - 用户手册
+    content = '''# DBForge - 用户手册
 
 **软件版本：** v2.0
 **最后更新：** 2026-05-20
@@ -898,18 +898,18 @@ def create_user_manual():
 
 ### 1.1 产品简介
 
-Oracle数据批量修改工具是一款简单易用的数据库批量更新工具，通过Excel文件导入数据，实现Oracle数据库表的批量更新操作。
+DBForge是一款简单易用的数据库批量更新工具，通过Excel文件导入数据，实现Oracle数据库表的批量更新操作。
 
 ### 1.2 主要功能
 
-- ✅ 数据库连接管理（支持多个连接配置）
+- ✅ 连接管理管理（支持多个连接配置）
 - ✅ Excel数据导入（支持.xlsx/.xls格式）
 - ✅ 数据预览（显示前50行）
 - ✅ 多列同时更新
 - ✅ 自动备份机制
 - ✅ 失败自动回滚
-- ✅ 操作日志和审计
-- ✅ 历史记录管理
+- ✅ 运行日志和审计
+- ✅ 操作历史管理
 - ✅ 深色/浅色主题切换
 - ✅ 快捷键支持
 
@@ -952,7 +952,7 @@ Oracle数据批量修改工具是一款简单易用的数据库批量更新工�
 ### 2.3 安装本工具
 
 1. 解压安装包到目录
-2. 双击 `OracleBatchUpdater.exe` 即可运行
+2. 双击 `DBForge.exe` 即可运行
 3. 无需安装，绿色便携
 
 ---
@@ -961,9 +961,9 @@ Oracle数据批量修改工具是一款简单易用的数据库批量更新工�
 
 ### 3.1 三步上手
 
-#### 第一步：配置数据库连接
+#### 第一步：配置连接管理
 
-1. 切换到「数据库连接」标签页
+1. 切换到「连接管理」标签页
 2. 点击「+ 添加连接」
 3. 填写连接信息：
    - 连接名称：给连接起个名字（如：开发环境）
@@ -977,7 +977,7 @@ Oracle数据批量修改工具是一款简单易用的数据库批量更新工�
 
 #### 第二步：准备Excel数据
 
-1. 使用提供的模板：`Oracle数据批量修改工具_导入模板.xlsx`
+1. 使用提供的模板：`DBForge_导入模板.xlsx`
 2. 按格式填写数据：
    - 第1列：唯一标识（如：员工ID）
    - 第2列起：要更新的列
@@ -1044,9 +1044,9 @@ EMP_ID | EMP_NAME | AGE | DEPT
 - **确认**：开始更新操作
 - **清空**：清空表单
 
-### 4.2 操作日志标签页
+### 4.2 运行日志标签页
 
-- 显示所有操作日志
+- 显示所有运行日志
 - 按时间倒序排列
 - 日志级别：
   - INFO：信息
@@ -1058,15 +1058,15 @@ EMP_ID | EMP_NAME | AGE | DEPT
 - **导出失败记录**：导出更新失败的记录
 - **清空日志**：清空当前显示
 
-### 4.3 数据库连接标签页
+### 4.3 连接管理标签页
 
 - 连接下拉框：选择已保存的连接
 - 测试连接：测试选中的连接
-- 添加连接：添加新的数据库连接
+- 添加连接：添加新的连接管理
 - 删除连接：删除当前选中的连接
 - 连接信息显示区域：显示当前连接的详细信息
 
-### 4.4 历史记录标签页
+### 4.4 操作历史标签页
 
 - 显示所有更新操作记录
 - 包含：时间、表名、总数、成功数、失败数、状态
@@ -1077,7 +1077,7 @@ EMP_ID | EMP_NAME | AGE | DEPT
 
 从左到右依次显示：
 
-1. **连接名称**（加粗）：当前选中的数据库连接
+1. **连接名称**（加粗）：当前选中的连接管理
 2. **用户**：当前数据库用户
 3. **数据库**：当前连接的数据库
 4. **连接状态**：指示灯 + 文字
@@ -1135,7 +1135,7 @@ A: Excel第1列有重复值，请检查并去重。
 A: 更新失败时会自动回滚到初始状态，不用担心数据丢失。但是会保留备份表供检查。
 
 **Q: 如何查看更新失败的记录？**
-A: 在「操作日志」标签页点击「导出失败记录」。
+A: 在「运行日志」标签页点击「导出失败记录」。
 
 **Q: 更新成功后发现改错了怎么办？**
 A: 查看日志中的备份表名，手工从备份表恢复数据。
@@ -1173,7 +1173,7 @@ A: 建议分批处理，每批不超过1万条。
 
 ### 6.4 日常维护建议
 
-1. 定期清理历史记录
+1. 定期清理操作历史
 2. 定期备份配置
 3. 保存重要的审计日志
 4. 关注日志中的错误和警告
@@ -1186,7 +1186,7 @@ A: 建议分批处理，每批不超过1万条。
 
 1. 查看日志文件（logs目录）
 2. 查看本文档的常见问题
-3. 查看操作日志排查原因
+3. 查看运行日志排查原因
 4. 联系技术支持
 
 ---
@@ -1234,14 +1234,14 @@ Excel包含两个Sheet：
 
 def create_readme():
     """创建README文档"""
-    content = '''# Oracle数据批量修改工具
+    content = '''# DBForge
 
 Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工具，支持Excel导入、自动备份、失败回滚、审计日志等功能。
 
 ## 功能特性
 
 ### 核心功能
-- ✅ 数据库连接管理（支持多连接配置）
+- ✅ 连接管理管理（支持多连接配置）
 - ✅ Excel数据导入（.xlsx/.xls格式）
 - ✅ 数据预览（前50行）
 - ✅ 多列同时更新
@@ -1252,9 +1252,9 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 ### 增强功能
 - ✅ 文件大小限制（10MB）
 - ✅ 行数限制（10万行）
-- ✅ 操作日志记录
+- ✅ 运行日志记录
 - ✅ 审计日志记录
-- ✅ 历史记录管理
+- ✅ 操作历史管理
 - ✅ 浅色/深色主题切换（Idea风格）
 - ✅ 状态栏显示
 - ✅ 快捷键支持（Ctrl+S保存）
@@ -1285,12 +1285,12 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 
 2. **运行工具**
    - 下载发行版
-   - 解压并运行 `OracleBatchUpdater.exe`
+   - 解压并运行 `DBForge.exe`
    - 或者使用源码运行（见开发章节）
 
 ### 使用流程
 
-1. 配置数据库连接
+1. 配置连接管理
 2. 准备Excel数据（使用提供的模板）
 3. 选择文件并预览
 4. 确认并执行更新
@@ -1298,7 +1298,7 @@ Oracle Data Batch Modifier - 一款简单易用的Oracle数据库批量更新工
 
 ## Excel模板格式
 
-使用 `Oracle数据批量修改工具_导入模板.xlsx`：
+使用 `DBForge_导入模板.xlsx`：
 
 | EMP_ID (唯一标识) | EMP_NAME | AGE | DEPT |
 |------------------|----------|-----|------|
@@ -1313,7 +1313,7 @@ Oracle_Table_Change/
 ├── src/
 │   ├── __init__.py
 │   ├── gui.py                  # GUI界面
-│   ├── db_connection.py        # 数据库连接
+│   ├── db_connection.py        # 连接管理
 │   ├── excel_handler.py        # Excel处理
 │   ├── data_updater.py         # 数据更新
 │   ├── config_manager.py       # 配置管理
@@ -1325,7 +1325,7 @@ Oracle_Table_Change/
 │   ├── 部署方案.md
 │   ├── 用户手册.md
 │   └── 代码生成提示词.md
-├── Oracle数据批量修改工具_导入模板.xlsx  # Excel模板
+├── DBForge_导入模板.xlsx  # Excel模板
 ├── requirements.txt            # 依赖列表
 ├── build.bat                  # 构建脚本
 ├── package.bat                # 打包脚本
@@ -1353,10 +1353,10 @@ python main.py
 package.bat
 
 # 方式二：手动
-pyinstaller --clean OracleBatchUpdater.spec
+pyinstaller --clean DBForge.spec
 ```
 
-打包结果在 `dist/OracleBatchUpdater/` 目录。
+打包结果在 `dist/DBForge/` 目录。
 
 ## 文档
 

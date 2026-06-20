@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo Oracle数据批量修改工具 - 完整打包脚本
+echo DBForge - 完整打包脚本
 echo ========================================
 echo.
 
@@ -50,7 +50,7 @@ if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
 
 REM 执行打包
-pyinstaller OracleBatchUpdater.spec --clean --noconfirm
+pyinstaller DBForge.spec --clean --noconfirm
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
@@ -74,7 +74,7 @@ echo ========================================
 echo 打包完成！
 echo ========================================
 echo.
-echo exe文件位置: %CD%\dist\OracleBatchUpdater.exe
+echo exe文件位置: %CD%\dist\DBForge.exe
 echo.
 echo 部署说明:
 echo 1. 将dist目录下的所有文件复制到目标电脑
@@ -85,7 +85,7 @@ echo 3. 无需安装Python环境
 echo.
 echo 目录结构:
 echo dist\
-echo   OracleBatchUpdater.exe  - 主程序
+echo   DBForge.exe  - 主程序
 echo   src\                    - 源代码目录
 echo   logs\                   - 日志目录
 echo   backups\                - 备份目录

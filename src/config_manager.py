@@ -161,7 +161,7 @@ class ConfigManager:
         self.save_config()
 
     def get_connections(self):
-        """获取所有数据库连接配置"""
+        """获取所有连接管理配置"""
         import copy
         connections = copy.deepcopy(self.config.get("connections", []))
         for conn in connections:

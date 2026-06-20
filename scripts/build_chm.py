@@ -191,7 +191,7 @@ def build_system_file(title, default_page, toc_file, index_file=None):
         "[OPTIONS]",
         f"Title={title}",
         f"Default topic={default_page}",
-        "Compiled file=OracleBatchUpdater_UserManual.chm",
+        "Compiled file=DBForge_UserManual.chm",
         "Display compile progress=No",
         "Full-text search=Yes",
         "Binary TOC=Yes",
@@ -203,7 +203,7 @@ def build_system_file(title, default_page, toc_file, index_file=None):
         "Language=0x0804 中文(简体，中国)",
         "",
         "[WINDOWS]",
-        'main="Oracle 数据批量修改工具 - 用户手册","OracleBatchUpdater_UserManual.hhc","OracleBatchUpdater_UserManual.hhk","' + default_page + '","' + default_page + '",,,,,0x62520,200,0x104E,[10,10,960,680],0xB0000,,,,,,0',
+        'main="DBForge - 用户手册","DBForge_UserManual.hhc","DBForge_UserManual.hhk","' + default_page + '","' + default_page + '",,,,,0x62520,200,0x104E,[10,10,960,680],0xB0000,,,,,,0',
         "",
         "[FILES]",
         toc_file,
@@ -313,7 +313,7 @@ def build_hhk():
         ("安装", "installation.html"),
         ("备份", "best_practices.html"),
         ("便携版", "installation.html"),
-        ("操作日志", "features.html"),
+        ("运行日志", "features.html"),
         ("常见问题", "faq.html"),
         ("场景配置", "features.html"),
         ("Docker", "installation.html"),
@@ -321,12 +321,12 @@ def build_hhk():
         ("功能详解", "features.html"),
         ("更新操作", "quick_start.html"),
         ("快捷键", "features.html"),
-        ("历史记录", "features.html"),
+        ("操作历史", "features.html"),
         ("连接配置", "quick_start.html"),
         ("Oracle 客户端", "installation.html"),
         ("配色说明", "best_practices.html"),
         ("批量更新", "quick_start.html"),
-        ("数据库连接", "features.html"),
+        ("连接管理", "features.html"),
         ("系统架构", "product_intro.html"),
         ("系统要求", "installation.html"),
         ("最佳实践", "best_practices.html"),
@@ -382,13 +382,13 @@ def collect_files(src_dir):
     
     # 内部元数据文件
     files["#SYSTEM"] = build_system_file(
-        "Oracle 数据批量修改工具 - 用户手册",
+        "DBForge - 用户手册",
         default_page,
-        "OracleBatchUpdater_UserManual.hhc",
-        "OracleBatchUpdater_UserManual.hhk"
+        "DBForge_UserManual.hhc",
+        "DBForge_UserManual.hhk"
     )
-    files["OracleBatchUpdater_UserManual.hhc"] = hhc_content
-    files["OracleBatchUpdater_UserManual.hhk"] = hhk_content
+    files["DBForge_UserManual.hhc"] = hhc_content
+    files["DBForge_UserManual.hhk"] = hhk_content
     
     # 索引文件
     all_entries = sorted(files.keys())
@@ -486,7 +486,7 @@ def build_chm(src_dir, output_path):
 
 if __name__ == "__main__":
     src = sys.argv[1] if len(sys.argv) > 1 else "docs/chm_src"
-    output = sys.argv[2] if len(sys.argv) > 2 else "docs/OracleBatchUpdater_UserManual.chm"
+    output = sys.argv[2] if len(sys.argv) > 2 else "docs/DBForge_UserManual.chm"
 
     if not os.path.isdir(src):
         print(f"错误: 源目录不存在: {src}")

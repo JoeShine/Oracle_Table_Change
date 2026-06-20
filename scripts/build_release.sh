@@ -1,5 +1,5 @@
 #!/bin/bash
-# Oracle 数据批量修改工具 - v2.8.0 发布包构建脚本 (Linux)
+# DBForge - v2.8.0 发布包构建脚本 (Linux)
 # 在当前 Linux 环境中可构建的产物：
 #   - Linux x86_64 发行版 tar.gz
 #   - Linux 便携版 zip
@@ -14,12 +14,12 @@
 set -e
 
 VERSION="2.8.0"
-APP_NAME="OracleBatchUpdater"
+APP_NAME="DBForge"
 RELEASE_DIR="release_v${VERSION}"
 DIST_DIR="dist"
 
 echo "========================================"
-echo "构建 Oracle 数据批量修改工具 v${VERSION} 发布包"
+echo "构建 DBForge v${VERSION} 发布包"
 echo "========================================"
 echo ""
 
@@ -76,12 +76,12 @@ cp src/service/__init__.py "${PORTABLE_DIR}/App/src/service/" 2>/dev/null || tru
 cp requirements.txt "${PORTABLE_DIR}/App/"
 
 # 复制模板
-cp "Oracle数据批量修改工具_导入模板.xlsx" "${PORTABLE_DIR}/Data/" 2>/dev/null || true
+cp "DBForge_导入模板.xlsx" "${PORTABLE_DIR}/Data/" 2>/dev/null || true
 
 # 创建 Linux 启动脚本
 cat > "${PORTABLE_DIR}/${APP_NAME}_Portable.sh" << 'EOF'
 #!/bin/bash
-# Oracle 数据批量修改工具 - Linux 便携版启动脚本
+# DBForge - Linux 便携版启动脚本
 
 set -e
 
@@ -99,11 +99,11 @@ fi
 cd "${APP_DIR}"
 
 # 优先使用 PyInstaller 打包的可执行文件
-if [ -x "${APP_DIR}/OracleBatchUpdater" ]; then
-    echo "正在启动 Oracle 数据批量修改工具 (可执行文件模式)..."
-    ./OracleBatchUpdater "$@"
+if [ -x "${APP_DIR}/DBForge" ]; then
+    echo "正在启动 DBForge (可执行文件模式)..."
+    ./DBForge "$@"
 else
-    echo "正在启动 Oracle 数据批量修改工具 (Python 源码模式)..."
+    echo "正在启动 DBForge (Python 源码模式)..."
     python3 "${APP_DIR}/src/main.py" "$@"
 fi
 EOF
@@ -135,7 +135,7 @@ EOF
 # 创建使用说明
 cat > "${PORTABLE_DIR}/README_Portable.txt" << EOF
 ========================================
-Oracle 数据批量修改工具 - Linux 便携版
+DBForge - Linux 便携版
 版本: ${VERSION}
 ========================================
 
@@ -151,7 +151,7 @@ Oracle 数据批量修改工具 - Linux 便携版
 
 3. 数据存储
    - 所有数据保存在 Data 目录
-   - logs: 操作日志
+   - logs: 运行日志
    - backups: 数据备份
    - config: 配置文件
 
@@ -189,8 +189,8 @@ echo "        -> ${RELEASE_DIR}/${APP_NAME}_UserManual_v${VERSION}.chm"
 echo "        -> ${RELEASE_DIR}/${APP_NAME}_UserManual_v${VERSION}.epub"
 
 echo "[4/5] 复制 Excel 导入模板..."
-cp "Oracle数据批量修改工具_导入模板.xlsx" "${RELEASE_DIR}/Oracle数据批量修改工具_导入模板_v${VERSION}.xlsx"
-echo "        -> ${RELEASE_DIR}/Oracle数据批量修改工具_导入模板_v${VERSION}.xlsx"
+cp "DBForge_导入模板.xlsx" "${RELEASE_DIR}/DBForge_导入模板_v${VERSION}.xlsx"
+echo "        -> ${RELEASE_DIR}/DBForge_导入模板_v${VERSION}.xlsx"
 
 echo "[5/5] 复制 RELEASE_NOTES..."
 cp "RELEASE_NOTES_v${VERSION}.txt" "${RELEASE_DIR}/RELEASE_NOTES_v${VERSION}.txt"

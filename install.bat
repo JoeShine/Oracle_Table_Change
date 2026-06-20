@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo Oracle数据批量修改工具 - 依赖安装脚本
+echo DBForge - 依赖安装脚本
 echo ========================================
 echo.
 
@@ -26,6 +26,6 @@ echo ========================================
 echo.
 echo 下一步:
 echo 1. 运行 'python main.py' 启动程序
-echo 2. 或运行 'pyinstaller OracleBatchUpdater.spec' 打包为exe
+echo 2. 或运行 'pyinstaller DBForge.spec' 打包为exe
 echo.
 pause

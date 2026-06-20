@@ -1,18 +1,18 @@
 @echo off
-REM Oracle 数据批量修改工具 - 便携版打包脚本
+REM DBForge - 便携版打包脚本
 REM 适用于 Windows 7, Windows Server 2008 R2 及以上系统
 REM 无需安装，解压即用
 
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo Oracle 数据批量修改工具 - 便携版打包
+echo DBForge - 便携版打包
 echo ========================================
 echo.
 
 REM 设置版本号
 set VERSION=2.8.0
-set APP_NAME=OracleBatchUpdater
+set APP_NAME=DBForge
 set PORTABLE_DIR=%APP_NAME%_Portable_v%VERSION%
 
 REM 创建便携版目录结构
@@ -29,11 +29,11 @@ mkdir "%PORTABLE_DIR%\OracleClient"
 
 REM 复制应用文件
 echo 复制应用文件...
-if exist "dist\OracleBatchUpdater.exe" (
-    copy "dist\OracleBatchUpdater.exe" "%PORTABLE_DIR%\App\" >nul
-    echo   [OK] OracleBatchUpdater.exe
+if exist "dist\DBForge.exe" (
+    copy "dist\DBForge.exe" "%PORTABLE_DIR%\App\" >nul
+    echo   [OK] DBForge.exe
 ) else (
-    echo   [警告] dist\OracleBatchUpdater.exe 不存在，请先运行 package.bat
+    echo   [警告] dist\DBForge.exe 不存在，请先运行 package.bat
 )
 
 REM 复制源代码（备用）
@@ -58,7 +58,7 @@ REM 创建便携版启动脚本
 echo 创建便携版启动脚本...
 (
 echo @echo off
-echo REM Oracle 数据批量修改工具 - 便携版启动脚本
+echo REM DBForge - 便携版启动脚本
 echo REM 无需安装，解压即用
 echo REM 适用于 Windows 7, Windows Server 2008 R2 及以上
 echo.
@@ -75,10 +75,10 @@ echo set PYTHONPATH=%%APP_DIR%%\src
 echo set PATH=%%APP_DIR%%;%%PATH%%
 echo.
 echo REM 检查exe文件
-echo if exist "%%APP_DIR%%\OracleBatchUpdater.exe" (
-echo     echo 正在启动 Oracle 数据批量修改工具...
+echo if exist "%%APP_DIR%%\DBForge.exe" (
+echo     echo 正在启动 DBForge...
 echo     cd /d "%%APP_DIR%%"
-echo     start OracleBatchUpdater.exe
+echo     start DBForge.exe
 echo     goto :end
 echo )
 echo.
@@ -103,14 +103,14 @@ echo     set PATH=%%~dp0OracleClient;%%PATH%%
 echo )
 echo.
 echo REM 启动应用
-echo echo 正在启动 Oracle 数据批量修改工具...
+echo echo 正在启动 DBForge...
 echo cd /d "%%APP_DIR%%"
 echo %%PYTHON_EXE%% main.py
 echo.
 echo :end
 echo endlocal
-) > "%PORTABLE_DIR%\OracleBatchUpdater_Portable.bat"
-echo   [OK] OracleBatchUpdater_Portable.bat
+) > "%PORTABLE_DIR%\DBForge_Portable.bat"
+echo   [OK] DBForge_Portable.bat
 
 REM 创建配置文件模板
 echo 创建配置文件模板...
@@ -141,7 +141,7 @@ REM 创建使用说明
 echo 创建使用说明...
 (
 echo ========================================
-echo Oracle 数据批量修改工具 - 便携版
+echo DBForge - 便携版
 echo 版本: 2.7.0
 echo ========================================
 echo.
@@ -152,12 +152,12 @@ echo    - 无需安装 Python，解压到任意目录即可运行
 echo    - 可放在U盘、网络共享、本地文件夹
 echo.
 echo 2. 启动方式
-echo    - 双击 OracleBatchUpdater_Portable.bat 启动（推荐）
-echo    - 或直接运行 App\OracleBatchUpdater.exe
+echo    - 双击 DBForge_Portable.bat 启动（推荐）
+echo    - 或直接运行 App\DBForge.exe
 echo.
 echo 3. 数据存储
 echo    - 所有数据保存在 Data 目录
-echo    - logs: 操作日志
+echo    - logs: 运行日志
 echo    - backups: 数据备份
 echo    - config: 配置文件
 echo.
@@ -202,7 +202,7 @@ echo 4. 复制 Oracle Instant Client
 echo    将 instantclient_xx_xx 目录复制到 OracleClient
 echo.
 echo 5. 运行
-echo    双击 OracleBatchUpdater_Portable.bat
+echo    双击 DBForge_Portable.bat
 echo.
 echo ========================================
 ) > "%PORTABLE_DIR%\README_FullPortable.txt"
@@ -223,7 +223,7 @@ echo     │   ├── logs\               日志
 echo     │   ├── backups\            备份
 echo     │   └── config\             配置
 echo     ├── OracleClient\           Oracle客户端(可选)
-echo     ├── OracleBatchUpdater_Portable.bat  启动脚本
+echo     ├── DBForge_Portable.bat  启动脚本
 echo     └── README_Portable.txt     使用说明
 echo.
 echo 适用系统:

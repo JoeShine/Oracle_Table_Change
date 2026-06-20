@@ -1,4 +1,4 @@
-Oracle 数据批量修改工具 v2.8.0
+DBForge v2.8.0
 ==================================
 
 发布信息
@@ -38,7 +38,7 @@ v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功�
 - 通知系统: 钉钉/企业微信/Webhook/邮件
 
 四、平台化 (P3)
-- 报表统计 (新!): ImportStats 7 维度统计
+- 统计分析 (新!): ImportStats 7 维度统计
 - DataCompare: 表/Excel 对比 + 差异报告
 - 诊断包: 环境/数据库/配置/日志 四维度
 - 多环境: DEV/TEST/UAT/PROD 一键切换
@@ -48,11 +48,11 @@ v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功�
 
 文件清单
 --------
-1. OracleBatchUpdater_Portable_v2.8.0.zip    - Windows 便携版
-2. OracleBatchUpdater_v2.8.0_linux-x86_64.tar.gz  - Linux 发行版
-3. OracleBatchUpdater_v2.8.0_docker.tar.gz  - Docker 镜像
-4. OracleBatchUpdater_UserManual_v2.8.0.chm  - 帮助文档
-5. Oracle数据批量修改工具_导入模板_v2.8.0.xlsx  - 导入模板
+1. DBForge_Portable_v2.8.0.zip    - Windows 便携版
+2. DBForge_v2.8.0_linux-x86_64.tar.gz  - Linux 发行版
+3. DBForge_v2.8.0_docker.tar.gz  - Docker 镜像
+4. DBForge_UserManual_v2.8.0.chm  - 帮助文档
+5. DBForge_导入模板_v2.8.0.xlsx  - 导入模板
 6. RELEASE_NOTES_v2.8.0.txt  - 本文件
 
 升级说明
@@ -62,9 +62,9 @@ v2.8.0 是 P0/P1/P2/P3 全部改进项的整合发布版，包含 22 项新功�
 3. 审计日志: 使用 `python -m src.cli verify-audit` 验证完整性
 
 Windows:
-   解压 OracleBatchUpdater_Portable_v2.8.0.zip, 双击 OracleBatchUpdater_Portable.bat
+   解压 DBForge_Portable_v2.8.0.zip, 双击 DBForge_Portable.bat
 Linux:
-   tar -xzf OracleBatchUpdater_v2.8.0_linux-x86_64.tar.gz && ./OracleBatchUpdater
+   tar -xzf DBForge_v2.8.0_linux-x86_64.tar.gz && ./DBForge
 Docker:
    docker-compose up -d
 

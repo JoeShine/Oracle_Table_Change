@@ -1,16 +1,16 @@
 #!/bin/bash
-# Oracle 数据批量修改工具 - 便携版打包脚本
+# DBForge - 便携版打包脚本
 # 适用于 Windows 7, Windows Server 2008 R2 及以上系统
 # 无需安装，解压即用
 
 echo "========================================"
-echo "Oracle 数据批量修改工具 - 便携版打包"
+echo "DBForge - 便携版打包"
 echo "========================================"
 echo ""
 
 # 设置版本号
 VERSION="2.8.0"
-APP_NAME="OracleBatchUpdater"
+APP_NAME="DBForge"
 PORTABLE_DIR="${APP_NAME}_Portable_v${VERSION}"
 
 # 创建便携版目录结构
@@ -32,9 +32,9 @@ cp *.xlsx "${PORTABLE_DIR}/Data/" 2>/dev/null || echo "无Excel模板文件"
 
 # 创建便携版启动脚本
 echo "创建便携版启动脚本..."
-cat > "${PORTABLE_DIR}/OracleBatchUpdater_Portable.bat" << 'EOF'
+cat > "${PORTABLE_DIR}/DBForge_Portable.bat" << 'EOF'
 @echo off
-REM Oracle 数据批量修改工具 - 便携版启动脚本
+REM DBForge - 便携版启动脚本
 REM 无需安装，解压即用
 REM 适用于 Windows 7, Windows Server 2008 R2 及以上
 
@@ -51,17 +51,17 @@ set PYTHONPATH=%APP_DIR%\src
 set PATH=%APP_DIR%;%PATH%
 
 REM 方式1: 优先使用 PyInstaller 打包的 exe（无需 Python）
-if exist "%APP_DIR%\OracleBatchUpdater.exe" (
-    echo 正在启动 Oracle 数据批量修改工具 ^(可执行文件模式^)...
+if exist "%APP_DIR%\DBForge.exe" (
+    echo 正在启动 DBForge ^(可执行文件模式^)...
     cd /d "%APP_DIR%"
-    start OracleBatchUpdater.exe
+    start DBForge.exe
     goto :end
 )
 
 REM 方式2: 使用嵌入式 Python（完整便携版，无需安装）
 if exist "%APP_DIR%\python\python.exe" (
     set PYTHON_EXE=%APP_DIR%\python\python.exe
-    echo 正在启动 Oracle 数据批量修改工具 ^(嵌入式 Python 模式^)...
+    echo 正在启动 DBForge ^(嵌入式 Python 模式^)...
     cd /d "%APP_DIR%"
     %PYTHON_EXE% main.py
     goto :end
@@ -71,7 +71,7 @@ REM 方式3: 使用系统 Python（开发/调试模式）
 python --version >nul 2>&1
 if not errorlevel 1 (
     set PYTHON_EXE=python
-    echo 正在启动 Oracle 数据批量修改工具 ^(系统 Python 模式^)...
+    echo 正在启动 DBForge ^(系统 Python 模式^)...
     cd /d "%APP_DIR%"
     %PYTHON_EXE% main.py
     goto :end
@@ -83,7 +83,7 @@ echo   错误: 无法启动应用
 echo ========================================
 echo.
 echo 找不到以下任一启动方式:
-echo   1. App\OracleBatchUpdater.exe ^(推荐，无需 Python^)
+echo   1. App\DBForge.exe ^(推荐，无需 Python^)
 echo   2. App\python\python.exe ^(嵌入式 Python^)
 echo   3. 系统 Python ^(需要 Python 3.7+^)
 echo.
@@ -125,7 +125,7 @@ EOF
 echo "创建使用说明..."
 cat > "${PORTABLE_DIR}/README_Portable.txt" << 'EOF'
 ========================================
-Oracle 数据批量修改工具 - 便携版
+DBForge - 便携版
 版本: 2.8.0
 ========================================
 
@@ -136,12 +136,12 @@ Oracle 数据批量修改工具 - 便携版
    - 可放在U盘、网络共享、本地文件夹
 
 2. 启动方式
-   - 双击 OracleBatchUpdater_Portable.bat 启动（推荐）
-   - 或直接运行 App\OracleBatchUpdater.exe
+   - 双击 DBForge_Portable.bat 启动（推荐）
+   - 或直接运行 App\DBForge.exe
 
 3. 数据存储
    - 所有数据保存在 Data 目录
-   - logs: 操作日志
+   - logs: 运行日志
    - backups: 数据备份
    - config: 配置文件
 
@@ -185,7 +185,7 @@ cat > "${PORTABLE_DIR}/README_FullPortable.txt" << 'EOF'
    将 instantclient_xx_xx 目录复制到 OracleClient
 
 5. 运行
-   双击 OracleBatchUpdater_Portable.bat
+   双击 DBForge_Portable.bat
 
 ========================================
 EOF
@@ -208,7 +208,7 @@ echo "    │   ├── logs/               日志"
 echo "    │   ├── backups/            备份"
 echo "    │   └── config/             配置"
 echo "    ├── OracleClient/           Oracle客户端(可选)"
-echo "    ├── OracleBatchUpdater_Portable.bat  启动脚本"
+echo "    ├── DBForge_Portable.bat  启动脚本"
 echo "    └── README_Portable.txt     使用说明"
 echo ""
 echo "适用系统:"

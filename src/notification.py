@@ -103,7 +103,7 @@ class NotificationManager:
                 "text": (
                     f"## {title}\n\n"
                     f"{message}\n\n"
-                    f"> OracleBatchUpdater v{self._get_version()}"
+                    f"> DBForge v{self._get_version()}"
                 ),
             },
         }
@@ -133,7 +133,7 @@ class NotificationManager:
                 "content": (
                     f"## {title}\n"
                     f"{message}\n"
-                    f"> OracleBatchUpdater"
+                    f"> DBForge"
                 ),
             },
         }
@@ -162,7 +162,7 @@ class NotificationManager:
             "message": message,
             "level": level,
             "timestamp": datetime.now().isoformat(),
-            "source": "OracleBatchUpdater",
+            "source": "DBForge",
         }
 
         req = urllib.request.Request(
@@ -189,7 +189,7 @@ class NotificationManager:
             return False
 
         msg = MIMEText(message, "plain", "utf-8")
-        msg["Subject"] = f"[OracleBatchUpdater] {title}"
+        msg["Subject"] = f"[DBForge] {title}"
         msg["From"] = username
         msg["To"] = ", ".join(to_emails)
 
